@@ -1,7 +1,7 @@
 import copy
 
 import pytest
-from langflow.graph.graph import utils
+from langbuilder.graph.graph import utils
 
 
 @pytest.fixture

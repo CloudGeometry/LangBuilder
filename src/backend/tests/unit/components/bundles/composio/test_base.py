@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
-from langflow.base.composio.composio_base import ComposioBaseComponent
+from langbuilder.base.composio.composio_base import ComposioBaseComponent
 
 from tests.base import DID_NOT_EXIST, ComponentTestBaseWithoutClient
 
@@ -29,7 +29,7 @@ class TestComposioBase(ComponentTestBaseWithoutClient):
 
     @pytest.fixture(autouse=True)
     def mock_composio_toolset(self):
-        with patch("langflow.base.composio.composio_base.ComposioToolSet", MockComposioToolSet):
+        with patch("langbuilder.base.composio.composio_base.ComposioToolSet", MockComposioToolSet):
             yield
 
     @pytest.fixture

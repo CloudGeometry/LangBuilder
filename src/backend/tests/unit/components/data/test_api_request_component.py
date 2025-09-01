@@ -6,9 +6,9 @@ import httpx
 import pytest
 import respx
 from httpx import Response
-from langflow.components.data import APIRequestComponent
-from langflow.schema import Data
-from langflow.schema.dotdict import dotdict
+from langbuilder.components.data import APIRequestComponent
+from langbuilder.schema import Data
+from langbuilder.schema.dotdict import dotdict
 
 from tests.base import ComponentTestBaseWithoutClient
 

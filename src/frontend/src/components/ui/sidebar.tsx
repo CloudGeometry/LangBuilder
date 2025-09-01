@@ -2,7 +2,7 @@
 
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
-import LangflowLogo from "@/assets/LangflowLogo.svg?react";
+import LangbuilderLogo from "@/assets/LangbuilderLogo.svg?react";
 import * as React from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -296,7 +296,7 @@ const SidebarTrigger = React.forwardRef<
         props.children
       ) : (
         <>
-          <LangflowLogo className="h-4 w-4" />
+          <LangbuilderLogo className="h-4 w-4" />
           <span className="sr-only">Toggle Sidebar</span>
         </>
       )}

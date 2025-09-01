@@ -11,13 +11,13 @@ import anyio
 import pytest
 from asgi_lifespan import LifespanManager
 from httpx import ASGITransport, AsyncClient
-from langflow.main import create_app
-from langflow.services.auth.utils import get_password_hash
-from langflow.services.database.models.api_key.model import ApiKey
-from langflow.services.database.models.flow.model import Flow, FlowCreate
-from langflow.services.database.models.user.model import User, UserRead
-from langflow.services.database.utils import session_getter
-from langflow.services.deps import get_db_service
+from langbuilder.main import create_app
+from langbuilder.services.auth.utils import get_password_hash
+from langbuilder.services.database.models.api_key.model import ApiKey
+from langbuilder.services.database.models.flow.model import Flow, FlowCreate
+from langbuilder.services.database.models.user.model import User, UserRead
+from langbuilder.services.database.utils import session_getter
+from langbuilder.services.deps import get_db_service
 from sqlalchemy.orm import selectinload
 from sqlmodel import select
 
@@ -99,14 +99,14 @@ async def files_flow(
 
 @pytest.fixture
 def max_file_size_upload_fixture(monkeypatch):
-    monkeypatch.setenv("LANGFLOW_MAX_FILE_SIZE_UPLOAD", "1")
+    monkeypatch.setenv("LANGBUILDER_MAX_FILE_SIZE_UPLOAD", "1")
     yield
     monkeypatch.undo()
 
 
 @pytest.fixture
 def max_file_size_upload_10mb_fixture(monkeypatch):
-    monkeypatch.setenv("LANGFLOW_MAX_FILE_SIZE_UPLOAD", "10")
+    monkeypatch.setenv("LANGBUILDER_MAX_FILE_SIZE_UPLOAD", "10")
     yield
     monkeypatch.undo()
 
@@ -124,9 +124,9 @@ async def files_client_fixture(
         def init_app():
             db_dir = tempfile.mkdtemp()
             db_path = Path(db_dir) / "test.db"
-            monkeypatch.setenv("LANGFLOW_DATABASE_URL", f"sqlite:///{db_path}")
-            monkeypatch.setenv("LANGFLOW_AUTO_LOGIN", "false")
-            from langflow.services.manager import service_manager
+            monkeypatch.setenv("LANGBUILDER_DATABASE_URL", f"sqlite:///{db_path}")
+            monkeypatch.setenv("LANGBUILDER_AUTO_LOGIN", "false")
+            from langbuilder.services.manager import service_manager
 
             service_manager.factories.clear()
             service_manager.services.clear()  # Clear the services cache

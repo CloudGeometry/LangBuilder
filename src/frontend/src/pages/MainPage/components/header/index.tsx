@@ -1,6 +1,6 @@
 import { debounce } from "lodash";
 import { useCallback, useEffect, useState } from "react";
-import LangflowLogo from "@/assets/LangflowLogo.svg?react";
+import LangbuilderLogo from "@/assets/LangbuilderLogo.svg?react";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import ShadTooltip from "@/components/common/shadTooltipComponent";
 import { Button } from "@/components/ui/button";
@@ -101,7 +101,7 @@ const HeaderComponent = ({
         <div className="h-7 w-10 transition-all group-data-[open=true]/sidebar-wrapper:md:w-0 lg:hidden">
           <div className="relative left-0 opacity-100 transition-all group-data-[open=true]/sidebar-wrapper:md:opacity-0">
             <SidebarTrigger>
-              <LangflowLogo
+              <LangbuilderLogo
                 aria-hidden="true"
                 className="h-4 w-4"
               />

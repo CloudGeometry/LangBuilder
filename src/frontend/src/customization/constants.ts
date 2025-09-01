@@ -1,2 +1,2 @@
-//Langflow Desktop Base URL
+//Langbuilder Desktop Base URL
 export const baseURL = "";

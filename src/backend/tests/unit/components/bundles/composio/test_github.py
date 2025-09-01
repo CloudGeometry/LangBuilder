@@ -2,8 +2,8 @@ from unittest.mock import patch
 
 import pytest
 from composio import Action
-from langflow.components.composio.github_composio import ComposioGitHubAPIComponent
-from langflow.schema.dataframe import DataFrame
+from langbuilder.components.composio.github_composio import ComposioGitHubAPIComponent
+from langbuilder.schema.dataframe import DataFrame
 
 from tests.base import DID_NOT_EXIST, ComponentTestBaseWithoutClient
 
@@ -19,7 +19,7 @@ class MockAction:
 class TestGitHubComponent(ComponentTestBaseWithoutClient):
     @pytest.fixture(autouse=True)
     def mock_composio_toolset(self):
-        with patch("langflow.base.composio.composio_base.ComposioToolSet", MockComposioToolSet):
+        with patch("langbuilder.base.composio.composio_base.ComposioToolSet", MockComposioToolSet):
             yield
 
     @pytest.fixture
@@ -64,8 +64,8 @@ class TestGitHubComponent(ComponentTestBaseWithoutClient):
         component = component_class(**default_kwargs)
         component.api_key = "test_key"
         component.action = [{"name": "Star A Repository"}]
-        component.GITHUB_STAR_A_REPOSITORY_FOR_THE_AUTHENTICATED_USER_owner = "langflow-ai"
-        component.GITHUB_STAR_A_REPOSITORY_FOR_THE_AUTHENTICATED_USER_repo = "langflow"
+        component.GITHUB_STAR_A_REPOSITORY_FOR_THE_AUTHENTICATED_USER_owner = "langbuilder-ai"
+        component.GITHUB_STAR_A_REPOSITORY_FOR_THE_AUTHENTICATED_USER_repo = "langbuilder"
 
         # For this specific test, customize the _actions_data to not use get_result_field
         component._actions_data = {
@@ -90,8 +90,8 @@ class TestGitHubComponent(ComponentTestBaseWithoutClient):
         component = component_class(**default_kwargs)
         component.api_key = "test_key"
         component.action = [{"name": "List Branches"}]
-        component.GITHUB_LIST_BRANCHES_owner = "langflow-ai"
-        component.GITHUB_LIST_BRANCHES_repo = "langflow"
+        component.GITHUB_LIST_BRANCHES_owner = "langbuilder-ai"
+        component.GITHUB_LIST_BRANCHES_repo = "langbuilder"
 
         # For this specific test, customize the _actions_data to not use get_result_field
         component._actions_data = {
@@ -119,8 +119,8 @@ class TestGitHubComponent(ComponentTestBaseWithoutClient):
         component = component_class(**default_kwargs)
         component.api_key = "test_key"
         component.action = [{"name": "List Repository Issues"}]
-        component.GITHUB_LIST_REPOSITORY_ISSUES_owner = "langflow-ai"
-        component.GITHUB_LIST_REPOSITORY_ISSUES_repo = "langflow"
+        component.GITHUB_LIST_REPOSITORY_ISSUES_owner = "langbuilder-ai"
+        component.GITHUB_LIST_REPOSITORY_ISSUES_repo = "langbuilder"
 
         # For this specific test, customize the _actions_data to not use get_result_field
         component._actions_data = {

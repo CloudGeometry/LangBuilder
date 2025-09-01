@@ -1,5 +1,5 @@
 import pytest
-from langflow.utils.connection_string_parser import transform_connection_string
+from langbuilder.utils.connection_string_parser import transform_connection_string
 
 
 @pytest.mark.parametrize(

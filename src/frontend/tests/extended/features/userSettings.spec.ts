@@ -174,8 +174,8 @@ test(
     await page.goto("/");
     await page.getByTestId("user-profile-settings").click();
     await page.getByText("Settings").click();
-    await page.getByText("Langflow API").first().click();
-    await page.getByText("Langflow API", { exact: true }).nth(1).isVisible();
+    await page.getByText("Langbuilder API").first().click();
+    await page.getByText("Langbuilder API", { exact: true }).nth(1).isVisible();
     await page.getByText("Add New").click();
     await page.getByPlaceholder("My API Key").isVisible();
 

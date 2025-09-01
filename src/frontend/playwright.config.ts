@@ -104,11 +104,11 @@ export default defineConfig({
   webServer: [
     {
       command:
-        "uv run uvicorn --factory langflow.main:create_app --host localhost --port 7860 --loop asyncio",
+        "uv run uvicorn --factory langbuilder.main:create_app --host localhost --port 7860 --loop asyncio",
       port: 7860,
       env: {
-        LANGFLOW_DATABASE_URL: "sqlite:///./temp",
-        LANGFLOW_AUTO_LOGIN: "true",
+        LANGBUILDER_DATABASE_URL: "sqlite:///./temp",
+        LANGBUILDER_AUTO_LOGIN: "true",
       },
       stdout: "ignore",
 

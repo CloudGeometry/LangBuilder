@@ -1,6 +1,6 @@
 import { Background, Panel } from "@xyflow/react";
 import { memo } from "react";
-import LangflowLogo from "@/assets/LangflowLogo.svg?react";
+import LangbuilderLogo from "@/assets/LangbuilderLogo.svg?react";
 import CanvasControls, {
   CustomControlButton,
 } from "@/components/core/canvasControlsComponent";
@@ -56,7 +56,7 @@ export const MemoizedSidebarTrigger = memo(() => (
     position="top-left"
   >
     <SidebarTrigger className="h-fit w-fit px-3 py-1.5">
-      <LangflowLogo className="h-4 w-4" />
+      <LangbuilderLogo className="h-4 w-4" />
       <span className="text-foreground">Components</span>
     </SidebarTrigger>
   </Panel>

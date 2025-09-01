@@ -5,7 +5,7 @@ slug: /components-processing
 
 import Icon from "@site/src/components/icon";
 
-Langflow's **Processing** components process and transform data within a flow.
+Langbuilder's **Processing** components process and transform data within a flow.
 They have many uses, including:
 
 * Feed instructions and context to your LLMs and agents with the [**Prompt Template** component](#prompt-template).
@@ -100,9 +100,9 @@ For this example, select the **Select Keys** operation to extract specific user 
 5. To test the flow, send the following request to your flow's webhook endpoint, and then open the **Playground** to see the resulting output from processing the payload.
 
     ```bash
-    curl -X POST "http://$LANGFLOW_SERVER_URL/api/v1/webhook/$FLOW_ID" \
+    curl -X POST "http://$LANGBUILDER_SERVER_URL/api/v1/webhook/$FLOW_ID" \
     -H "Content-Type: application/json" \
-    -H "x-api-key: $LANGFLOW_API_KEY" \
+    -H "x-api-key: $LANGBUILDER_API_KEY" \
     -d '{
       "id": 1,
       "name": "Leanne Graham",
@@ -284,7 +284,7 @@ Your input is the task that the LLM router evaluates the models against, such as
     ```text
     Model Selection Decision:
     - Selected Model Index: 0
-    - Selected Langflow Model Name: gpt-4o-mini
+    - Selected Langbuilder Model Name: gpt-4o-mini
     - Selected API Model ID (if resolved): openai/gpt-4o-mini
     - Optimization Preference: cost
     - Input Query Length: 27 characters (~5 tokens)
@@ -460,7 +460,7 @@ This example expects **Data** from the **Webhook**.
 3. In the **File Format** field, select the file type for your saved file.
 This example uses `.md` in one **Save to File** component, and `.xlsx` in another.
 4. In the **File Path** field, enter the path for your saved file.
-This example uses `./output/employees.xlsx` and `./output/employees.md` to save the files in a directory relative to where Langflow is running.
+This example uses `./output/employees.xlsx` and `./output/employees.md` to save the files in a directory relative to where Langbuilder is running.
 The component accepts both relative and absolute paths, and creates any necessary directories if they don't exist.
 :::tip
 If the `file_format` and `file_path` extension don't align, the component appends the specified format to the file.
@@ -468,11 +468,11 @@ For example, if the `file_format` is `csv`, and the `file_path` is `./output/tes
 :::
 5. Send a POST request to the **Webhook** containing your JSON data.
 Replace `YOUR_FLOW_ID` with your flow ID.
-This example uses the default Langflow server address.
+This example uses the default Langbuilder server address.
 ```text
 curl -X POST "http://127.0.0.1:7860/api/v1/webhook/YOUR_FLOW_ID" \
 -H 'Content-Type: application/json' \
--H 'x-api-key: LANGFLOW_API_KEY' \
+-H 'x-api-key: LANGBUILDER_API_KEY' \
 -d '{
     "Name": ["Alex Cruz", "Kalani Smith", "Noam Johnson"],
     "Role": ["Developer", "Designer", "Manager"],
@@ -532,7 +532,7 @@ For `Message` inputs, the component can create:
 
 ## Smart Function
 
-In Langflow version 1.5, this component was renamed from **Lambda Filter** to **Smart Function**.
+In Langbuilder version 1.5, this component was renamed from **Lambda Filter** to **Smart Function**.
 
 This component uses an LLM to generate a function for filtering or transforming structured data.
 

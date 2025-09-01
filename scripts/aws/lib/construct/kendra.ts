@@ -47,7 +47,7 @@ export class Rag extends Construct {
       );
 
       const index = new kendra.CfnIndex(this, 'KendraIndex', {
-        name: 'langflow-index',
+        name: 'langbuilder-index',
         edition: 'DEVELOPER_EDITION',
         roleArn: indexRole.roleArn,
       });

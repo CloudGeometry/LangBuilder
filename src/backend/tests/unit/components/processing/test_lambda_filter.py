@@ -1,8 +1,8 @@
 from unittest.mock import AsyncMock
 
 import pytest
-from langflow.components.processing.lambda_filter import LambdaFilterComponent
-from langflow.schema import Data
+from langbuilder.components.processing.lambda_filter import LambdaFilterComponent
+from langbuilder.schema import Data
 
 from tests.base import ComponentTestBaseWithoutClient
 

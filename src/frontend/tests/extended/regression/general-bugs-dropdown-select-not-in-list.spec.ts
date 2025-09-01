@@ -31,7 +31,7 @@ test(
     await page.getByTestId("dropdown_search_input").click();
     await page
       .getByTestId("dropdown_search_input")
-      .fill("this is a test langflow");
+      .fill("this is a test langbuilder");
     await page.keyboard.press("Enter");
 
     await page.waitForTimeout(500);
@@ -39,7 +39,7 @@ test(
     let value = await page
       .getByTestId("value-dropdown-dropdown_str_model_name")
       .textContent();
-    expect(value?.trim()).toBe("this is a test langflow");
+    expect(value?.trim()).toBe("this is a test langbuilder");
 
     await page.getByTestId("generic-node-title-arrangement").click();
     await page.keyboard.press("Delete");
@@ -55,7 +55,7 @@ test(
     await page.getByTestId("dropdown_search_input").click();
     await page
       .getByTestId("dropdown_search_input")
-      .fill("this is a test langflow");
+      .fill("this is a test langbuilder");
     await page.keyboard.press("Enter");
 
     await page.waitForTimeout(500);
@@ -63,13 +63,13 @@ test(
     value = await page
       .getByTestId("value-dropdown-dropdown_str_model_name")
       .textContent();
-    expect(value?.trim()).toBe("this is a test langflow");
+    expect(value?.trim()).toBe("this is a test langbuilder");
 
     await page.getByTestId("dropdown_str_model_name").click();
 
     expect(await page.getByText("ollama").count()).toBe(0);
     expect(await page.getByText("claude").count()).toBe(0);
-    expect(await page.getByText("this is a test langflow").count()).toBe(2);
+    expect(await page.getByText("this is a test langbuilder").count()).toBe(2);
     expect(await page.getByText("gpt").count()).toBeGreaterThanOrEqual(1);
 
     await page.waitForTimeout(500);
@@ -90,7 +90,7 @@ test(
     expect(await page.getByText("llama").count()).toBe(0);
     expect(await page.getByText("claude").count()).toBeGreaterThanOrEqual(1);
     expect(
-      await page.getByText("this is a test langflow", { exact: true }).count(),
+      await page.getByText("this is a test langbuilder", { exact: true }).count(),
     ).toBe(0);
     expect(await page.getByText("gpt").count()).toBe(0);
 
@@ -112,7 +112,7 @@ test(
     expect(await page.getByText("llama").count()).toBeGreaterThanOrEqual(0);
     expect(await page.getByText("claude").count()).toBe(0);
     expect(
-      await page.getByText("this is a test langflow", { exact: true }).count(),
+      await page.getByText("this is a test langbuilder", { exact: true }).count(),
     ).toBe(0);
     expect(await page.getByText("gpt").count()).toBe(0);
   },

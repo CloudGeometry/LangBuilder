@@ -9,17 +9,17 @@ const isProduction = process.env.NODE_ENV === "production";
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: "Langflow Documentation",
+  title: "Langbuilder Documentation",
   tagline:
-    "Langflow is a low-code app builder for RAG and multi-agent AI applications.",
+    "Langbuilder is a low-code app builder for RAG and multi-agent AI applications.",
   favicon: "img/favicon.ico",
-  url: "https://docs.langflow.org",
+  url: "https://docs.langbuilder.org",
   baseUrl: process.env.BASE_URL ? process.env.BASE_URL : "/",
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",
   onBrokenAnchors: "warn",
-  organizationName: "langflow-ai",
-  projectName: "langflow",
+  organizationName: "langbuilder-ai",
+  projectName: "langbuilder",
   trailingSlash: false,
   staticDirectories: ["static"],
   i18n: {
@@ -40,7 +40,7 @@ const config = {
           {
             tagName: "script",
             attributes: {},
-            innerHTML: `!function(){window.semaphore=window.semaphore||[],window.ketch=function(){window.semaphore.push(arguments)};var e=document.createElement("script");e.type="text/javascript",e.src="https://global.ketchcdn.com/web/v3/config/datastax/langflow_org_web/boot.js",e.defer=e.async=!0,document.getElementsByTagName("head")[0].appendChild(e)}();`,
+            innerHTML: `!function(){window.semaphore=window.semaphore||[],window.ketch=function(){window.semaphore.push(arguments)};var e=document.createElement("script");e.type="text/javascript",e.src="https://global.ketchcdn.com/web/v3/config/datastax/langbuilder_org_web/boot.js",e.defer=e.async=!0,document.getElementsByTagName("head")[0].appendChild(e)}();`,
           },
           // Ketch jurisdiction dynamic link and GA4 consent tracking
           {
@@ -137,14 +137,14 @@ const config = {
       selectors: [
         {
           selector: 'h1, h2, h3, h4, h5, h6',
-          eventName: 'Docs.langflow.org - Heading Viewed',
+          eventName: 'Docs.langbuilder.org - Heading Viewed',
           properties: {
             element_type: 'heading'
           }
         },
         {
           selector: '.ch-codeblock',
-          eventName: 'Docs.langflow.org - Codeblock Viewed',
+          eventName: 'Docs.langbuilder.org - Codeblock Viewed',
           properties: {
             element_type: 'code',
             language: 'helper:codeLanguage'
@@ -159,9 +159,9 @@ const config = {
           {
             to: "/",
             from: [
-              "/whats-new-a-new-chapter-langflow",
-              "/👋 Welcome-to-Langflow",
-              "/getting-started-welcome-to-langflow",
+              "/whats-new-a-new-chapter-langbuilder",
+              "/👋 Welcome-to-Langbuilder",
+              "/getting-started-welcome-to-langbuilder",
               "/guides-new-to-llms",
             ],
           },
@@ -300,11 +300,11 @@ const config = {
           },
           {
             to: "/bundles-google",
-            from: "/integrations-setup-google-oauth-langflow",
+            from: "/integrations-setup-google-oauth-langbuilder",
           },
           {
             to: "/bundles-vertexai",
-            from: "/integrations-setup-google-cloud-vertex-ai-langflow",
+            from: "/integrations-setup-google-cloud-vertex-ai-langbuilder",
           },
           {
             to: "/develop-application",
@@ -341,7 +341,7 @@ const config = {
       navbar: {
         hideOnScroll: true,
         logo: {
-          alt: "Langflow",
+          alt: "Langbuilder",
           src: "img/lf-docs-light.svg",
           srcDark: "img/lf-docs-dark.svg",
         },
@@ -349,20 +349,20 @@ const config = {
           // right
           {
             position: "right",
-            href: "https://github.com/langflow-ai/langflow",
+            href: "https://github.com/langbuilder-ai/langbuilder",
             className: "header-github-link",
             target: "_blank",
             rel: null,
-            'data-event': 'Docs.langflow.org - Social Clicked',
+            'data-event': 'Docs.langbuilder.org - Social Clicked',
             'data-platform': 'github'
           },
           {
             position: "right",
-            href: "https://twitter.com/langflow_ai",
+            href: "https://twitter.com/langbuilder_ai",
             className: "header-twitter-link",
             target: "_blank",
             rel: null,
-            'data-event': 'Docs.langflow.org - Social Clicked',
+            'data-event': 'Docs.langbuilder.org - Social Clicked',
             'data-platform': 'x'
           },
           {
@@ -371,7 +371,7 @@ const config = {
             className: "header-discord-link",
             target: "_blank",
             rel: null,
-            'data-event': 'Docs.langflow.org - Social Clicked',
+            'data-event': 'Docs.langbuilder.org - Social Clicked',
             'data-platform': 'discord'
           },
         ],
@@ -401,7 +401,7 @@ const config = {
       },
       footer: {
         logo: {
-          alt: "Langflow",
+          alt: "Langbuilder",
           src: "img/lf-docs-light.svg",
           srcDark: "img/lf-docs-dark.svg",
           width: 160,
@@ -413,8 +413,8 @@ const config = {
             items: [
               {
                 html: `<div class="footer-links">
-                  <span>© ${new Date().getFullYear()} Langflow</span>
-                  <span id="preferenceCenterContainer"> ·&nbsp; <a href="https://langflow.org/preferences">Manage Privacy Choices</a></span>
+                  <span>© ${new Date().getFullYear()} Langbuilder</span>
+                  <span id="preferenceCenterContainer"> ·&nbsp; <a href="https://langbuilder.org/preferences">Manage Privacy Choices</a></span>
                   </div>`,
               },
             ],
@@ -425,7 +425,7 @@ const config = {
         appId: "UZK6BDPCVY",
         // public key, safe to commit
         apiKey: "adbd7686dceb1cd510d5ce20d04bf74c",
-        indexName: "langflow",
+        indexName: "langbuilder",
         contextualSearch: true,
         searchParameters: {},
         searchPagePath: "search",

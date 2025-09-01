@@ -5,22 +5,22 @@ slug: /concepts-file-management
 
 import Icon from "@site/src/components/icon";
 
-Each Langflow server has a file management system where you can store files that you want to use in your flows.
+Each Langbuilder server has a file management system where you can store files that you want to use in your flows.
 
-Files uploaded to Langflow file management are stored locally to your Langflow server, and they are available to all of your flows.
+Files uploaded to Langbuilder file management are stored locally to your Langbuilder server, and they are available to all of your flows.
 
-Uploading files to Langflow file management keeps your files in a central location, and allows you to reuse files across flows without repeated manual uploads.
+Uploading files to Langbuilder file management keeps your files in a central location, and allows you to reuse files across flows without repeated manual uploads.
 
 ## Use the file management UI
 
-You can use the file management UI to upload files from your local machine to your own Langflow server.
-You can also manage all files that have been uploaded to your Langflow server.
+You can use the file management UI to upload files from your local machine to your own Langbuilder server.
+You can also manage all files that have been uploaded to your Langbuilder server.
 
-1. Navigate to Langflow file management:
+1. Navigate to Langbuilder file management:
 
-    * In Langflow, on the [**Projects** page](/concepts-flows#projects) page, click **My Files** below the list of projects.
-    * From a browser, navigate to your Langflow server's `/files` endpoint, such as `http://localhost:7860/files`. Modify the base URL as needed for your Langflow server.
-    * For programmatic file management, use the [Langflow API files endpoints](/api-files). However, the following steps assume you're using the file management UI.
+    * In Langbuilder, on the [**Projects** page](/concepts-flows#projects) page, click **My Files** below the list of projects.
+    * From a browser, navigate to your Langbuilder server's `/files` endpoint, such as `http://localhost:7860/files`. Modify the base URL as needed for your Langbuilder server.
+    * For programmatic file management, use the [Langbuilder API files endpoints](/api-files). However, the following steps assume you're using the file management UI.
 
 2. On the **My Files** page, click **Upload**.
 
@@ -34,15 +34,15 @@ You can delete multiple files in a single action.
 * To download a file, hover over a file's icon, select it, and then click <Icon name="Download" aria-hidden="true"/> **Download**.
 If you download multiple files in a single action, they are saved together in a zip file.
 
-## Upload and manage files with the Langflow API
+## Upload and manage files with the Langbuilder API
 
-With the Langflow API, you can upload and manage files in Langflow file management, and you can send files to flows programmatically at runtime.
+With the Langbuilder API, you can upload and manage files in Langbuilder file management, and you can send files to flows programmatically at runtime.
 
 For more information and examples, see [Files endpoints](/api-files) and [Create a chatbot that can ingest files](/chat-with-files).
 
 ## Use files in a flow
 
-To use files in your Langflow file management system in a flow, add a component that accepts file input to your flow, such as the **File** component.
+To use files in your Langbuilder file management system in a flow, add a component that accepts file input to your flow, such as the **File** component.
 
 For example, add a **File** component to your flow, click **Select files**, and then select files from the **My Files** list.
 
@@ -58,7 +58,7 @@ For an example, see [Create a chatbot that can ingest files](/chat-with-files).
 
 ## Upload images
 
-Langflow supports base64 images in the following formats:
+Langbuilder supports base64 images in the following formats:
 
 * PNG
 * JPG/JPEG
@@ -66,16 +66,16 @@ Langflow supports base64 images in the following formats:
 * BMP
 * WebP
 
-You can upload images to the **Playground** chat interface and as runtime input with the Langflow API.
+You can upload images to the **Playground** chat interface and as runtime input with the Langbuilder API.
 
 * In the **Playground**, you can drag-and-drop images into the chat input area, or you can click the **Attach image** icon to select an image to upload.
 
 * When you trigger a flow with the `/api/v1/run/$FLOW_ID` endpoint, you can use the `files` parameter to attach image data as a base64-encoded string:
 
    ```bash
-   curl -X POST "http://$LANGFLOW_SERVER_ADDRESS/api/v1/run/$FLOW_ID" \
+   curl -X POST "http://$LANGBUILDER_SERVER_ADDRESS/api/v1/run/$FLOW_ID" \
    -H "Content-Type: application/json" \
-   -H "x-api-key: $LANGFLOW_API_KEY" \
+   -H "x-api-key: $LANGBUILDER_API_KEY" \
    -d '{
       "session_id": "custom_session_123",
       "input_value": "What is in this image?",
@@ -89,7 +89,7 @@ For more specialized image processing, browse third-party [bundles](/components-
 
 ## Work with video files
 
-For videos, see the **Twelve Labs** and **YouTube** [bundles](/components-bundle-components) in the Langflow **Components** menu.
+For videos, see the **Twelve Labs** and **YouTube** [bundles](/components-bundle-components) in the Langbuilder **Components** menu.
 
 ## Set the maximum file size
 

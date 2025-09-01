@@ -1,3 +1,3 @@
-FROM langflowai/langflow:latest
+FROM langbuilderai/langbuilder:latest
 
-ENTRYPOINT ["python", "-m", "langflow", "run"]
+ENTRYPOINT ["python", "-m", "langbuilder", "run"]

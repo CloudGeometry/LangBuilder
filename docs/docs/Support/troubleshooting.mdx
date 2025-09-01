@@ -1,25 +1,25 @@
 ---
-title: Troubleshoot Langflow
+title: Troubleshoot Langbuilder
 slug: /troubleshoot
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-This page provides troubleshooting advice for issues you might encounter when using Langflow or contributing to Langflow.
+This page provides troubleshooting advice for issues you might encounter when using Langbuilder or contributing to Langbuilder.
 
 ## Missing components
 
-As Langflow development continues, components are often recategorized or deprecated for better alignment or to prepare for new components.
+As Langbuilder development continues, components are often recategorized or deprecated for better alignment or to prepare for new components.
 
 If a component appears to be missing from the expected location on the **Components** menu, try the following:
 
 * Search for the component or check other component categories, including [bundles](/components-bundle-components).
 * [Expose legacy components](/concepts-components#component-menus), which are hidden by default.
-* Check the [Changelog](https://github.com/langflow-ai/langflow/releases/latest) for component changes in recent releases.
+* Check the [Changelog](https://github.com/langbuilder-ai/langbuilder/releases/latest) for component changes in recent releases.
 * Make sure the component isn't already present in your flow if it is a single-use component.
 
-If you still cannot locate the component, see [Langflow GitHub Issues and Discussions](/contributing-github-issues).
+If you still cannot locate the component, see [Langbuilder GitHub Issues and Discussions](/contributing-github-issues).
 
 ## No input in the Playground
 
@@ -34,26 +34,26 @@ For more information, see [Test flows in the Playground](/concepts-playground).
 If you get an API key error when running a flow, try the following:
 
 * For all components that require credentials, make sure those components have a valid credential in the component's settings, such as the **API Key** field.
-* If you store your credentials in [Langflow global variables](/configuration-global-variables), make sure you selected the correct global variable and that the variable contains a valid credential.
+* If you store your credentials in [Langbuilder global variables](/configuration-global-variables), make sure you selected the correct global variable and that the variable contains a valid credential.
 * Make sure the provided credentials are active, have the required permissions, and, if applicable, have sufficient funds in the account to execute the required action. For example, model providers require credits to use their LLMs.
 
-## Langflow installation issues
+## Langbuilder installation issues
 
-The following issues can occur when installing Langflow.
+The following issues can occur when installing Langbuilder.
 
-### Langflow installation freezes at pip dependency resolution
+### Langbuilder installation freezes at pip dependency resolution
 
-Installing Langflow OSS with `pip install langflow` slowly fails with this error message:
+Installing Langbuilder OSS with `pip install langbuilder` slowly fails with this error message:
 
 ```text
 pip is looking at multiple versions of <<library>> to determine which version is compatible with other requirements. This could take a while.
 ```
 
-To work around this issue, install Langflow with `uv` instead of `pip`, as explained in [Install and run the Langflow OSS Python package](/get-started-installation#install-and-run-the-langflow-oss-python-package).
+To work around this issue, install Langbuilder with `uv` instead of `pip`, as explained in [Install and run the Langbuilder OSS Python package](/get-started-installation#install-and-run-the-langbuilder-oss-python-package).
 
 ### Linux installation fails to build required package
 
-When you try to install Langflow OSS on Linux, installation fails because of outdated or missing packages:
+When you try to install Langbuilder OSS on Linux, installation fails because of outdated or missing packages:
 
 ```bash
 Resolved 455 packages in 18.92s
@@ -62,14 +62,14 @@ Resolved 455 packages in 18.92s
   ╰─▶ Call to `setuptools.build_meta:__legacy__.build_wheel` failed (exit status: 1)
 ```
 
-To resolve this error, install the required build dependencies, and then retry the Langflow installation:
+To resolve this error, install the required build dependencies, and then retry the Langbuilder installation:
 
 ```bash
 sudo apt-get update
 sudo apt-get install build-essential python3-dev
 ```
 
-If upgrading your packages doesn't fix the issue, install `gcc` separately, and then retry the Langflow installation:
+If upgrading your packages doesn't fix the issue, install `gcc` separately, and then retry the Langbuilder installation:
 
 ```bash
 sudo apt-get install gcc
@@ -77,74 +77,74 @@ sudo apt-get install gcc
 
 ### Installation failure from `webrtcvad` package
 
-If you experience an error from the `webrtcvad` package, run `uv pip install webrtcvad-wheels` in your virtual environment, and then retry the Langflow installation.
+If you experience an error from the `webrtcvad` package, run `uv pip install webrtcvad-wheels` in your virtual environment, and then retry the Langbuilder installation.
 
-### C++ build tools required for Langflow Desktop on Windows
+### C++ build tools required for Langbuilder Desktop on Windows
 
-Microsoft Windows installations of Langflow Desktop require a C++ compiler that may not be present on your system. If you receive a `C++ Build Tools Required!` error, follow the on-screen prompt to install Microsoft C++ Build Tools, or [install Microsoft Visual Studio](https://visualstudio.microsoft.com/downloads/).
+Microsoft Windows installations of Langbuilder Desktop require a C++ compiler that may not be present on your system. If you receive a `C++ Build Tools Required!` error, follow the on-screen prompt to install Microsoft C++ Build Tools, or [install Microsoft Visual Studio](https://visualstudio.microsoft.com/downloads/).
 
-## Langflow startup issues
+## Langbuilder startup issues
 
-The following issues can occur when attempting to start Langflow.
+The following issues can occur when attempting to start Langbuilder.
 
-### No `langflow.__main__` module
+### No `langbuilder.__main__` module
 
-When you try to run Langflow with the command `langflow run`, you encounter the following error:
+When you try to run Langbuilder with the command `langbuilder run`, you encounter the following error:
 
 ```bash
-> No module named 'langflow.__main__'
+> No module named 'langbuilder.__main__'
 ```
 
 To resolve this issue, try the following:
 
-1. Run `uv run langflow run` instead of `langflow run`.
-2. If that doesn't work, reinstall the latest Langflow version with `uv pip install langflow -U`.
-3. If that doesn't work, reinstall Langflow and its dependencies with `uv pip install langflow --pre -U --force-reinstall`.
+1. Run `uv run langbuilder run` instead of `langbuilder run`.
+2. If that doesn't work, reinstall the latest Langbuilder version with `uv pip install langbuilder -U`.
+3. If that doesn't work, reinstall Langbuilder and its dependencies with `uv pip install langbuilder --pre -U --force-reinstall`.
 
-### Langflow runTraceback
+### Langbuilder runTraceback
 
-When you try to run Langflow using the command `langflow run`, you encounter the following error:
+When you try to run Langbuilder using the command `langbuilder run`, you encounter the following error:
 
 ```bash
-> langflow runTraceback (most recent call last): File ".../langflow", line 5, in <module>  from langflow.__main__ import mainModuleNotFoundError: No module named 'langflow.__main__'
+> langbuilder runTraceback (most recent call last): File ".../langbuilder", line 5, in <module>  from langbuilder.__main__ import mainModuleNotFoundError: No module named 'langbuilder.__main__'
 ```
 
 There are two possible reasons for this error:
 
-* **Multiple Langflow installations**: You installed Langflow using `pip install langflow` but you already had a previous version of Langflow installed in your system. In this case, you might be running the wrong executable.
+* **Multiple Langbuilder installations**: You installed Langbuilder using `pip install langbuilder` but you already had a previous version of Langbuilder installed in your system. In this case, you might be running the wrong executable.
 
-    To solve this issue, run the correct executable by running `python -m langflow run` instead of `langflow run`.
+    To solve this issue, run the correct executable by running `python -m langbuilder run` instead of `langbuilder run`.
 
-    If that doesn't work, try uninstalling and reinstalling Langflow with `uv pip install langflow --pre -U`.
+    If that doesn't work, try uninstalling and reinstalling Langbuilder with `uv pip install langbuilder --pre -U`.
 
-* **Version conflict during installation**: Some version conflicts might have occurred during the installation process. To resolve this issue, reinstall Langflow and its dependencies by running `python -m pip install langflow --pre -U --force-reinstall`.
+* **Version conflict during installation**: Some version conflicts might have occurred during the installation process. To resolve this issue, reinstall Langbuilder and its dependencies by running `python -m pip install langbuilder --pre -U --force-reinstall`.
 
 ### Environment variables not available from terminal
 
-Environment variables set in your terminal aren't automatically available to GUI-based applications like Langflow Desktop when launched through the Finder or the Start Menu.
-To set environment variables for Langflow Desktop, see [Set environment variables for Langflow Desktop](/environment-variables#set-environment-variables-for-langflow-desktop).
+Environment variables set in your terminal aren't automatically available to GUI-based applications like Langbuilder Desktop when launched through the Finder or the Start Menu.
+To set environment variables for Langbuilder Desktop, see [Set environment variables for Langbuilder Desktop](/environment-variables#set-environment-variables-for-langbuilder-desktop).
 
 ### Package is not installed
 
-In Langflow OSS, you can follow the error message's instructions to install the missing dependency.
+In Langbuilder OSS, you can follow the error message's instructions to install the missing dependency.
 
-To manage dependencies in Langflow Desktop, see [Install custom dependencies in Langflow Desktop](/install-custom-dependencies#langflow-desktop).
+To manage dependencies in Langbuilder Desktop, see [Install custom dependencies in Langbuilder Desktop](/install-custom-dependencies#langbuilder-desktop).
 
-## Langflow upgrade issues
+## Langbuilder upgrade issues
 
-The following issues can occur when upgrading your Langflow version.
+The following issues can occur when upgrading your Langbuilder version.
 
-For information about managing Langflow versions, see [Install Langflow](/get-started-installation).
+For information about managing Langbuilder versions, see [Install Langbuilder](/get-started-installation).
 
 ### Something went wrong running migrations
 
-The following error can occur during Langflow upgrades when the new version can't override `langflow-pre.db` in the Langflow cache folder:
+The following error can occur during Langbuilder upgrades when the new version can't override `langbuilder-pre.db` in the Langbuilder cache folder:
 
 ```bash
-> Something went wrong running migrations. Please, run 'langflow migration --fix'
+> Something went wrong running migrations. Please, run 'langbuilder migration --fix'
 ```
 
-To resolve this error, clear the cache by deleting the contents of your Langflow cache folder.
+To resolve this error, clear the cache by deleting the contents of your Langbuilder cache folder.
 The filepath depends on your operating system, installation type, and configuration options.
 For more information and default filepaths, see [Memory management options](/memory#flow-storage-and-logs).
 
@@ -153,20 +153,20 @@ Clearing the cache erases your settings.
 If you want to retain your settings files, create a backup of those files before clearing the cache folder.
 :::
 
-## Langflow uninstall issues
+## Langbuilder uninstall issues
 
-The following issues can occur when uninstalling Langflow.
+The following issues can occur when uninstalling Langbuilder.
 
-### Dot directory isn't deleted when uninstalling Langflow Desktop on macOS
+### Dot directory isn't deleted when uninstalling Langbuilder Desktop on macOS
 
-On macOS, uninstalling Langflow Desktop deletes the `.app` file but doesn't delete files in `~/.langflow`, which includes files generated during usage like cache and settings.
+On macOS, uninstalling Langbuilder Desktop deletes the `.app` file but doesn't delete files in `~/.langbuilder`, which includes files generated during usage like cache and settings.
 
-If you reinstall Langflow Desktop, it starts with the existing data from the previous installation.
+If you reinstall Langbuilder Desktop, it starts with the existing data from the previous installation.
 
-To fully remove a Langflow Desktop macOS installation, you must also delete `~/.langflow`:
+To fully remove a Langbuilder Desktop macOS installation, you must also delete `~/.langbuilder`:
 
     ```bash
-    rm -rf .langflow
+    rm -rf .langbuilder
     ```
 
 ## MCP server issues
@@ -176,11 +176,11 @@ To fully remove a Langflow Desktop macOS installation, you must also delete `~/.
 
 ## Custom components and integrations issues
 
-For troubleshooting advice for a third-party integration, see the information about that integration in the Langflow documentation and the provider's documentation.
+For troubleshooting advice for a third-party integration, see the information about that integration in the Langbuilder documentation and the provider's documentation.
 
 If you are building a custom component, see [Error handling and logging for custom Python components](/components-custom-components#error-handling-and-logging).
 
 ## See also
 
-- [Langflow GitHub Issues and Discussions](/contributing-github-issues)
-- [Langflow telemetry](/contributing-telemetry)
+- [Langbuilder GitHub Issues and Discussions](/contributing-github-issues)
+- [Langbuilder telemetry](/contributing-telemetry)

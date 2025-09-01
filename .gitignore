@@ -250,7 +250,7 @@ dmypy.json
 
 # Poetry
 .testenv/*
-langflow.db
+langbuilder.db
 
 
 .githooks/prepare-commit-msg
@@ -260,8 +260,8 @@ langflow.db
 .docusaurus/
 
 /tmp/*
-src/backend/langflow/frontend/
-src/backend/base/langflow/frontend/
+src/backend/langbuilder/frontend/
+src/backend/base/langbuilder/frontend/
 .docker
 scratchpad*
 chroma*/*

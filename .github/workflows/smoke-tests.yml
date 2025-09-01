@@ -55,8 +55,8 @@ jobs:
             --maxfail=5 \
             -v
         env:
-          LANGFLOW_SUPERUSER: admin
-          LANGFLOW_SUPERUSER_PASSWORD: 123456
+          LANGBUILDER_SUPERUSER: admin
+          LANGBUILDER_SUPERUSER_PASSWORD: 123456
 
       - name: Setup Node.js
         uses: actions/setup-node@v4

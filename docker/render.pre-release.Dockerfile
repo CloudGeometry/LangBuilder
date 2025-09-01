@@ -1,1 +1,1 @@
-FROM langflowai/langflow:1.0-alpha
+FROM langbuilderai/langbuilder:1.0-alpha

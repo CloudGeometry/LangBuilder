@@ -1,4 +1,4 @@
-from langflow.schema.content_types import (
+from langbuilder.schema.content_types import (
     BaseContent,
     CodeContent,
     ErrorContent,

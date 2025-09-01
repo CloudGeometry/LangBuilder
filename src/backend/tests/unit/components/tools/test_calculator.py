@@ -1,5 +1,5 @@
 import pytest
-from langflow.components.helpers.calculator_core import CalculatorComponent
+from langbuilder.components.helpers.calculator_core import CalculatorComponent
 
 from tests.base import ComponentTestBaseWithoutClient
 

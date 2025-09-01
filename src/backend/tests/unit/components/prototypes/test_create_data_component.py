@@ -1,8 +1,8 @@
 import re
 
 import pytest
-from langflow.components.processing import CreateDataComponent
-from langflow.schema import Data
+from langbuilder.components.processing import CreateDataComponent
+from langbuilder.schema import Data
 
 
 @pytest.fixture

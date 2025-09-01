@@ -55,7 +55,7 @@ withEventDeliveryModes(
       timeout: 3000,
     });
 
-    await page.getByTestId("input-chat-playground").fill("what is langflow?");
+    await page.getByTestId("input-chat-playground").fill("what is langbuilder?");
 
     await page.getByTestId("button-send").click();
 
@@ -72,7 +72,7 @@ withEventDeliveryModes(
 
     expect(concatAllText.length).toBeGreaterThan(100);
 
-    expect(concatAllText).toContain("Langflow");
+    expect(concatAllText).toContain("Langbuilder");
     expect(concatAllText).toContain("open-source");
     expect(concatAllText).toContain("framework");
   },

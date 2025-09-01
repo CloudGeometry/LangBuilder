@@ -3,7 +3,7 @@ import os
 from unittest.mock import patch
 
 import pytest
-from langflow.logging.logger import SizedLogBuffer
+from langbuilder.logging.logger import SizedLogBuffer
 
 
 @pytest.fixture
@@ -18,7 +18,7 @@ def test_init_default():
 
 
 def test_init_with_env_variable():
-    with patch.dict(os.environ, {"LANGFLOW_LOG_RETRIEVER_BUFFER_SIZE": "100"}):
+    with patch.dict(os.environ, {"LANGBUILDER_LOG_RETRIEVER_BUFFER_SIZE": "100"}):
         buffer = SizedLogBuffer()
         assert buffer.max == 100
 

@@ -1,6 +1,6 @@
 import pytest
-from langflow.components.processing.data_operations import DataOperationsComponent
-from langflow.schema import Data
+from langbuilder.components.processing.data_operations import DataOperationsComponent
+from langbuilder.schema import Data
 
 from tests.base import ComponentTestBaseWithoutClient
 

@@ -199,7 +199,7 @@ test(
         await expect(page.getByText("setup guide")).toBeVisible();
         await expect(page.getByText("setup guide")).toHaveAttribute(
           "href",
-          "https://docs.langflow.org/mcp-server#connect-clients-to-use-the-servers-actions",
+          "https://docs.langbuilder.org/mcp-server#connect-clients-to-use-the-servers-actions",
         );
 
         await awaitBootstrapTest(page);

@@ -2,8 +2,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from composio import Action
-from langflow.components.composio.gmail_composio import ComposioGmailAPIComponent
-from langflow.schema.dataframe import DataFrame
+from langbuilder.components.composio.gmail_composio import ComposioGmailAPIComponent
+from langbuilder.schema.dataframe import DataFrame
 
 from tests.base import DID_NOT_EXIST, ComponentTestBaseWithoutClient
 
@@ -19,7 +19,7 @@ class MockAction:
 class TestGmailComponent(ComponentTestBaseWithoutClient):
     @pytest.fixture(autouse=True)
     def mock_composio_toolset(self):
-        with patch("langflow.base.composio.composio_base.ComposioToolSet", MockComposioToolSet):
+        with patch("langbuilder.base.composio.composio_base.ComposioToolSet", MockComposioToolSet):
             yield
 
     @pytest.fixture

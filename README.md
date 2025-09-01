@@ -22,7 +22,7 @@ An intuitive, no-code drag-and-drop IDE for business users and project managers 
 -   Access controls and roles for secure collaboration
 -   Reusable agent templates—e.g., for customer support, copilots, process automation, and other common use cases
 
-Based on the popular LangFlow OpenSource project with CloudGeometry AddOns enabling you to continuously run those AI Agents for your company's internal processes.
+Based on the popular LangBuilder OpenSource project with CloudGeometry AddOns enabling you to continuously run those AI Agents for your company's internal processes.
 
 2.  **Programmable AI Agent Framework**
     
@@ -35,7 +35,7 @@ For LLM developers to extend agents with custom logic, integrations, and advance
 -   Rich API layer, including Control Plane & Data Plane APIs
 -   Robust concurrency and reliability
 
-Based on the popular LangChain open source project framework and LangFlow builder, with CloudGeometry AddOns enabling a seamless transition from rapid prototyping to enterprise ready and secure agents
+Based on the popular LangChain open source project framework and LangBuilder builder, with CloudGeometry AddOns enabling a seamless transition from rapid prototyping to enterprise ready and secure agents
 
 3.  **AI Agent Deployment & Management Platform**
     
@@ -75,22 +75,22 @@ LangBuilder requires [Python 3.10 to 3.13](https://www.python.org/downloads/rele
 1. To install LangBuilder, run:
 
 ```shell
-uv pip install langflow -U
+uv pip install langbuilder -U
 ```
 
 2. To run LangBuilder, run:
 
 ```shell
-uv run langflow run
+uv run langbuilder run
 ```
 
 3. Go to the default LangBuilder URL at `http://127.0.0.1:7860`.
 
-For more information about installing LangBuilder, including Docker and Desktop options, see [Install Langflow](https://docs.langflow.org/get-started-installation).
+For more information about installing LangBuilder, including Docker and Desktop options, see [Install Langbuilder](https://docs.langbuilder.org/get-started-installation).
 
 ## 📦 Deployment
 
-LangBuilder is completely open source and you can deploy it to all major deployment clouds. To learn how to use Docker to deploy LangBuilder, see the [Docker deployment guide](https://docs.langflow.org/deployment-docker).
+LangBuilder is completely open source and you can deploy it to all major deployment clouds. To learn how to use Docker to deploy LangBuilder, see the [Docker deployment guide](https://docs.langbuilder.org/deployment-docker).
 
 ## ⭐ Stay up-to-date
 

@@ -3,11 +3,11 @@ from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
-from langflow.services.database.models.variable.model import VariableUpdate
-from langflow.services.deps import get_settings_service
-from langflow.services.settings.constants import VARIABLES_TO_GET_FROM_ENVIRONMENT
-from langflow.services.variable.constants import CREDENTIAL_TYPE
-from langflow.services.variable.service import DatabaseVariableService
+from langbuilder.services.database.models.variable.model import VariableUpdate
+from langbuilder.services.deps import get_settings_service
+from langbuilder.services.settings.constants import VARIABLES_TO_GET_FROM_ENVIRONMENT
+from langbuilder.services.variable.constants import CREDENTIAL_TYPE
+from langbuilder.services.variable.service import DatabaseVariableService
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -51,7 +51,7 @@ async def test_initialize_user_variables__create_and_update(service, session: As
 
 
 async def test_initialize_user_variables__not_found_variable(service, session: AsyncSession):
-    with patch("langflow.services.variable.service.DatabaseVariableService.create_variable") as m:
+    with patch("langbuilder.services.variable.service.DatabaseVariableService.create_variable") as m:
         m.side_effect = Exception()
         await service.initialize_user_variables(uuid4(), session=session)
     assert True
