@@ -1,3 +1,3 @@
-FROM langbuilderai/langbuilder:latest
+FROM nickchasecg/langbuilder:latest
 
 CMD ["python", "-m", "langbuilder", "run", "--host", "0.0.0.0", "--port", "7860"]

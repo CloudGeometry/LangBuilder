@@ -1,1 +1,1 @@
-FROM langbuilderai/langbuilder:1.0-alpha
+FROM nickchasecg/langbuilder:1.0-alpha

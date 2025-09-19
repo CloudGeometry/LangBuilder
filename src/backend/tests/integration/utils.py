@@ -99,7 +99,7 @@ class JSONFlow:
 
 def download_flow_from_github(name: str, version: str) -> JSONFlow:
     response = requests.get(
-        f"https://raw.githubusercontent.com/langbuilder-ai/langbuilder/v{version}/src/backend/base/langbuilder/initial_setup/starter_projects/{name}.json",
+        f"https://raw.githubusercontent.com/cloudgeometry/langbuilder/v{version}/src/backend/base/langbuilder/initial_setup/starter_projects/{name}.json",
         timeout=10,
     )
     response.raise_for_status()
@@ -110,7 +110,7 @@ def download_flow_from_github(name: str, version: str) -> JSONFlow:
 def download_component_from_github(module: str, file_name: str, version: str) -> Component:
     version_string = f"v{version}" if version != "main" else version
     response = requests.get(
-        f"https://raw.githubusercontent.com/langbuilder-ai/langbuilder/{version_string}/src/backend/base/langbuilder/components/{module}/{file_name}.py",
+        f"https://raw.githubusercontent.com/cloudgeometry/langbuilder/{version_string}/src/backend/base/langbuilder/components/{module}/{file_name}.py",
         timeout=10,
     )
     response.raise_for_status()

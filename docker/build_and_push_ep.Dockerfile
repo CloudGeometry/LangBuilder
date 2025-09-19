@@ -92,8 +92,8 @@ ENV PATH="/app/.venv/bin:$PATH"
 LABEL org.opencontainers.image.title=langbuilder
 LABEL org.opencontainers.image.authors=['Langbuilder']
 LABEL org.opencontainers.image.licenses=MIT
-LABEL org.opencontainers.image.url=https://github.com/langbuilder-ai/langbuilder
-LABEL org.opencontainers.image.source=https://github.com/langbuilder-ai/langbuilder
+LABEL org.opencontainers.image.url=https://github.com/cloudgeometry/langbuilder
+LABEL org.opencontainers.image.source=https://github.com/cloudgeometry/langbuilder
 
 WORKDIR /app
 

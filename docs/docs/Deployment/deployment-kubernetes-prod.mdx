@@ -6,10 +6,10 @@ slug: /deployment-kubernetes-prod
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-The [Langbuilder runtime Helm chart](https://github.com/langbuilder-ai/langbuilder-helm-charts/blob/main/charts/langbuilder-runtime) is tailored for deploying applications in a production environment. It is focused on stability, performance, isolation, and security to ensure that applications run reliably and efficiently.
+The [Langbuilder runtime Helm chart](https://github.com/cloudgeometry/langbuilder-helm-charts/blob/main/charts/langbuilder-runtime) is tailored for deploying applications in a production environment. It is focused on stability, performance, isolation, and security to ensure that applications run reliably and efficiently.
 
 :::important
-For security reasons, the default Langbuilder runtime Helm chart sets [`readOnlyRootFilesystem: true`](https://github.com/langbuilder-ai/langbuilder-helm-charts/blob/main/charts/langbuilder-runtime/values.yaml#L46). This setting prevents modifications to the container's root filesystem at runtime, which is a recommended security measure in production environments.
+For security reasons, the default Langbuilder runtime Helm chart sets [`readOnlyRootFilesystem: true`](https://github.com/cloudgeometry/langbuilder-helm-charts/blob/main/charts/langbuilder-runtime/values.yaml#L46). This setting prevents modifications to the container's root filesystem at runtime, which is a recommended security measure in production environments.
 
 If `readOnlyRootFilesystem` is disabled (false), it degrades your deployment's security posture. Only disable this setting if you understand the security implications and you have implemented other security measures.
 
@@ -36,7 +36,7 @@ For more information, see the [Kubernetes documentation](https://kubernetes.io/d
     <Tabs groupId="">
     <TabItem value="Install chart with custom image" label="Install chart with custom image" default>
 
-    If you have a [custom image with packaged flows](/deployment-docker#package-your-flow-as-a-docker-image), you can deploy Langbuilder by overriding the default [`values.yaml`](https://github.com/langbuilder-ai/langbuilder-helm-charts/blob/main/charts/langbuilder-runtime/values.yaml) with the `--set` flag:
+    If you have a [custom image with packaged flows](/deployment-docker#package-your-flow-as-a-docker-image), you can deploy Langbuilder by overriding the default [`values.yaml`](https://github.com/cloudgeometry/langbuilder-helm-charts/blob/main/charts/langbuilder-runtime/values.yaml) with the `--set` flag:
 
     ```shell
     helm install my-langbuilder-app langbuilder/langbuilder-runtime -n langbuilder --create-namespace --set image.repository=myuser/langbuilder-hello-world --set image.tag=1.0.0
@@ -51,11 +51,11 @@ For more information, see the [Kubernetes documentation](https://kubernetes.io/d
     helm install my-langbuilder-app-with-flow langbuilder/langbuilder-runtime \
       -n langbuilder \
       --create-namespace \
-      --set 'downloadFlows.flows[0].url=https://raw.githubusercontent.com/langbuilder-ai/langbuilder/dev/tests/data/basic_example.json'
+      --set 'downloadFlows.flows[0].url=https://raw.githubusercontent.com/cloudgeometry/langbuilder/dev/tests/data/basic_example.json'
     ```
 
     If your shell requires escaping square brackets, modify the `--set` path as needed.
-    For example, `--set 'downloadFlows.flows\[0\].url=https://raw.githubusercontent.com/langbuilder-ai/langbuilder/dev/tests/data/basic_example.json'`.
+    For example, `--set 'downloadFlows.flows\[0\].url=https://raw.githubusercontent.com/cloudgeometry/langbuilder/dev/tests/data/basic_example.json'`.
 
     </TabItem>
     </Tabs>
@@ -110,11 +110,11 @@ The following example gets the first flow ID from the flows list, and then runs 
 
 ## Configure secrets and environment variables
 
-Use the `.env` section of the Langbuilder runtime Helm chart's [`values.yaml`](https://github.com/langbuilder-ai/langbuilder-helm-charts/blob/main/charts/langbuilder-runtime/values.yaml) file to define environment variables for your Langbuilder deployment.
+Use the `.env` section of the Langbuilder runtime Helm chart's [`values.yaml`](https://github.com/cloudgeometry/langbuilder-helm-charts/blob/main/charts/langbuilder-runtime/values.yaml) file to define environment variables for your Langbuilder deployment.
 This includes built-in [Langbuilder environment variables](/environment-variables), as well as [global variables](/configuration-global-variables) used by your flows.
 
 Langbuilder can source global variables from your runtime environment, such as Kubernetes secrets referenced in `values.yaml`.
-For example, the Langbuilder runtime Helm chart's [example flow JSON](https://raw.githubusercontent.com/langbuilder-ai/langbuilder-helm-charts/refs/heads/main/examples/flows/basic-prompting-hello-world.json) uses a global variable that is a secret.
+For example, the Langbuilder runtime Helm chart's [example flow JSON](https://raw.githubusercontent.com/cloudgeometry/langbuilder-helm-charts/refs/heads/main/examples/flows/basic-prompting-hello-world.json) uses a global variable that is a secret.
 If you want to run this flow in your Langbuilder deployment on Kubernetes, you need to include the secret in your runtime configuration.
 
 :::tip
@@ -185,7 +185,7 @@ env:
 
 ## Configure scaling
 
-Use `replicaCount` and `resources` in the Langbuilder runtime Helm chart's [`values.yaml`](https://github.com/langbuilder-ai/langbuilder-helm-charts/blob/main/charts/langbuilder-runtime/values.yaml) file to configure scaling:
+Use `replicaCount` and `resources` in the Langbuilder runtime Helm chart's [`values.yaml`](https://github.com/cloudgeometry/langbuilder-helm-charts/blob/main/charts/langbuilder-runtime/values.yaml) file to configure scaling:
 
 * **Horizontal scaling**: Use `replicaCount` to set the number of replicas for your Langbuilder deployment.
 
@@ -205,4 +205,4 @@ Use `replicaCount` and `resources` in the Langbuilder runtime Helm chart's [`val
 ## See also
 
 * [Best practices for Langbuilder on Kubernetes](/deployment-prod-best-practices)
-* [Langbuilder Helm Charts repository](https://github.com/langbuilder-ai/langbuilder-helm-charts)
+* [Langbuilder Helm Charts repository](https://github.com/cloudgeometry/langbuilder-helm-charts)

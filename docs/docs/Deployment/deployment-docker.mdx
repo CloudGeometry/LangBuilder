@@ -20,7 +20,7 @@ This option provides more control over the configuration, including a persistent
 With Docker installed and running on your system, run the following command:
 
 ```shell
-docker run -p 7860:7860 langbuilderai/langbuilder:latest
+docker run -p 7860:7860 nickchasecg/langbuilder:latest
 ```
 
 Then, access Langbuilder at `http://localhost:7860/`.
@@ -43,7 +43,7 @@ The complete Docker Compose configuration is available in `docker_example/docker
 1. Clone the Langbuilder repository:
 
    ```shell
-   git clone https://github.com/langbuilder-ai/langbuilder.git
+   git clone https://github.com/cloudgeometry/langbuilder.git
    ```
 
 2. Navigate to the `docker_example` directory:
@@ -114,7 +114,7 @@ Unlike the previous sections that use pre-built images, this method builds a cus
 
     ```bash
     # Download an example flow
-    wget https://raw.githubusercontent.com/langbuilder-ai/langbuilder-helm-charts/refs/heads/main/examples/flows/basic-prompting-hello-world.json
+    wget https://raw.githubusercontent.com/cloudgeometry/langbuilder-helm-charts/refs/heads/main/examples/flows/basic-prompting-hello-world.json
 
     # Or copy your own flow file
     cp /path/to/your/flow.json .
@@ -123,7 +123,7 @@ Unlike the previous sections that use pre-built images, this method builds a cus
 3. Create a Dockerfile to build your custom image:
 
     ```dockerfile
-    FROM langbuilderai/langbuilder:latest
+    FROM nickchasecg/langbuilder:latest
     RUN mkdir /app/flows
     COPY ./*.json /app/flows/
     ENV LANGBUILDER_LOAD_FLOWS_PATH=/app/flows
@@ -153,7 +153,7 @@ While the previous section showed how to package a flow with a Docker image, thi
 This example demonstrates how to customize the **Message History** component, but the same approach can be used for any code modifications.
 
 ```dockerfile
-FROM langbuilderai/langbuilder:latest
+FROM nickchasecg/langbuilder:latest
 
 # Set working directory
 WORKDIR /app

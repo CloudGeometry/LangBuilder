@@ -11,7 +11,7 @@ This document details how to set up a local development environment that will al
 
 You will push changes to a fork of the Langbuilder repository, and from there create a Pull Request into the project repository.
 
-Fork the [Langbuilder GitHub repository](https://github.com/langbuilder-ai/langbuilder/fork), and follow the instructions to create a new fork.
+Fork the [Langbuilder GitHub repository](https://github.com/cloudgeometry/langbuilder/fork), and follow the instructions to create a new fork.
 
 On your new fork, click the "<> Code" button to get a URL to [clone](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) using your preferred method, and clone the repository; for example using `https`:
 
@@ -23,7 +23,7 @@ Finally, add the Project repository as `upstream`:
 
 ```bash
 cd langbuilder
-git remote add upstream https://github.com/langbuilder-ai/langbuilder.git
+git remote add upstream https://github.com/cloudgeometry/langbuilder.git
 git remote set-url --push upstream no_push
 ```
 
@@ -71,8 +71,7 @@ Once the application is running, the command output should look similar to:
 ╭───────────────────────────────────────────────────────────────────────╮
 │ Welcome to Langbuilder                                                   │
 │                                                                       │
-│ 🌟 GitHub: Star for updates → https://github.com/langbuilder-ai/langbuilder  │
-│ 💬 Discord: Join for support → https://discord.com/invite/EqksyE2EX9   │
+│ 🌟 GitHub: Star for updates → https://github.com/cloudgeometry/langbuilder  │
 │                                                                       │
 │ We collect anonymous usage data to improve Langbuilder.                  │
 │ To opt out, set: DO_NOT_TRACK=true in your environment.               │

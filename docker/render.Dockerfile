@@ -1,3 +1,3 @@
-FROM langbuilderai/langbuilder:latest
+FROM nickchasecg/langbuilder:latest
 
 ENTRYPOINT ["python", "-m", "langbuilder", "run"]

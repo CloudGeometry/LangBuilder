@@ -587,8 +587,7 @@ def print_banner(host: str, port: int, protocol: str) -> None:
         status_icon = "🟢"
 
     info_text = (
-        f"{github_icon} GitHub: Star for updates {arrow} https://github.com/langbuilder-ai/langbuilder\n"
-        f"{discord_icon} Discord: Join for support {arrow} https://discord.com/invite/EqksyE2EX9"
+        f"{github_icon} GitHub: Star for updates {arrow} https://github.com/cloudgeometry/langbuilder"
     )
     telemetry_text = (
         (
@@ -614,7 +613,7 @@ def print_banner(host: str, port: int, protocol: str) -> None:
         # Fallback to a simpler banner without emojis for Windows systems with encoding issues
         fallback_message = (
             f"Welcome to {package_name}\n\n"
-            "* GitHub: https://github.com/langbuilder-ai/langbuilder\n"
+            "* GitHub: https://github.com/cloudgeometry/langbuilder\n"
             "# Discord: https://discord.com/invite/EqksyE2EX9\n\n"
             f"{telemetry_text}\n\n"
             f"[OK] Open Langbuilder -> {protocol}://{access_host}:{port}"
@@ -625,7 +624,7 @@ def print_banner(host: str, port: int, protocol: str) -> None:
         except UnicodeEncodeError:
             # Last resort: use logger instead of print
             logger.info(f"Welcome to {package_name}")
-            logger.info("GitHub: https://github.com/langbuilder-ai/langbuilder")
+            logger.info("GitHub: https://github.com/cloudgeometry/langbuilder")
             logger.info("Discord: https://discord.com/invite/EqksyE2EX9")
             logger.info(f"Open Langbuilder: {protocol}://{access_host}:{port}")
 

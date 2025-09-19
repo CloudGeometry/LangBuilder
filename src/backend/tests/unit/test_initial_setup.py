@@ -168,48 +168,48 @@ async def test_refresh_starter_projects():
     ("url", "expected"),
     [
         (
-            "https://github.com/langbuilder-ai/langbuilder-bundles",
-            "https://github.com/langbuilder-ai/langbuilder-bundles/archive/refs/heads/main.zip",
+            "https://github.com/cloudgeometry/langbuilder-bundles",
+            "https://github.com/cloudgeometry/langbuilder-bundles/archive/refs/heads/main.zip",
         ),
         (
-            "https://github.com/langbuilder-ai/langbuilder-bundles/",
-            "https://github.com/langbuilder-ai/langbuilder-bundles/archive/refs/heads/main.zip",
+            "https://github.com/cloudgeometry/langbuilder-bundles/",
+            "https://github.com/cloudgeometry/langbuilder-bundles/archive/refs/heads/main.zip",
         ),
         (
-            "https://github.com/langbuilder-ai/langbuilder-bundles.git",
-            "https://github.com/langbuilder-ai/langbuilder-bundles/archive/refs/heads/main.zip",
+            "https://github.com/cloudgeometry/langbuilder-bundles.git",
+            "https://github.com/cloudgeometry/langbuilder-bundles/archive/refs/heads/main.zip",
         ),
         (
-            "https://github.com/langbuilder-ai/langbuilder-bundles/tree/some.branch-0_1",
-            "https://github.com/langbuilder-ai/langbuilder-bundles/archive/refs/heads/some.branch-0_1.zip",
+            "https://github.com/cloudgeometry/langbuilder-bundles/tree/some.branch-0_1",
+            "https://github.com/cloudgeometry/langbuilder-bundles/archive/refs/heads/some.branch-0_1.zip",
         ),
         (
-            "https://github.com/langbuilder-ai/langbuilder-bundles/tree/some/branch",
-            "https://github.com/langbuilder-ai/langbuilder-bundles/archive/refs/heads/some/branch.zip",
+            "https://github.com/cloudgeometry/langbuilder-bundles/tree/some/branch",
+            "https://github.com/cloudgeometry/langbuilder-bundles/archive/refs/heads/some/branch.zip",
         ),
         (
-            "https://github.com/langbuilder-ai/langbuilder-bundles/tree/some/branch/",
-            "https://github.com/langbuilder-ai/langbuilder-bundles/archive/refs/heads/some/branch.zip",
+            "https://github.com/cloudgeometry/langbuilder-bundles/tree/some/branch/",
+            "https://github.com/cloudgeometry/langbuilder-bundles/archive/refs/heads/some/branch.zip",
         ),
         (
-            "https://github.com/langbuilder-ai/langbuilder-bundles/releases/tag/v1.0.0-0_1",
-            "https://github.com/langbuilder-ai/langbuilder-bundles/archive/refs/tags/v1.0.0-0_1.zip",
+            "https://github.com/cloudgeometry/langbuilder-bundles/releases/tag/v1.0.0-0_1",
+            "https://github.com/cloudgeometry/langbuilder-bundles/archive/refs/tags/v1.0.0-0_1.zip",
         ),
         (
-            "https://github.com/langbuilder-ai/langbuilder-bundles/releases/tag/foo/v1.0.0",
-            "https://github.com/langbuilder-ai/langbuilder-bundles/archive/refs/tags/foo/v1.0.0.zip",
+            "https://github.com/cloudgeometry/langbuilder-bundles/releases/tag/foo/v1.0.0",
+            "https://github.com/cloudgeometry/langbuilder-bundles/archive/refs/tags/foo/v1.0.0.zip",
         ),
         (
-            "https://github.com/langbuilder-ai/langbuilder-bundles/releases/tag/foo/v1.0.0/",
-            "https://github.com/langbuilder-ai/langbuilder-bundles/archive/refs/tags/foo/v1.0.0.zip",
+            "https://github.com/cloudgeometry/langbuilder-bundles/releases/tag/foo/v1.0.0/",
+            "https://github.com/cloudgeometry/langbuilder-bundles/archive/refs/tags/foo/v1.0.0.zip",
         ),
         (
-            "https://github.com/langbuilder-ai/langbuilder-bundles/commit/68428ce16729a385fe1bcc0f1ec91fd5f5f420b9",
-            "https://github.com/langbuilder-ai/langbuilder-bundles/archive/68428ce16729a385fe1bcc0f1ec91fd5f5f420b9.zip",
+            "https://github.com/cloudgeometry/langbuilder-bundles/commit/68428ce16729a385fe1bcc0f1ec91fd5f5f420b9",
+            "https://github.com/cloudgeometry/langbuilder-bundles/archive/68428ce16729a385fe1bcc0f1ec91fd5f5f420b9.zip",
         ),
         (
-            "https://github.com/langbuilder-ai/langbuilder-bundles/commit/68428ce16729a385fe1bcc0f1ec91fd5f5f420b9/",
-            "https://github.com/langbuilder-ai/langbuilder-bundles/archive/68428ce16729a385fe1bcc0f1ec91fd5f5f420b9.zip",
+            "https://github.com/cloudgeometry/langbuilder-bundles/commit/68428ce16729a385fe1bcc0f1ec91fd5f5f420b9/",
+            "https://github.com/cloudgeometry/langbuilder-bundles/archive/68428ce16729a385fe1bcc0f1ec91fd5f5f420b9.zip",
         ),
         ("https://example.com/myzip.zip", "https://example.com/myzip.zip"),
     ],
@@ -235,7 +235,7 @@ async def test_detect_github_url(url, expected):
 async def test_load_bundles_from_urls():
     settings_service = get_settings_service()
     settings_service.settings.bundle_urls = [
-        "https://github.com/langbuilder-ai/langbuilder-bundles/commit/68428ce16729a385fe1bcc0f1ec91fd5f5f420b9"
+        "https://github.com/cloudgeometry/langbuilder-bundles/commit/68428ce16729a385fe1bcc0f1ec91fd5f5f420b9"
     ]
     settings_service.auth_settings.AUTO_LOGIN = True
 

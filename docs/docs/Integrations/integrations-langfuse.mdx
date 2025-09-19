@@ -94,12 +94,12 @@ As an alternative to the previous setup, particularly for self-hosted Langfuse, 
 
 3. Add your Langbuilder credentials to your Langbuilder `docker-compose.yml` file in the `environment` section.
 
-    The following example is based on the [example `docker-compose.yml`](https://github.com/langbuilder-ai/langbuilder/blob/main/docker_example/docker-compose.yml).
+    The following example is based on the [example `docker-compose.yml`](https://github.com/cloudgeometry/langbuilder/blob/main/docker_example/docker-compose.yml).
 
     ```yml
     services:
       langbuilder:
-        image: langbuilderai/langbuilder:latest # or another version tag on https://hub.docker.com/r/langbuilderai/langbuilder
+        image: nickchasecg/langbuilder:latest # or another version tag on https://hub.docker.com/r/nickchasecg/langbuilder
         pull_policy: always               # set to 'always' when using 'latest' image
         ports:
           - "7860:7860"

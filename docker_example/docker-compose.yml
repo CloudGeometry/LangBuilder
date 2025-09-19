@@ -1,6 +1,6 @@
 services:
   langbuilder:
-    image: langbuilderai/langbuilder:latest # or another version tag on https://hub.docker.com/r/langbuilderai/langbuilder
+    image: nickchasecg/langbuilder:latest # or another version tag on https://hub.docker.com/r/nickchasecg/langbuilder
     pull_policy: always               # set to 'always' when using 'latest' image
     ports:
       - "7860:7860"

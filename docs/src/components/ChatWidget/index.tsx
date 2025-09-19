@@ -5,7 +5,7 @@ const ChatScriptLoader = () => {
   useEffect(() => {
     if (!document.querySelector('script[src*="langbuilder-embedded-chat"]')) {
       const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/gh/langbuilder-ai/langbuilder-embedded-chat@main/dist/build/static/js/bundle.min.js';
+      script.src = 'https://cdn.jsdelivr.net/gh/cloudgeometry/langbuilder-embedded-chat@main/dist/build/static/js/bundle.min.js';
       script.async = true;
       document.body.appendChild(script);
     }

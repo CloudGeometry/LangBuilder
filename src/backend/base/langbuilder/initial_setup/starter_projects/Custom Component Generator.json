@@ -1129,7 +1129,7 @@
                 "trace_as_metadata": true,
                 "type": "str",
                 "value": [
-                  "https://raw.githubusercontent.com/langbuilder-ai/langbuilder/refs/heads/main/src/backend/base/langbuilder/custom/custom_component/component.py"
+                  "https://raw.githubusercontent.com/cloudgeometry/langbuilder/refs/heads/main/src/backend/base/langbuilder/custom/custom_component/component.py"
                 ]
               },
               "use_async": {
@@ -1485,13 +1485,13 @@
                 "trace_as_metadata": true,
                 "type": "str",
                 "value": [
-                  "https://github.com/langbuilder-ai/langbuilder/blob/main/src/backend/base/langbuilder/components/agents/agent.py",
-                  "https://github.com/langbuilder-ai/langbuilder/blob/main/src/backend/base/langbuilder/components/helpers/structured_output.py",
-                  "https://raw.githubusercontent.com/langbuilder-ai/langbuilder/refs/heads/main/src/backend/base/langbuilder/components/tools/calculator.py",
-                  "https://raw.githubusercontent.com/langbuilder-ai/langbuilder/refs/heads/main/src/backend/base/langbuilder/components/tools/tavily_search.py",
-                  "https://raw.githubusercontent.com/langbuilder-ai/langbuilder/refs/heads/main/src/backend/base/langbuilder/components/models/ollama.py",
-                  "https://raw.githubusercontent.com/langbuilder-ai/langbuilder/refs/heads/main/src/backend/base/langbuilder/components/logic/conditional_router.py",
-                  "https://raw.githubusercontent.com/langbuilder-ai/langbuilder/refs/heads/main/src/backend/base/langbuilder/components/data/file.py"
+                  "https://github.com/cloudgeometry/langbuilder/blob/main/src/backend/base/langbuilder/components/agents/agent.py",
+                  "https://github.com/cloudgeometry/langbuilder/blob/main/src/backend/base/langbuilder/components/helpers/structured_output.py",
+                  "https://raw.githubusercontent.com/cloudgeometry/langbuilder/refs/heads/main/src/backend/base/langbuilder/components/tools/calculator.py",
+                  "https://raw.githubusercontent.com/cloudgeometry/langbuilder/refs/heads/main/src/backend/base/langbuilder/components/tools/tavily_search.py",
+                  "https://raw.githubusercontent.com/cloudgeometry/langbuilder/refs/heads/main/src/backend/base/langbuilder/components/models/ollama.py",
+                  "https://raw.githubusercontent.com/cloudgeometry/langbuilder/refs/heads/main/src/backend/base/langbuilder/components/logic/conditional_router.py",
+                  "https://raw.githubusercontent.com/cloudgeometry/langbuilder/refs/heads/main/src/backend/base/langbuilder/components/data/file.py"
                 ]
               },
               "use_async": {
@@ -1847,7 +1847,7 @@
                 "trace_as_metadata": true,
                 "type": "str",
                 "value": [
-                  "https://raw.githubusercontent.com/langbuilder-ai/langbuilder/refs/heads/main/src/backend/base/langbuilder/components/custom_component/custom_component.py"
+                  "https://raw.githubusercontent.com/cloudgeometry/langbuilder/refs/heads/main/src/backend/base/langbuilder/components/custom_component/custom_component.py"
                 ]
               },
               "use_async": {

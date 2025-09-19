@@ -28,7 +28,7 @@ export default function CrashErrorComponent({
                 <p>
                   Please report errors with detailed tracebacks on the{" "}
                   <a
-                    href="https://github.com/langbuilder-ai/langbuilder/issues"
+                    href="https://github.com/cloudgeometry/langbuilder/issues"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="font-medium hover:underline"
@@ -47,7 +47,7 @@ export default function CrashErrorComponent({
                 <Button onClick={resetErrorBoundary}>Restart Langbuilder</Button>
 
                 <a
-                  href="https://github.com/langbuilder-ai/langbuilder/issues/new"
+                  href="https://github.com/cloudgeometry/langbuilder/issues/new"
                   target="_blank"
                   rel="noopener noreferrer"
                 >

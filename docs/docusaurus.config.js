@@ -349,7 +349,7 @@ const config = {
           // right
           {
             position: "right",
-            href: "https://github.com/langbuilder-ai/langbuilder",
+            href: "https://github.com/cloudgeometry/langbuilder",
             className: "header-github-link",
             target: "_blank",
             rel: null,

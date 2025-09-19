@@ -61,7 +61,7 @@ For more information, see [Configure an external PostgreSQL database](/configura
     version: '3'
     services:
       langbuilder:
-        image: langbuilderai/langbuilder:latest
+        image: nickchasecg/langbuilder:latest
         ports:
           - "7860:7860"
         environment:
@@ -219,7 +219,7 @@ spec:
     spec:
       containers:
       - name: langbuilder
-        image: langbuilderai/langbuilder:latest
+        image: nickchasecg/langbuilder:latest
         ports:
         - containerPort: 7860
         env:

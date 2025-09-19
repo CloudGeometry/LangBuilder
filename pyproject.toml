@@ -189,7 +189,7 @@ members = ["src/backend/base", "."]
 packages = ["src/backend/langbuilder"]
 
 [project.urls]
-Repository = "https://github.com/langbuilder-ai/langbuilder"
+Repository = "https://github.com/cloudgeometry/langbuilder"
 Documentation = "https://docs.langbuilder.org"
 
 [project.optional-dependencies]

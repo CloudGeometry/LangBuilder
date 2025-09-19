@@ -226,7 +226,7 @@ build-backend = "hatchling.build"
 
 
 [project.urls]
-Repository = "https://github.com/langbuilder-ai/langbuilder"
+Repository = "https://github.com/cloudgeometry/langbuilder"
 Documentation = "https://docs.langbuilder.org"
 
 # Optional dependencies for uv

@@ -34,7 +34,7 @@ Langbuilder can more efficiently handle multiple users and larger workloads by u
     touch .env
     ```
 
-    You can use the [`.env.example`](https://github.com/langbuilder-ai/langbuilder/blob/main/.env.example) file in the Langbuilder repository as a template for your own `.env` file.
+    You can use the [`.env.example`](https://github.com/cloudgeometry/langbuilder/blob/main/.env.example) file in the Langbuilder repository as a template for your own `.env` file.
 
 4. In your `.env` file, set `LANGBUILDER_DATABASE_URL` to your PostgreSQL connection string:
 
@@ -55,7 +55,7 @@ Langbuilder can more efficiently handle multiple users and larger workloads by u
 ## Deploy Langbuilder and PostgreSQL containers with docker-compose.yml
 
 Launching Langbuilder and PostgreSQL containers in the same Docker network ensures proper connectivity between services.
-For an example, see the [`docker-compose.yml`](https://github.com/langbuilder-ai/langbuilder/blob/main/docker_example/docker-compose.yml) file in the Langbuilder repository.
+For an example, see the [`docker-compose.yml`](https://github.com/cloudgeometry/langbuilder/blob/main/docker_example/docker-compose.yml) file in the Langbuilder repository.
 
 The configuration in the example `docker-compose.yml` also sets up persistent volumes for both Langbuilder and PostgreSQL data.
 Persistent volumes map directories inside of containers to storage on the host machine, so data persists through container restarts.
@@ -103,7 +103,7 @@ For example:
           - langbuilder-postgres:/var/lib/postgresql/data
 
       langbuilder-1:
-        image: langbuilderai/langbuilder:latest
+        image: nickchasecg/langbuilder:latest
         pull_policy: always
         ports:
           - "${LANGBUILDER_PORT_1}:7860"
@@ -118,7 +118,7 @@ For example:
           - langbuilder-data-1:/app/langbuilder
 
       langbuilder-2:
-        image: langbuilderai/langbuilder:latest
+        image: nickchasecg/langbuilder:latest
         pull_policy: always
         ports:
           - "${LANGBUILDER_PORT_2}:7860"

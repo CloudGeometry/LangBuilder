@@ -15,7 +15,7 @@ We encourage responsible disclosure of security vulnerabilities. If you find som
 
 ### How to Report
 
-Use the "Report a vulnerability" button under the "Security" tab of the [Langbuilder GitHub repository](https://github.com/langbuilder-ai/langbuilder/security). This creates a private communication channel between you and the maintainers.
+Use the "Report a vulnerability" button under the "Security" tab of the [Langbuilder GitHub repository](https://github.com/cloudgeometry/langbuilder/security). This creates a private communication channel between you and the maintainers.
 
 ### Reporting Guidelines
 

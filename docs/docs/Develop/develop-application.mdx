@@ -39,7 +39,7 @@ Your application might have additional files and folders, such as a `/components
 
 ### Package management
 
-The base Langbuilder Docker image includes the Langbuilder core dependencies because it uses `langbuilderai/langbuilder:latest` as the parent image.
+The base Langbuilder Docker image includes the Langbuilder core dependencies because it uses `nickchasecg/langbuilder:latest` as the parent image.
 
 If your application requires additional dependencies, create a [`pyproject.toml`](https://packaging.python.org/en/latest/guides/writing-pyproject-toml) file for the additional dependencies.
 For more information, see [Install custom dependencies](/install-custom-dependencies).
@@ -113,7 +113,7 @@ At minimum, you need to specify the base Langbuilder image, create the necessary
 
 ```dockerfile
 # Use the latest version of the base Langbuilder image
-FROM langbuilderai/langbuilder:latest
+FROM nickchasecg/langbuilder:latest
 
 # Create folders and set the working directory in the container
 RUN mkdir /app/flows

@@ -12,7 +12,7 @@ This guide will help you get LangBuilder up and running using Docker and Docker 
 1. Clone the LangBuilder repository:
 
    ```sh
-   git clone https://github.com/langbuilder-ai/langbuilder.git
+   git clone https://github.com/cloudgeometry/langbuilder.git
    ```
 
 2. Navigate to the `docker_example` directory:
@@ -35,7 +35,7 @@ The Docker Compose configuration spins up two services: `langbuilder` and `postg
 
 ### LangBuilder Service
 
-The `langbuilder` service uses the `langbuilderai/langbuilder:latest` Docker image and exposes port 7860. It depends on the `postgres` service.
+The `langbuilder` service uses the `nickchasecg/langbuilder:latest` Docker image and exposes port 7860. It depends on the `postgres` service.
 
 Environment variables:
 
@@ -62,4 +62,4 @@ Volumes:
 
 ## Switching to a Specific LangBuilder Version
 
-If you want to use a specific version of LangBuilder, you can modify the `image` field under the `langbuilder` service in the Docker Compose file. For example, to use version 1.0-alpha, change `langbuilderai/langbuilder:latest` to `langbuilderai/langbuilder:1.0-alpha`.
+If you want to use a specific version of LangBuilder, you can modify the `image` field under the `langbuilder` service in the Docker Compose file. For example, to use version 1.0-alpha, change `nickchasecg/langbuilder:latest` to `nickchasecg/langbuilder:1.0-alpha`.

@@ -27,7 +27,7 @@ Aurora's secret is managed by [AWS Secrets Manager](https://aws.amazon.com/secre
    ![make-cloud9](./img/langbuilder-cloud9-en.png)
 1. Run the following command in the Cloud9 terminal.
    ```shell
-   git clone https://github.com/langbuilder-ai/langbuilder.git
+   git clone https://github.com/cloudgeometry/langbuilder.git
    cd langbuilder/scripts/aws
    cp .env.example .env # Edit this file if you need environment settings
    npm ci

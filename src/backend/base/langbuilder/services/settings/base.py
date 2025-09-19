@@ -205,9 +205,9 @@ class Settings(BaseSettings):
     """If set to True, Langbuilder will not serve the frontend."""
 
     # Telemetry
-    do_not_track: bool = False
+    do_not_track: bool = True
     """If set to True, Langbuilder will not track telemetry."""
-    telemetry_base_url: str = "https://langbuilder.gateway.scarf.sh"
+    telemetry_base_url: str = "https://localhost:7860"  # Disabled endpoint
     transactions_storage_enabled: bool = True
     """If set to True, Langbuilder will track transactions between flows."""
     vertex_builds_storage_enabled: bool = True
