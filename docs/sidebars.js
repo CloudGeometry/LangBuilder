@@ -1,13 +1,13 @@
 module.exports = {
   docs: [
-    "Get-Started/welcome-to-langbuilder",
+    "Get-Started/welcome-to-langflow",
     {
       type: "category",
       label: "Get started",
       items: [
         {
           type: "doc",
-          id: "Get-Started/about-langbuilder",
+          id: "Get-Started/about-langflow",
           label: "About Langbuilder"
         },
         {
@@ -470,7 +470,7 @@ module.exports = {
         },
         {
           type: "doc",
-          id: "Support/luna-for-langbuilder",
+          id: "Support/luna-for-langflow",
           label: "Enterprise support",
         },
       ],
