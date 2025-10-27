@@ -13,7 +13,7 @@ jobs:
     name: Run Ruff Check and Format
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: "Setup Environment"
         uses: astral-sh/setup-uv@v6
         with:
@@ -31,7 +31,7 @@ jobs:
     name: Update Starter Projects
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: "Setup Environment"
         uses: astral-sh/setup-uv@v6
         with:
