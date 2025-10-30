@@ -24,6 +24,7 @@ from pydantic_core import PydanticSerializationError
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
 from langbuilder.api import health_check_router, log_router, router
+from langbuilder.api.openai_compat_router import router as openai_router
 from langbuilder.api.v1.mcp_projects import init_mcp_servers
 from langbuilder.initial_setup.setup import (
     create_or_update_starter_projects,
@@ -385,6 +386,7 @@ def create_app():
             content={"message": str(exc)},
         )
 
+    app.include_router(openai_router, prefix="")
     FastAPIInstrumentor.instrument_app(app)
 
     add_pagination(app)
