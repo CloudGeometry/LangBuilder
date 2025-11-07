@@ -1,7 +1,7 @@
 """migrate_existing_users_to_rbac
 
 Revision ID: b1c2d3e4f5a6
-Revises: b30c7152f8a9
+Revises: a20a7041e437
 Create Date: 2025-11-06 14:30:00.000000
 
 This migration populates UserRoleAssignment table with role assignments
@@ -17,16 +17,16 @@ Migration Logic:
 This migration is idempotent and can be safely run multiple times.
 """
 
-from collections.abc import Sequence
+from typing import Sequence, Union
 
 from alembic import op
 from sqlalchemy.orm import Session
 
 # revision identifiers, used by Alembic.
 revision: str = "b1c2d3e4f5a6"
-down_revision: str | None = "b30c7152f8a9"
-branch_labels: str | Sequence[str] | None = None
-depends_on: str | Sequence[str] | None = None
+down_revision: Union[str, None] = "a20a7041e437"
+branch_labels: Union[str, Sequence[str], None] = None
+depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:

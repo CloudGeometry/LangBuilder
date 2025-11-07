@@ -6,18 +6,19 @@ Create Date: 2024-01-26 13:31:14.797548
 
 """
 
-from collections.abc import Sequence
+from typing import Sequence, Union
 
 import sqlalchemy as sa
 import sqlmodel
 from alembic import op
-from loguru import logger
+from loguru import logger  # noqa
+from sqlalchemy.engine.reflection import Inspector
 
 # revision identifiers, used by Alembic.
 revision: str = "b2fa308044b5"
-down_revision: str | None = "0b8757876a7c"
-branch_labels: str | Sequence[str] | None = None
-depends_on: str | Sequence[str] | None = None
+down_revision: Union[str, None] = "0b8757876a7c"
+branch_labels: Union[str, Sequence[str], None] = None
+depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
@@ -54,6 +55,7 @@ def upgrade() -> None:
 
     except Exception as e:
         logger.exception(f"Error during upgrade: {e}")
+        pass
 
 
 def downgrade() -> None:

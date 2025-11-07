@@ -6,15 +6,16 @@ Create Date: 2024-04-13 10:57:23.061709
 
 """
 
-from collections.abc import Sequence
+from typing import Sequence, Union
 
 import sqlalchemy as sa
 from alembic import op
 from loguru import logger
+from sqlalchemy.engine.reflection import Inspector
 
-down_revision: str | None = "4e5980a44eaa"
-branch_labels: str | Sequence[str] | None = None
-depends_on: str | Sequence[str] | None = None
+down_revision: Union[str, None] = "4e5980a44eaa"
+branch_labels: Union[str, Sequence[str], None] = None
+depends_on: Union[str, Sequence[str], None] = None
 
 # Revision identifiers, used by Alembic.
 revision = "58b28437a398"

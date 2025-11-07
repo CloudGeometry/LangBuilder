@@ -612,24 +612,31 @@ class TestUserRoleAssignmentModel:
             await session.refresh(user)
             await session.refresh(role)
 
-        before_creation = datetime.now(timezone.utc)
-
         async with session_getter(get_db_service()) as session:
-            # Create assignment
+            # Capture time before creating assignment object
+            before_creation = datetime.now(timezone.utc)
+
+            # Create assignment - created_at is set at object instantiation
             assignment = UserRoleAssignment(
                 user_id=user.id,
                 role_id=role.id,
                 scope_type="global",
                 scope_id=None,
             )
+
+            # Capture time after creating assignment object
+            after_creation = datetime.now(timezone.utc)
+
             session.add(assignment)
             await session.commit()
             await session.refresh(assignment)
 
-        after_creation = datetime.now(timezone.utc)
-
         assert assignment.created_at is not None
-        assert before_creation <= assignment.created_at <= after_creation
+
+        # SQLite stores datetimes without timezone info, so we need to make it timezone-aware for comparison
+        # If created_at is naive (no tzinfo), assume it's UTC
+        created_at_aware = assignment.created_at.replace(tzinfo=timezone.utc) if assignment.created_at.tzinfo is None else assignment.created_at
+        assert before_creation <= created_at_aware <= after_creation
 
     async def test_user_role_assignment_multiple_roles_per_user(self):
         """Test that a user can have multiple role assignments."""

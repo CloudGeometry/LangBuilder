@@ -913,7 +913,7 @@ class TestModelRelationships:
             result = await session.execute(select(RolePermission).where(RolePermission.id == rp_id))
             deleted_rp = result.scalar_one_or_none()
             # SQLite foreign key cascade should delete this
-            # Result depends on cascade configuration
+            assert deleted_rp is None, "RolePermission should be deleted when role is deleted (CASCADE)"
 
     async def test_cascade_behavior_on_permission_deletion(self):
         """Test that deleting a permission cascades to role_permission mappings."""
@@ -944,7 +944,7 @@ class TestModelRelationships:
             result = await session.execute(select(RolePermission).where(RolePermission.id == rp_id))
             deleted_rp = result.scalar_one_or_none()
             # SQLite foreign key cascade should delete this
-            # Result depends on cascade configuration
+            assert deleted_rp is None, "RolePermission should be deleted when permission is deleted (CASCADE)"
 
 
 # ==============================================================================
