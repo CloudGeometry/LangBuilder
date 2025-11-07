@@ -1,6 +1,6 @@
 # Deploy Langbuilder on Google Cloud Platform
 
-**Duration**: 45 minutes  
+**Duration**: 45 minutes
 **Author**: [Robert Wilkins III](https://www.linkedin.com/in/robertwilkinsiii)
 
 ## Introduction
@@ -27,8 +27,8 @@ In the next step, you'll configure the GCP environment and deploy Langbuilder.
 ## Configure the GCP environment and deploy Langbuilder
 Run the deploy_langbuilder_gcp_spot.sh script to configure the GCP environment and deploy Langbuilder:
 
-```sh  
-gcloud config set project <walkthrough-project-id/>  
+```sh
+gcloud config set project <walkthrough-project-id/>
 bash ./deploy_langbuilder_gcp_spot.sh
 ```
 

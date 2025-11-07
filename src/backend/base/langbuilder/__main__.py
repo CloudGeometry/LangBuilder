@@ -517,7 +517,9 @@ def build_version_notice(current_version: str, package_name: str) -> str:
         'A new version of langbuilder is available: 1.1.0'
     """
     with suppress(httpx.ConnectError):
-        latest_version = fetch_latest_version(package_name, include_prerelease=langbuilder_is_pre_release(current_version))
+        latest_version = fetch_latest_version(
+            package_name, include_prerelease=langbuilder_is_pre_release(current_version)
+        )
         if latest_version and pkg_version.parse(current_version) < pkg_version.parse(latest_version):
             release_type = "pre-release" if langbuilder_is_pre_release(latest_version) else "version"
             return f"A new {release_type} of {package_name} is available: {latest_version}"
@@ -586,9 +588,7 @@ def print_banner(host: str, port: int, protocol: str) -> None:
         arrow = "→"
         status_icon = "🟢"
 
-    info_text = (
-        f"{github_icon} GitHub: Star for updates {arrow} https://github.com/cloudgeometry/langbuilder"
-    )
+    info_text = f"{github_icon} GitHub: Star for updates {arrow} https://github.com/cloudgeometry/langbuilder"
     telemetry_text = (
         (
             "We collect anonymous usage data to improve Langbuilder.\n"

@@ -134,6 +134,12 @@ class DatabaseService(Service):
             else:
                 logger.error(f"Invalid poolclass '{poolclass_key}' specified. Using default pool class.")
 
+        # SQLite with StaticPool doesn't support pool configuration arguments
+        if self.database_url and self.database_url.startswith("sqlite"):
+            # Remove pool-related arguments that are incompatible with SQLite
+            for key in ["pool_size", "max_overflow", "pool_timeout", "pool_recycle", "pool_pre_ping"]:
+                kwargs.pop(key, None)
+
         return create_async_engine(
             self.database_url,
             connect_args=self._get_connect_args(),

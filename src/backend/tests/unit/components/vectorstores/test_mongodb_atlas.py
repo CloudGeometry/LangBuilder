@@ -3,9 +3,9 @@ import time
 from typing import Any
 
 import pytest
-from langchain_community.embeddings.fake import DeterministicFakeEmbedding
 from langbuilder.components.vectorstores.mongodb_atlas import MongoVectorStoreComponent
 from langbuilder.schema.data import Data
+from langchain_community.embeddings.fake import DeterministicFakeEmbedding
 from pymongo.collection import Collection
 
 from tests.base import ComponentTestBaseWithoutClient, VersionComponentMapping

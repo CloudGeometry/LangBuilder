@@ -144,6 +144,15 @@ def get_lifespan(*, fix_migration=False, version=None):
             logger.debug(f"Super user initialized in {asyncio.get_event_loop().time() - current_time:.2f}s")
 
             current_time = asyncio.get_event_loop().time()
+            logger.debug("Initializing RBAC data")
+            from langbuilder.initial_setup.rbac_setup import initialize_rbac_data
+            from langbuilder.services.deps import session_scope
+
+            async with session_scope() as session:
+                await initialize_rbac_data(session)
+            logger.debug(f"RBAC data initialized in {asyncio.get_event_loop().time() - current_time:.2f}s")
+
+            current_time = asyncio.get_event_loop().time()
             logger.debug("Loading bundles")
             temp_dirs, bundles_components_paths = await load_bundles_with_error_handling()
             get_settings_service().settings.components_path.extend(bundles_components_paths)

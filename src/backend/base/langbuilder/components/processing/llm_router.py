@@ -329,7 +329,9 @@ If no model seems suitable, pick the first model in the list (index 0) as a fall
                 else:
                     spec_dict = self._get_model_specs_dict(langbuilder_model_name)
 
-                model_specs_for_judge.append({"index": i, "langbuilder_name": langbuilder_model_name, "specs": spec_dict})
+                model_specs_for_judge.append(
+                    {"index": i, "langbuilder_name": langbuilder_model_name, "specs": spec_dict}
+                )
                 self.log(
                     f"Prepared specs for Langbuilder model {i} ('{langbuilder_model_name}'): {spec_dict.get('name', 'N/A')}"
                 )

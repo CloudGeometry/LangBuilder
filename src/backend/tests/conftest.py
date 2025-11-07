@@ -214,7 +214,9 @@ def session_fixture():
 
 @pytest.fixture
 async def async_session():
-    engine = create_async_engine("sqlite+aiosqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
+    engine = create_async_engine(
+        "sqlite+aiosqlite:///:memory:", connect_args={"check_same_thread": False}, poolclass=StaticPool
+    )
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
     async with AsyncSession(engine, expire_on_commit=False) as session:

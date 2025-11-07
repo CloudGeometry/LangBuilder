@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from langbuilder.services.database.models.api_key.model import ApiKey
     from langbuilder.services.database.models.flow.model import Flow
     from langbuilder.services.database.models.folder.model import Folder
+    from langbuilder.services.database.models.rbac.user_role_assignment import UserRoleAssignment
     from langbuilder.services.database.models.variable.model import Variable
 
 
@@ -45,6 +46,14 @@ class User(SQLModel, table=True):  # type: ignore[call-arg]
     folders: list["Folder"] = Relationship(
         back_populates="user",
         sa_relationship_kwargs={"cascade": "delete"},
+    )
+    role_assignments: list["UserRoleAssignment"] = Relationship(
+        back_populates="user",
+        sa_relationship_kwargs={
+            "foreign_keys": "[UserRoleAssignment.user_id]",
+            "lazy": "select",
+            "overlaps": "user",  # Prevent SQLAlchemy from complaining about overlaps
+        },
     )
     optins: dict[str, Any] | None = Field(
         sa_column=Column(JSON, default=lambda: UserOptin().model_dump(), nullable=True)

@@ -3,8 +3,8 @@
 
 -   Deploy on your cloud, VPC, or even OnPrem
 -   No-code, Low-code and LangChain-based Framework
--   AI Agents Libraries and Templates  
- 
+-   AI Agents Libraries and Templates
+
 CloudGeometry provides end-to-end support for platform deployment, maintenance, and AI Agent adoption through our managed services plans
 
 ## The 3 Essential Layers of Enterprise AI Transformationa
@@ -12,7 +12,7 @@ CloudGeometry provides end-to-end support for platform deployment, maintenance, 
 ### Unified in the LangBuilder AIAgent Platform to enable step-by-step, accurate AI Agent adoption in your business processes
 
 1.  **Visual Editor and Workflow Designer**
-  
+
 An intuitive, no-code drag-and-drop IDE for business users and project managers to quickly prototype and validate AI workflows
 
 -   Prebuilt connectors to popular and domain specific data sources, and APIs
@@ -25,7 +25,7 @@ An intuitive, no-code drag-and-drop IDE for business users and project managers 
 Based on the popular LangBuilder OpenSource project with CloudGeometry AddOns enabling you to continuously run those AI Agents for your company's internal processes.
 
 2.  **Programmable AI Agent Framework**
-    
+
 For LLM developers to extend agents with custom logic, integrations, and advanced orchestration
 
 -   LangChain Expression Language (LCEL) for precise, expressive orchestration logic
@@ -38,7 +38,7 @@ For LLM developers to extend agents with custom logic, integrations, and advance
 Based on the popular LangChain open source project framework and LangBuilder builder, with CloudGeometry AddOns enabling a seamless transition from rapid prototyping to enterprise ready and secure agents
 
 3.  **AI Agent Deployment & Management Platform**
-    
+
 For operations teams and business analysts who need production-ready tools for AI powered processes governance, cost optimization, and continuous improvement
 
 -   Cloud deployment with built-in CI/CD
@@ -47,7 +47,7 @@ For operations teams and business analysts who need production-ready tools for A
 -   Scalability and fault tolerance
 -   AI Quality Control AddOns
 -   Cost Control, Cloud, Data, Tokens
--   Human‑in‑the‑loop support—pause workflows for manual intervention at any stage  
+-   Human‑in‑the‑loop support—pause workflows for manual intervention at any stage
 
 Based on the popular open source projects LangGraph and Kubernetes with CloudGeometry components for quick deployment, observability and cost control.
 

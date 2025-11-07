@@ -7,13 +7,20 @@ from .transactions import TransactionTable
 from .user import User
 from .variable import Variable
 
+# Import RBAC models after User to avoid circular dependencies
+from .rbac import Permission, Role, RolePermission, UserRoleAssignment
+
 __all__ = [
     "ApiKey",
     "File",
     "Flow",
     "Folder",
     "MessageTable",
+    "Permission",
+    "Role",
+    "RolePermission",
     "TransactionTable",
     "User",
+    "UserRoleAssignment",
     "Variable",
 ]

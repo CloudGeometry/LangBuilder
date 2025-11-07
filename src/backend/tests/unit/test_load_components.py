@@ -446,7 +446,9 @@ class TestComponentLoading:
         assert all(count > 0 for count in langbuilder_component_counts), (
             "get_langbuilder_components_list should always return components"
         )
-        assert all(isinstance(result, dict) for _, result in langbuilder_results), "All langbuilder results should be dicts"
+        assert all(isinstance(result, dict) for _, result in langbuilder_results), (
+            "All langbuilder results should be dicts"
+        )
         assert all(isinstance(result, dict) for _, result in all_types_results), "All all_types results should be dicts"
 
         # Assert that steady-state performance is good

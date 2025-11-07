@@ -1,9 +1,9 @@
 import base64
 
 import pytest
-from langchain_core.messages import AIMessage, HumanMessage
 from langbuilder.schema.data import Data
 from langbuilder.utils.constants import MESSAGE_SENDER_AI, MESSAGE_SENDER_USER
+from langchain_core.messages import AIMessage, HumanMessage
 
 
 @pytest.fixture

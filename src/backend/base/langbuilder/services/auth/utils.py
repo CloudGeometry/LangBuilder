@@ -16,7 +16,11 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from starlette.websockets import WebSocket
 
 from langbuilder.services.database.models.api_key.crud import check_key
-from langbuilder.services.database.models.user.crud import get_user_by_id, get_user_by_username, update_user_last_login_at
+from langbuilder.services.database.models.user.crud import (
+    get_user_by_id,
+    get_user_by_username,
+    update_user_last_login_at,
+)
 from langbuilder.services.database.models.user.model import User, UserRead
 from langbuilder.services.deps import get_db_service, get_session, get_settings_service
 from langbuilder.services.settings.service import SettingsService
@@ -32,7 +36,9 @@ api_key_query = APIKeyQuery(name=API_KEY_NAME, scheme_name="API key query", auto
 api_key_header = APIKeyHeader(name=API_KEY_NAME, scheme_name="API key header", auto_error=False)
 
 MINIMUM_KEY_LENGTH = 32
-AUTO_LOGIN_WARNING = "In v1.6 LANGBUILDER_SKIP_AUTH_AUTO_LOGIN will be removed. Please update your authentication method."
+AUTO_LOGIN_WARNING = (
+    "In v1.6 LANGBUILDER_SKIP_AUTH_AUTO_LOGIN will be removed. Please update your authentication method."
+)
 AUTO_LOGIN_ERROR = (
     "Since v1.5, LANGBUILDER_AUTO_LOGIN requires a valid API key. "
     "Set LANGBUILDER_SKIP_AUTH_AUTO_LOGIN=true to skip this check. "

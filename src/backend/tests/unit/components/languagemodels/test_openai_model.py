@@ -2,8 +2,8 @@ import os
 from unittest.mock import MagicMock, patch
 
 import pytest
-from langchain_openai import ChatOpenAI
 from langbuilder.components.openai.openai_chat_model import OpenAIModelComponent
+from langchain_openai import ChatOpenAI
 
 from tests.base import ComponentTestBaseWithoutClient
 

@@ -180,7 +180,9 @@ class Settings(BaseSettings):
 
     store: bool | None = True
     store_url: str | None = "https://api.langbuilder.store"
-    download_webhook_url: str | None = "https://api.langbuilder.store/flows/trigger/ec611a61-8460-4438-b187-a4f65e5559d4"
+    download_webhook_url: str | None = (
+        "https://api.langbuilder.store/flows/trigger/ec611a61-8460-4438-b187-a4f65e5559d4"
+    )
     like_webhook_url: str | None = "https://api.langbuilder.store/flows/trigger/64275852-ec00-45c1-984e-3bff814732da"
 
     storage_type: str = "local"

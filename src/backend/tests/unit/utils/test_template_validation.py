@@ -342,7 +342,9 @@ class TestValidateFlowCode:
             assert "Code validation failed: 'key'" in errors[0]
 
         # Test AttributeError
-        with patch("langbuilder.utils.template_validation.validate_code", side_effect=AttributeError("Attribute error")):
+        with patch(
+            "langbuilder.utils.template_validation.validate_code", side_effect=AttributeError("Attribute error")
+        ):
             errors = validate_flow_code(template_data, "test.json")
             assert len(errors) == 1
             assert "Code validation failed: Attribute error" in errors[0]

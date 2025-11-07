@@ -3,8 +3,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 import Markdown from "react-markdown";
-import rehypeMathjax from "rehype-mathjax";
+import rehypeKatex from "rehype-katex";
 import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
 import { BorderTrail } from "@/components/core/border-trail";
 import type { ContentBlock } from "@/types/chat";
 import { cn } from "@/utils/utils";
@@ -99,8 +100,8 @@ export function ContentBlockDisplay({
                 transition={{ duration: 0.2 }}
               >
                 <Markdown
-                  remarkPlugins={[remarkGfm]}
-                  rehypePlugins={[rehypeMathjax]}
+                  remarkPlugins={[remarkGfm, remarkMath]}
+                  rehypePlugins={[rehypeKatex]}
                   className="inline-block w-fit max-w-full text-sm font-semibold text-primary"
                 >
                   {headerTitle}
@@ -170,9 +171,9 @@ export function ContentBlockDisplay({
                       >
                         <Markdown
                           className="text-sm font-semibold text-foreground"
-                          remarkPlugins={[remarkGfm]}
+                          remarkPlugins={[remarkGfm, remarkMath]}
                           linkTarget="_blank"
-                          rehypePlugins={[rehypeMathjax]}
+                          rehypePlugins={[rehypeKatex]}
                           components={{
                             p({ node, ...props }) {
                               return (

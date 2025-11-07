@@ -90,7 +90,9 @@ test(
     expect(await page.getByText("llama").count()).toBe(0);
     expect(await page.getByText("claude").count()).toBeGreaterThanOrEqual(1);
     expect(
-      await page.getByText("this is a test langbuilder", { exact: true }).count(),
+      await page
+        .getByText("this is a test langbuilder", { exact: true })
+        .count(),
     ).toBe(0);
     expect(await page.getByText("gpt").count()).toBe(0);
 
@@ -112,7 +114,9 @@ test(
     expect(await page.getByText("llama").count()).toBeGreaterThanOrEqual(0);
     expect(await page.getByText("claude").count()).toBe(0);
     expect(
-      await page.getByText("this is a test langbuilder", { exact: true }).count(),
+      await page
+        .getByText("this is a test langbuilder", { exact: true })
+        .count(),
     ).toBe(0);
     expect(await page.getByText("gpt").count()).toBe(0);
   },

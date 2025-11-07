@@ -184,6 +184,9 @@ db.sqlite3-journal
 *.db-shm
 *.db-wal
 
+# Test database files (temporary SQLite files from misconfigured fixtures)
+test_*?cache=shared&mode=memory
+
 # Flask stuff:
 instance/
 .webassets-cache

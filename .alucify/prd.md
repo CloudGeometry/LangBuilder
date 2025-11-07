@@ -12,8 +12,8 @@ LangBuilder currently lacks a **customizable, fine-grained access control** mech
 
 The primary goal is to introduce a customizable, fine-grained **Role-Based Access Control (RBAC)** system. This system must enforce secure, contextual permissions across all major elements of LangBuilder, ensuring:
 
-* Secure, fine-grained permission enforcement.  
-* Customizable roles to suit different team structures (via predefined defaults).  
+* Secure, fine-grained permission enforcement.
+* Customizable roles to suit different team structures (via predefined defaults).
 * Management available exclusively through a Web-based administrative UI by the **Admin** role.
 
 ---
@@ -28,16 +28,16 @@ The MVP will establish the core RBAC data model, assignment logic, and enforceme
 
 The following items are explicitly **out-of-scope** for the MVP:
 
-* Custom Roles or permissions beyond CRUD (e.g., `Can_export_flow`, `Can_deploy_environment`).  
-* Extended Permission Scopes (Component, Environment, Workspace, API/Token).  
-* SSO (Single Sign-On), User Groups, Service Accounts, SCIM, API/IaC based access management.  
+* Custom Roles or permissions beyond CRUD (e.g., `Can_export_flow`, `Can_deploy_environment`).
+* Extended Permission Scopes (Component, Environment, Workspace, API/Token).
+* SSO (Single Sign-On), User Groups, Service Accounts, SCIM, API/IaC based access management.
 * User-triggered sharing of flows.
 
 ### **2.3. Dependencies & Constraints**
 
 The RBAC implementation **must** integrate with and rely on the following existing systems:
 
-* Existing authentication system  
+* Existing authentication system
 * A persistent metadata store for role and permission configuration
 
 ---
@@ -57,7 +57,7 @@ The RBAC implementation **must** integrate with and rely on the following existi
 | **1.5** | **Global Project Creation & New Entity Owner Mutability** | **Scenario: Project Creation and New Entity Owner Assignment**  **Given** any authenticated user is logged in  **When** the user attempts to create a new Project  **Then** the user should have access to the **Create Project** function **When** a user successfully creates a new Project or Flow  **Then** the creating user should be automatically assigned the **Owner** role for that new entity  **And** an **Admin** should be able to modify this new entity's Owner role assignment  |
 | **1.6** | **Define Project to Flow Role Extension Rule** | **Scenario: Establishing Project Role Inheritance Logic**  **Given** a user has a specific(or default) role assigned to a Project **When** the user attempts to access a Flow contained within that Project  **Then** the user should automatically inherit the permissions of the assigned Project role for that Flow But if an explicit, different role is assigned to the user for that specific Flow scope, the Flow-specific role should override the inherited role (per 2.1 logic) |
 
-### 
+###
 
 ### **Epic 2: RBAC Enforcement Engine & Runtime Checks**
 
@@ -71,7 +71,7 @@ The RBAC implementation **must** integrate with and rely on the following existi
 | **2.4** | **Enforce Update/Edit Permission for Projects & Flows** | **Scenario: Preventing Edits for Unauthorized Users**  **Given** a user loads the editor for a Project or Flow  **When** the user lacks the **Update/Edit** permission  **Then** the editor should load in a **read-only state** **And** the user should be prevented from making any changes/edits  **And** the check must also occur before allowing **import** functionality |
 | **2.5** | **Enforce Delete Permission for Projects & Flows** | **Scenario: Blocking Unauthorized Deletion**  **Given** a user views the interface for a Project or Flow  **When** the user does not have the **Delete** permission  **Then** the UI elements (e.g., buttons, options) for **deleting** the entity must be hidden or disabled  **And** if the user attempts to bypass the UI, the `AuthService` should block the action **And** the action should only be permitted if the user is an **Admin** or has the **Owner** role for the scope entity |
 
-### 
+###
 
 ### **Epic 3: Web-based Admin Management Interface**
 
@@ -85,7 +85,7 @@ The RBAC implementation **must** integrate with and rely on the following existi
 | **3.4** | **Assignment Editing and Removal** | **Scenario: Modifying an Existing Role**  **Given** an **Admin** selects an assignment from the master list to edit  **When** the Admin changes the Role for that specific scope  **Then** the system should call the Core Role Assignment Logic (Epic 1.3) to update the assignment |
 | **3.5** | **Flow Role Inheritance Display Rule** | **Scenario: Displaying Flow Role Information**  **Given** a user has an inherited role from a Project  **When** the Admin views the assignment list  **Then** the list **should not** display a specific assignment entry for the inherited Flow role  **When** the Admin views the assignment interface  **Then** a clear message should be displayed: *"Project-level assignments are inherited by contained Flows and can be overridden by explicit Flow-specific roles."* |
 
-### 
+###
 
 ### **Epic 5: Non-Functional Requirements**
 

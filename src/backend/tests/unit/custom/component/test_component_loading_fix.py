@@ -77,7 +77,10 @@ class TestComponentLoadingFix:
         mock_settings_service.settings.lazy_load_components = False
 
         with (
-            patch("langbuilder.interface.components.import_langbuilder_components", return_value=mock_langbuilder_components),
+            patch(
+                "langbuilder.interface.components.import_langbuilder_components",
+                return_value=mock_langbuilder_components,
+            ),
             patch("langbuilder.interface.components.aget_all_types_dict") as mock_aget_all_types_dict,
         ):
             # Mock aget_all_types_dict to return custom components
@@ -104,7 +107,10 @@ class TestComponentLoadingFix:
         mock_settings_service.settings.lazy_load_components = False
 
         with (
-            patch("langbuilder.interface.components.import_langbuilder_components", return_value=mock_langbuilder_components),
+            patch(
+                "langbuilder.interface.components.import_langbuilder_components",
+                return_value=mock_langbuilder_components,
+            ),
             patch("langbuilder.interface.components.aget_all_types_dict") as mock_aget_all_types_dict,
         ):
             # Execute the function
@@ -127,7 +133,10 @@ class TestComponentLoadingFix:
         mock_settings_service.settings.lazy_load_components = False
 
         with (
-            patch("langbuilder.interface.components.import_langbuilder_components", return_value=mock_langbuilder_components),
+            patch(
+                "langbuilder.interface.components.import_langbuilder_components",
+                return_value=mock_langbuilder_components,
+            ),
             patch("langbuilder.interface.components.aget_all_types_dict") as mock_aget_all_types_dict,
         ):
             # Execute the function
@@ -149,7 +158,10 @@ class TestComponentLoadingFix:
         mock_settings_service.settings.lazy_load_components = False
 
         with (
-            patch("langbuilder.interface.components.import_langbuilder_components", return_value=mock_langbuilder_components),
+            patch(
+                "langbuilder.interface.components.import_langbuilder_components",
+                return_value=mock_langbuilder_components,
+            ),
             patch("langbuilder.interface.components.aget_all_types_dict") as mock_aget_all_types_dict,
         ):
             # Execute the function
@@ -176,7 +188,10 @@ class TestComponentLoadingFix:
         }
 
         with (
-            patch("langbuilder.interface.components.import_langbuilder_components", return_value=mock_langbuilder_components),
+            patch(
+                "langbuilder.interface.components.import_langbuilder_components",
+                return_value=mock_langbuilder_components,
+            ),
             patch(
                 "langbuilder.interface.components.aget_component_metadata", return_value=mock_metadata
             ) as mock_aget_metadata,
@@ -202,7 +217,10 @@ class TestComponentLoadingFix:
         mock_settings_service.settings.lazy_load_components = False
 
         with (
-            patch("langbuilder.interface.components.import_langbuilder_components", return_value=mock_langbuilder_components),
+            patch(
+                "langbuilder.interface.components.import_langbuilder_components",
+                return_value=mock_langbuilder_components,
+            ),
             patch(
                 "langbuilder.interface.components.aget_all_types_dict", return_value=mock_custom_components
             ) as mock_aget_all_types_dict,
@@ -238,7 +256,10 @@ class TestComponentLoadingFix:
         }
 
         with (
-            patch("langbuilder.interface.components.import_langbuilder_components", return_value=mock_langbuilder_components),
+            patch(
+                "langbuilder.interface.components.import_langbuilder_components",
+                return_value=mock_langbuilder_components,
+            ),
             patch("langbuilder.interface.components.aget_all_types_dict", return_value=overlapping_custom_components),
         ):
             # Execute the function
@@ -270,7 +291,10 @@ class TestComponentLoadingFix:
         mock_settings_service.settings.lazy_load_components = False
 
         with (
-            patch("langbuilder.interface.components.import_langbuilder_components", return_value=mock_langbuilder_components),
+            patch(
+                "langbuilder.interface.components.import_langbuilder_components",
+                return_value=mock_langbuilder_components,
+            ),
             patch("langbuilder.interface.components.aget_all_types_dict", return_value={}),
         ):
             # First call - should populate cache
@@ -295,7 +319,10 @@ class TestComponentLoadingFix:
         mock_settings_service.settings.lazy_load_components = False
 
         with (
-            patch("langbuilder.interface.components.import_langbuilder_components", return_value=mock_langbuilder_components),
+            patch(
+                "langbuilder.interface.components.import_langbuilder_components",
+                return_value=mock_langbuilder_components,
+            ),
             patch("langbuilder.interface.components.aget_all_types_dict", return_value=mock_custom_components),
             patch("langbuilder.interface.components.logger") as mock_logger,
         ):
@@ -318,8 +345,13 @@ class TestComponentLoadingFix:
         mock_settings_service.settings.lazy_load_components = False
 
         with (
-            patch("langbuilder.interface.components.import_langbuilder_components", return_value=mock_langbuilder_components),
-            patch("langbuilder.interface.components.aget_all_types_dict", side_effect=Exception("Custom loading failed")),
+            patch(
+                "langbuilder.interface.components.import_langbuilder_components",
+                return_value=mock_langbuilder_components,
+            ),
+            patch(
+                "langbuilder.interface.components.aget_all_types_dict", side_effect=Exception("Custom loading failed")
+            ),
             pytest.raises(Exception, match="Custom loading failed"),
         ):
             # Execute the function - should raise exception when custom component loading fails
@@ -347,7 +379,10 @@ class TestComponentLoadingFix:
         mock_settings_service.settings.components_path = [BASE_COMPONENTS_PATH, "/custom/path", BASE_COMPONENTS_PATH]
 
         with (
-            patch("langbuilder.interface.components.import_langbuilder_components", return_value=mock_langbuilder_components),
+            patch(
+                "langbuilder.interface.components.import_langbuilder_components",
+                return_value=mock_langbuilder_components,
+            ),
             patch("langbuilder.interface.components.aget_all_types_dict", return_value={}) as mock_aget_all_types_dict,
         ):
             # Clear cache for fresh test
@@ -378,7 +413,10 @@ class TestComponentLoadingFix:
         }
 
         with (
-            patch("langbuilder.interface.components.import_langbuilder_components", return_value=mock_langbuilder_components),
+            patch(
+                "langbuilder.interface.components.import_langbuilder_components",
+                return_value=mock_langbuilder_components,
+            ),
             patch("langbuilder.interface.components.aget_all_types_dict", return_value=mock_custom_components),
         ):
             # Execute the function
@@ -403,7 +441,10 @@ class TestComponentLoadingFix:
         mock_settings_service.settings.lazy_load_components = False
 
         with (
-            patch("langbuilder.interface.components.import_langbuilder_components", return_value=mock_langbuilder_components),
+            patch(
+                "langbuilder.interface.components.import_langbuilder_components",
+                return_value=mock_langbuilder_components,
+            ),
             patch("langbuilder.interface.components.aget_all_types_dict", return_value=mock_custom_components),
         ):
             # Execute multiple concurrent calls

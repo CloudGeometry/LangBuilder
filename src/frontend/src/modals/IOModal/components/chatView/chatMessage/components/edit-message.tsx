@@ -1,7 +1,8 @@
 import Markdown from "react-markdown";
-import rehypeMathjax from "rehype-mathjax";
+import rehypeKatex from "rehype-katex";
 import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
 import { EMPTY_OUTPUT_SEND_MESSAGE } from "@/constants/constants";
 import { preprocessChatMessage } from "@/utils/markdownUtils";
 import { cn } from "@/utils/utils";
@@ -28,9 +29,9 @@ export const MarkdownField = ({
   return (
     <div className="w-full items-baseline gap-2">
       <Markdown
-        remarkPlugins={[remarkGfm as any]}
+        remarkPlugins={[remarkGfm as any, remarkMath as any]}
         linkTarget="_blank"
-        rehypePlugins={[rehypeMathjax, rehypeRaw]}
+        rehypePlugins={[rehypeKatex, rehypeRaw]}
         className={cn(
           "markdown prose flex w-full max-w-full flex-col items-baseline text-sm font-normal word-break-break-word dark:prose-invert",
           isEmpty ? "text-muted-foreground" : "text-primary",
