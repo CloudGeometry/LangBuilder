@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 from uuid import UUID, uuid4
 
 from sqlalchemy import UniqueConstraint
@@ -24,9 +24,9 @@ class UserRoleAssignment(UserRoleAssignmentBase, table=True):  # type: ignore[ca
     created_by: UUID | None = Field(default=None, foreign_key="user.id", nullable=True)
 
     # Relationships
-    user: "User" = Relationship()
+    user: "User" = Relationship(sa_relationship_kwargs={"foreign_keys": "[UserRoleAssignment.user_id]"})
     role: "Role" = Relationship(back_populates="user_assignments")
-    creator: "User | None" = Relationship(sa_relationship_kwargs={"foreign_keys": "[UserRoleAssignment.created_by]"})
+    creator: Optional["User"] = Relationship(sa_relationship_kwargs={"foreign_keys": "[UserRoleAssignment.created_by]"})
 
     __table_args__ = (
         UniqueConstraint("user_id", "role_id", "scope_type", "scope_id", name="unique_user_role_scope"),
