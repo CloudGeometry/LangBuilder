@@ -91,11 +91,16 @@ async def test_create_user_role_assignment_with_scope(async_session: AsyncSessio
 @pytest.mark.asyncio
 async def test_create_duplicate_user_role_assignment(async_session: AsyncSession, test_user: User):
     """Test creating a duplicate user role assignment fails."""
+    from uuid import uuid4
+
     role_data = RoleCreate(name="Admin")
     role = await create_role(async_session, role_data)
 
+    # Use a specific scope_id to properly test unique constraint
+    # (SQLite treats NULL as distinct in unique constraints)
+    flow_id = uuid4()
     assignment_data = UserRoleAssignmentCreate(
-        user_id=test_user.id, role_id=role.id, scope_type="Global", scope_id=None
+        user_id=test_user.id, role_id=role.id, scope_type="Flow", scope_id=flow_id
     )
     await create_user_role_assignment(async_session, assignment_data)
 

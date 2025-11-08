@@ -67,10 +67,11 @@ async def update_permission(db: AsyncSession, permission_id: UUID, permission_up
     try:
         await db.commit()
         await db.refresh(db_permission)
-        return db_permission
     except IntegrityError as e:
         await db.rollback()
         raise HTTPException(status_code=400, detail=str(e)) from e
+    else:
+        return db_permission
 
 
 async def delete_permission(db: AsyncSession, permission_id: UUID) -> dict:

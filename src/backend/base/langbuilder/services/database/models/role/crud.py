@@ -61,10 +61,11 @@ async def update_role(db: AsyncSession, role_id: UUID, role_update: RoleUpdate) 
     try:
         await db.commit()
         await db.refresh(db_role)
-        return db_role
     except IntegrityError as e:
         await db.rollback()
         raise HTTPException(status_code=400, detail=str(e)) from e
+    else:
+        return db_role
 
 
 async def delete_role(db: AsyncSession, role_id: UUID) -> dict:

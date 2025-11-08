@@ -101,10 +101,11 @@ async def update_user_role_assignment(
     try:
         await db.commit()
         await db.refresh(db_assignment)
-        return db_assignment
     except IntegrityError as e:
         await db.rollback()
         raise HTTPException(status_code=400, detail=str(e)) from e
+    else:
+        return db_assignment
 
 
 async def delete_user_role_assignment(db: AsyncSession, assignment_id: UUID) -> dict:
