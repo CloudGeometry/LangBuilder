@@ -169,7 +169,7 @@ async def test_rbac_unique_constraints_exist(async_session: AsyncSession):
     index_sql = result.scalar()
     # SQLModel creates indexes with UNIQUE keyword in the CREATE INDEX statement
     # The index should at minimum exist, uniqueness may vary by implementation
-    assert index_sql is not None, f"Role name index SQL missing"
+    assert index_sql is not None, "Role name index SQL missing"
 
 
 @pytest.mark.asyncio

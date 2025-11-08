@@ -25,6 +25,7 @@ from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoin
 
 from langbuilder.api import health_check_router, log_router, router
 from langbuilder.api.v1.mcp_projects import init_mcp_servers
+from langbuilder.initial_setup.rbac_setup import initialize_rbac_if_needed
 from langbuilder.initial_setup.setup import (
     create_or_update_starter_projects,
     initialize_super_user_if_needed,
@@ -142,6 +143,11 @@ def get_lifespan(*, fix_migration=False, version=None):
             logger.debug("Initializing super user")
             await initialize_super_user_if_needed()
             logger.debug(f"Super user initialized in {asyncio.get_event_loop().time() - current_time:.2f}s")
+
+            current_time = asyncio.get_event_loop().time()
+            logger.debug("Initializing RBAC system")
+            await initialize_rbac_if_needed()
+            logger.debug(f"RBAC system initialized in {asyncio.get_event_loop().time() - current_time:.2f}s")
 
             current_time = asyncio.get_event_loop().time()
             logger.debug("Loading bundles")
