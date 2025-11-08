@@ -1,4 +1,9 @@
-from langbuilder.base.data.utils import TEXT_FILE_TYPES, parallel_load_data, parse_text_file_to_data, retrieve_file_paths
+from langbuilder.base.data.utils import (
+    TEXT_FILE_TYPES,
+    parallel_load_data,
+    parse_text_file_to_data,
+    retrieve_file_paths,
+)
 from langbuilder.custom.custom_component.component import Component
 from langbuilder.io import BoolInput, IntInput, MessageTextInput, MultiselectInput
 from langbuilder.schema.data import Data

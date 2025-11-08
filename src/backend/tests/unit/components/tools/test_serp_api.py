@@ -1,12 +1,12 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
-from langchain_core.tools import ToolException
 from langbuilder.components.serpapi.serp import SerpComponent
 from langbuilder.custom import Component
 from langbuilder.custom.utils import build_custom_component_template
 from langbuilder.schema import Data
 from langbuilder.schema.message import Message
+from langchain_core.tools import ToolException
 
 
 def test_serpapi_initialization():

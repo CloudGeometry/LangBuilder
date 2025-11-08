@@ -4,11 +4,11 @@ from pathlib import Path
 from textwrap import dedent
 
 import pytest
-from langchain_core.documents import Document
 from langbuilder.custom import Component, CustomComponent
 from langbuilder.custom.code_parser.code_parser import CodeParser, CodeSyntaxError
 from langbuilder.custom.custom_component.base_component import BaseComponent, ComponentCodeNullError
 from langbuilder.custom.utils import build_custom_component_template
+from langchain_core.documents import Document
 
 
 @pytest.fixture
