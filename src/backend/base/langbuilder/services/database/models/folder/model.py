@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 from uuid import UUID, uuid4
 
 from sqlalchemy import Text, UniqueConstraint
@@ -6,6 +6,9 @@ from sqlmodel import JSON, Column, Field, Relationship, SQLModel
 
 from langbuilder.services.database.models.flow.model import Flow, FlowRead
 from langbuilder.services.database.models.user.model import User
+
+if TYPE_CHECKING:
+    from langbuilder.services.database.models.user_role_assignment.model import UserRoleAssignment
 
 
 class FolderBase(SQLModel):
@@ -16,6 +19,7 @@ class FolderBase(SQLModel):
         sa_column=Column(JSON, nullable=True),
         description="Authentication settings for the folder/project",
     )
+    is_starter_project: bool = Field(default=False, description="Marks the user's default Starter Project")
 
 
 class Folder(FolderBase, table=True):  # type: ignore[call-arg]
@@ -31,6 +35,13 @@ class Folder(FolderBase, table=True):  # type: ignore[call-arg]
     user: User = Relationship(back_populates="folders")
     flows: list[Flow] = Relationship(
         back_populates="folder", sa_relationship_kwargs={"cascade": "all, delete, delete-orphan"}
+    )
+    role_assignments: list["UserRoleAssignment"] = Relationship(
+        sa_relationship_kwargs={
+            "foreign_keys": "[UserRoleAssignment.scope_id]",
+            "primaryjoin": "and_(Folder.id == UserRoleAssignment.scope_id, UserRoleAssignment.scope_type == 'Project')",
+            "overlaps": "role_assignments",
+        }
     )
 
     __table_args__ = (UniqueConstraint("user_id", "name", name="unique_folder_name"),)
