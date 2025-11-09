@@ -309,13 +309,18 @@ class DatabaseService(Service):
             await conn.run_sync(self._check_schema_health)
 
     @staticmethod
-    def init_alembic(alembic_cfg) -> None:
+    def init_alembic(alembic_cfg, *, stamp_only: bool = False) -> None:
         logger.info("Initializing alembic")
         command.ensure_version(alembic_cfg)
         # alembic_cfg.attributes["connection"].commit()
-        command.upgrade(alembic_cfg, "head")
+        if stamp_only:
+            logger.info("Stamping database as 'head' (tables already exist)")
+            command.stamp(alembic_cfg, "head")
+        else:
+            logger.info("Running migrations to 'head'")
+            command.upgrade(alembic_cfg, "head")
 
-    def _run_migrations(self, should_initialize_alembic, fix) -> None:
+    def _run_migrations(self, should_initialize_alembic, fix, *, tables_already_exist: bool = False) -> None:
         # First we need to check if alembic has been initialized
         # If not, we need to initialize it
         # if not self.script_location.exists(): # this is not the correct way to check if alembic has been initialized
@@ -333,7 +338,10 @@ class DatabaseService(Service):
 
             if should_initialize_alembic:
                 try:
-                    self.init_alembic(alembic_cfg)
+                    # If tables already exist (created by create_db_and_tables),
+                    # stamp the database instead of running migrations to avoid
+                    # "table already exists" errors
+                    self.init_alembic(alembic_cfg, stamp_only=tables_already_exist)
                 except Exception as exc:
                     msg = "Error initializing alembic"
                     logger.exception(msg)
@@ -364,6 +372,7 @@ class DatabaseService(Service):
 
     async def run_migrations(self, *, fix=False) -> None:
         should_initialize_alembic = False
+        tables_already_exist = False
         async with self.with_session() as session:
             # If the table does not exist it throws an error
             # so we need to catch it
@@ -372,7 +381,19 @@ class DatabaseService(Service):
             except Exception:  # noqa: BLE001
                 logger.debug("Alembic not initialized")
                 should_initialize_alembic = True
-        await asyncio.to_thread(self._run_migrations, should_initialize_alembic, fix)
+
+                # Check if RBAC tables already exist (created by create_db_and_tables)
+                # If they do, we should stamp instead of running migrations
+                try:
+                    await session.exec(text("SELECT 1 FROM rolepermission LIMIT 1"))
+                    logger.debug("RBAC tables already exist, will stamp database instead of running migrations")
+                    tables_already_exist = True
+                except Exception:  # noqa: BLE001
+                    logger.debug("RBAC tables do not exist, will run migrations normally")
+                    tables_already_exist = False
+        await asyncio.to_thread(
+            self._run_migrations, should_initialize_alembic, fix, tables_already_exist=tables_already_exist
+        )
 
     @staticmethod
     def try_downgrade_upgrade_until_success(alembic_cfg, retries=5) -> None:
