@@ -783,3 +783,478 @@ async def test_list_flows_header_format_with_rbac(
     # User should see only flow 1 in header format
     flow_names = [f["name"] for f in flows]
     assert "Test Flow 1" in flow_names
+
+
+# Test cases for Create Flow endpoint RBAC (Task 2.3)
+
+
+@pytest.fixture
+async def project_create_permission(client):  # noqa: ARG001
+    """Create Create permission for Project scope."""
+    db_manager = get_db_service()
+    async with db_manager.with_session() as session:
+        # Check if permission already exists
+        stmt = select(Permission).where(Permission.name == "Create", Permission.scope == "Project")
+        if existing_perm := (await session.exec(stmt)).first():
+            return existing_perm
+        perm_data = PermissionCreate(name="Create", scope="Project", description="Create flows in project")
+        return await create_permission(session, perm_data)
+
+
+@pytest.fixture
+async def flow_create_permission(client):  # noqa: ARG001
+    """Create Create permission for Flow scope."""
+    db_manager = get_db_service()
+    async with db_manager.with_session() as session:
+        # Check if permission already exists
+        stmt = select(Permission).where(Permission.name == "Create", Permission.scope == "Flow")
+        if existing_perm := (await session.exec(stmt)).first():
+            return existing_perm
+        perm_data = PermissionCreate(name="Create", scope="Flow", description="Create flows")
+        return await create_permission(session, perm_data)
+
+
+@pytest.fixture
+async def owner_role(client):  # noqa: ARG001
+    """Create an Owner role."""
+    db_manager = get_db_service()
+    async with db_manager.with_session() as session:
+        # Check if role already exists
+        stmt = select(Role).where(Role.name == "Owner")
+        if existing_role := (await session.exec(stmt)).first():
+            return existing_role
+        role_data = RoleCreate(name="Owner", description="Full access to owned resources")
+        return await create_role(session, role_data)
+
+
+@pytest.fixture
+async def setup_owner_role_permissions(
+    client,  # noqa: ARG001
+    owner_role,
+    flow_read_permission,
+    flow_update_permission,
+    flow_create_permission,
+):
+    """Set up Owner role with all Flow permissions."""
+    db_manager = get_db_service()
+    async with db_manager.with_session() as session:
+        # Add Read permission
+        stmt_read = select(RolePermission).where(
+            RolePermission.role_id == owner_role.id,
+            RolePermission.permission_id == flow_read_permission.id,
+        )
+        if not (await session.exec(stmt_read)).first():
+            session.add(RolePermission(role_id=owner_role.id, permission_id=flow_read_permission.id))
+
+        # Add Update permission
+        stmt_update = select(RolePermission).where(
+            RolePermission.role_id == owner_role.id,
+            RolePermission.permission_id == flow_update_permission.id,
+        )
+        if not (await session.exec(stmt_update)).first():
+            session.add(RolePermission(role_id=owner_role.id, permission_id=flow_update_permission.id))
+
+        # Add Create permission
+        stmt_create = select(RolePermission).where(
+            RolePermission.role_id == owner_role.id,
+            RolePermission.permission_id == flow_create_permission.id,
+        )
+        if not (await session.exec(stmt_create)).first():
+            session.add(RolePermission(role_id=owner_role.id, permission_id=flow_create_permission.id))
+
+        await session.commit()
+        return owner_role
+
+
+@pytest.fixture
+async def setup_editor_project_create_permission(
+    client,  # noqa: ARG001
+    editor_role,
+    project_create_permission,
+):
+    """Set up Editor role with Create permission for Project scope."""
+    db_manager = get_db_service()
+    async with db_manager.with_session() as session:
+        stmt = select(RolePermission).where(
+            RolePermission.role_id == editor_role.id,
+            RolePermission.permission_id == project_create_permission.id,
+        )
+        if not (await session.exec(stmt)).first():
+            role_perm = RolePermission(
+                role_id=editor_role.id,
+                permission_id=project_create_permission.id,
+            )
+            session.add(role_perm)
+            await session.commit()
+        return editor_role
+
+
+@pytest.mark.asyncio
+async def test_create_flow_with_project_create_permission(
+    client: AsyncClient,
+    editor_user,
+    editor_role,
+    setup_editor_role_permissions,  # noqa: ARG001
+    setup_editor_project_create_permission,  # noqa: ARG001
+    setup_owner_role_permissions,  # noqa: ARG001
+    test_folder,
+):
+    """Test that users with Create permission on Project can create flows."""
+    # Assign Editor role to user for the project
+    db_manager = get_db_service()
+    async with db_manager.with_session() as session:
+        assignment_data = UserRoleAssignmentCreate(
+            user_id=editor_user.id,
+            role_id=editor_role.id,
+            scope_type="Project",
+            scope_id=test_folder.id,
+            created_by=editor_user.id,
+        )
+        await create_user_role_assignment(session, assignment_data)
+
+    # Login as editor
+    response = await client.post(
+        "api/v1/login",
+        data={"username": "editor_user", "password": "password"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Create a new flow
+    flow_data = {
+        "name": "New Test Flow",
+        "data": {},
+        "folder_id": str(test_folder.id),
+    }
+    response = await client.post("api/v1/flows/", json=flow_data, headers=headers)
+
+    assert response.status_code == 201
+    created_flow = response.json()
+    assert created_flow["name"] == "New Test Flow"
+    assert created_flow["folder_id"] == str(test_folder.id)
+    assert created_flow["user_id"] == str(editor_user.id)
+
+
+@pytest.mark.asyncio
+async def test_create_flow_without_project_create_permission(
+    client: AsyncClient,
+    viewer_user,
+    viewer_role,
+    setup_viewer_role_permissions,  # noqa: ARG001
+    test_folder,
+):
+    """Test that users without Create permission on Project cannot create flows."""
+    # Assign Viewer role (no Create permission) to user for the project
+    db_manager = get_db_service()
+    async with db_manager.with_session() as session:
+        assignment_data = UserRoleAssignmentCreate(
+            user_id=viewer_user.id,
+            role_id=viewer_role.id,
+            scope_type="Project",
+            scope_id=test_folder.id,
+            created_by=viewer_user.id,
+        )
+        await create_user_role_assignment(session, assignment_data)
+
+    # Login as viewer
+    response = await client.post(
+        "api/v1/login",
+        data={"username": "viewer_user", "password": "password"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Attempt to create a new flow
+    flow_data = {
+        "name": "Unauthorized Flow",
+        "data": {},
+        "folder_id": str(test_folder.id),
+    }
+    response = await client.post("api/v1/flows/", json=flow_data, headers=headers)
+
+    # Should receive 403 Forbidden
+    assert response.status_code == 403
+    assert "permission" in response.json()["detail"].lower()
+
+
+@pytest.mark.asyncio
+async def test_create_flow_superuser_bypasses_permission_check(
+    client: AsyncClient,
+    superuser,  # noqa: ARG001
+    test_folder,
+):
+    """Test that superusers can create flows without explicit permission assignments."""
+    # Login as superuser (no role assignments needed)
+    response = await client.post(
+        "api/v1/login",
+        data={"username": "superuser", "password": "password"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Create a new flow
+    flow_data = {
+        "name": "Superuser Flow",
+        "data": {},
+        "folder_id": str(test_folder.id),
+    }
+    response = await client.post("api/v1/flows/", json=flow_data, headers=headers)
+
+    assert response.status_code == 201
+    created_flow = response.json()
+    assert created_flow["name"] == "Superuser Flow"
+
+
+@pytest.mark.asyncio
+async def test_create_flow_global_admin_bypasses_permission_check(
+    client: AsyncClient,
+    admin_user,
+    admin_role,
+    setup_admin_role_permissions,  # noqa: ARG001
+    test_folder,
+):
+    """Test that Global Admin users can create flows in any project."""
+    # Assign Global Admin role
+    db_manager = get_db_service()
+    async with db_manager.with_session() as session:
+        assignment_data = UserRoleAssignmentCreate(
+            user_id=admin_user.id,
+            role_id=admin_role.id,
+            scope_type="Global",
+            scope_id=None,
+            created_by=admin_user.id,
+        )
+        await create_user_role_assignment(session, assignment_data)
+
+    # Login as admin
+    response = await client.post(
+        "api/v1/login",
+        data={"username": "admin_user", "password": "password"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Create a new flow
+    flow_data = {
+        "name": "Global Admin Flow",
+        "data": {},
+        "folder_id": str(test_folder.id),
+    }
+    response = await client.post("api/v1/flows/", json=flow_data, headers=headers)
+
+    assert response.status_code == 201
+    created_flow = response.json()
+    assert created_flow["name"] == "Global Admin Flow"
+
+
+@pytest.mark.asyncio
+async def test_create_flow_assigns_owner_role(
+    client: AsyncClient,
+    editor_user,
+    editor_role,
+    owner_role,
+    setup_editor_role_permissions,  # noqa: ARG001
+    setup_editor_project_create_permission,  # noqa: ARG001
+    setup_owner_role_permissions,  # noqa: ARG001
+    test_folder,
+):
+    """Test that creating a flow automatically assigns Owner role to the creating user."""
+    # Assign Editor role to user for the project
+    db_manager = get_db_service()
+    async with db_manager.with_session() as session:
+        assignment_data = UserRoleAssignmentCreate(
+            user_id=editor_user.id,
+            role_id=editor_role.id,
+            scope_type="Project",
+            scope_id=test_folder.id,
+            created_by=editor_user.id,
+        )
+        await create_user_role_assignment(session, assignment_data)
+
+    # Login as editor
+    response = await client.post(
+        "api/v1/login",
+        data={"username": "editor_user", "password": "password"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Create a new flow
+    flow_data = {
+        "name": "Flow with Owner Assignment",
+        "data": {},
+        "folder_id": str(test_folder.id),
+    }
+    response = await client.post("api/v1/flows/", json=flow_data, headers=headers)
+
+    assert response.status_code == 201
+    created_flow = response.json()
+    flow_id = created_flow["id"]
+
+    # Verify Owner role was assigned
+    from uuid import UUID
+
+    async with db_manager.with_session() as session:
+        from langbuilder.services.database.models.user_role_assignment.model import UserRoleAssignment
+
+        # Convert string UUID to UUID object
+        flow_uuid = UUID(flow_id) if isinstance(flow_id, str) else flow_id
+
+        stmt = select(UserRoleAssignment).where(
+            UserRoleAssignment.user_id == editor_user.id,
+            UserRoleAssignment.scope_type == "Flow",
+            UserRoleAssignment.scope_id == flow_uuid,
+            UserRoleAssignment.role_id == owner_role.id,
+        )
+        assignment = (await session.exec(stmt)).first()
+        assert assignment is not None, "Owner role should be assigned to the creating user"
+
+
+@pytest.mark.asyncio
+async def test_create_flow_without_folder_id(
+    client: AsyncClient,
+    editor_user,  # noqa: ARG001
+    editor_role,  # noqa: ARG001
+    setup_editor_role_permissions,  # noqa: ARG001
+    setup_editor_project_create_permission,  # noqa: ARG001
+    setup_owner_role_permissions,  # noqa: ARG001
+):
+    """Test that flows can be created without explicit folder_id (uses default folder)."""
+    # Login as editor
+    response = await client.post(
+        "api/v1/login",
+        data={"username": "editor_user", "password": "password"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Create a new flow without folder_id
+    flow_data = {
+        "name": "Flow Without Folder",
+        "data": {},
+    }
+    response = await client.post("api/v1/flows/", json=flow_data, headers=headers)
+
+    # Should succeed (permission check only applies if folder_id is specified)
+    assert response.status_code == 201
+    created_flow = response.json()
+    assert created_flow["name"] == "Flow Without Folder"
+    # Flow should be assigned to default folder
+    assert created_flow["folder_id"] is not None
+
+
+@pytest.mark.asyncio
+async def test_create_flow_unique_constraint_handling(
+    client: AsyncClient,
+    editor_user,
+    editor_role,
+    setup_editor_role_permissions,  # noqa: ARG001
+    setup_editor_project_create_permission,  # noqa: ARG001
+    setup_owner_role_permissions,  # noqa: ARG001
+    test_folder,
+):
+    """Test that duplicate flow names are handled correctly with auto-numbering."""
+    # Assign Editor role to user for the project
+    db_manager = get_db_service()
+    async with db_manager.with_session() as session:
+        assignment_data = UserRoleAssignmentCreate(
+            user_id=editor_user.id,
+            role_id=editor_role.id,
+            scope_type="Project",
+            scope_id=test_folder.id,
+            created_by=editor_user.id,
+        )
+        await create_user_role_assignment(session, assignment_data)
+
+    # Login as editor
+    response = await client.post(
+        "api/v1/login",
+        data={"username": "editor_user", "password": "password"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Create first flow
+    flow_data = {
+        "name": "Duplicate Test Flow",
+        "data": {},
+        "folder_id": str(test_folder.id),
+    }
+    response1 = await client.post("api/v1/flows/", json=flow_data, headers=headers)
+    assert response1.status_code == 201
+    flow1 = response1.json()
+    assert flow1["name"] == "Duplicate Test Flow"
+
+    # Create second flow with same name
+    response2 = await client.post("api/v1/flows/", json=flow_data, headers=headers)
+    assert response2.status_code == 201
+    flow2 = response2.json()
+    # Name should be auto-numbered
+    assert flow2["name"] == "Duplicate Test Flow (1)"
+
+
+@pytest.mark.asyncio
+async def test_create_flow_different_users_different_projects(
+    client: AsyncClient,
+    viewer_user,
+    editor_user,
+    editor_role,
+    setup_editor_role_permissions,  # noqa: ARG001
+    setup_editor_project_create_permission,  # noqa: ARG001
+    setup_owner_role_permissions,  # noqa: ARG001
+    test_folder,
+):
+    """Test that users can only create flows in projects where they have Create permission."""
+    # Create a second project owned by viewer_user
+    db_manager = get_db_service()
+    async with db_manager.with_session() as session:
+        folder2 = Folder(name="Viewer Project", user_id=viewer_user.id)
+        session.add(folder2)
+        await session.commit()
+        await session.refresh(folder2)
+        folder2_id = folder2.id
+
+        # Give editor_user permission only on test_folder, not folder2
+        assignment_data = UserRoleAssignmentCreate(
+            user_id=editor_user.id,
+            role_id=editor_role.id,
+            scope_type="Project",
+            scope_id=test_folder.id,
+            created_by=editor_user.id,
+        )
+        await create_user_role_assignment(session, assignment_data)
+
+    # Login as editor
+    response = await client.post(
+        "api/v1/login",
+        data={"username": "editor_user", "password": "password"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Should succeed in test_folder
+    flow_data1 = {
+        "name": "Flow in Allowed Project",
+        "data": {},
+        "folder_id": str(test_folder.id),
+    }
+    response1 = await client.post("api/v1/flows/", json=flow_data1, headers=headers)
+    assert response1.status_code == 201
+
+    # Should fail in folder2 (no permission)
+    flow_data2 = {
+        "name": "Flow in Forbidden Project",
+        "data": {},
+        "folder_id": str(folder2_id),
+    }
+    response2 = await client.post("api/v1/flows/", json=flow_data2, headers=headers)
+    assert response2.status_code == 403
+    assert "permission" in response2.json()["detail"].lower()

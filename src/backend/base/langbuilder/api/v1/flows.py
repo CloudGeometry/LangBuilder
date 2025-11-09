@@ -211,13 +211,62 @@ async def create_flow(
     session: DbSession,
     flow: FlowCreate,
     current_user: CurrentActiveUser,
+    rbac_service: Annotated[RBACService, Depends(get_rbac_service)],
 ):
+    """Create a new flow with RBAC permission enforcement.
+
+    This endpoint enforces Create permission on the target Project:
+    1. If flow.folder_id is specified, user must have Create permission on that Project
+    2. If user has permission, flow is created and user is assigned Owner role on the new Flow
+    3. Superusers and Global Admins bypass permission checks
+
+    Args:
+        session: Database session
+        flow: Flow creation data
+        current_user: The current authenticated user
+        rbac_service: RBAC service for permission checks
+
+    Returns:
+        FlowRead: The created flow
+
+    Raises:
+        HTTPException: 403 if user lacks Create permission on target Project
+        HTTPException: 400 if unique constraint violated
+        HTTPException: 500 for other errors
+    """
     try:
+        # 1. Check if user has Create permission on the target Project (if specified)
+        if flow.folder_id:
+            has_permission = await rbac_service.can_access(
+                user_id=current_user.id,
+                permission_name="Create",
+                scope_type="Project",
+                scope_id=flow.folder_id,
+                db=session,
+            )
+
+            if not has_permission:
+                raise HTTPException(
+                    status_code=403,
+                    detail="You do not have permission to create flows in this project",
+                )
+
+        # 2. Create the flow
         db_flow = await _new_flow(session=session, flow=flow, user_id=current_user.id)
         await session.commit()
         await session.refresh(db_flow)
 
         await _save_flow_to_fs(db_flow)
+
+        # 3. Assign Owner role to creating user for this Flow
+        await rbac_service.assign_role(
+            user_id=current_user.id,
+            role_name="Owner",
+            scope_type="Flow",
+            scope_id=db_flow.id,
+            created_by=current_user.id,
+            db=session,
+        )
 
     except Exception as e:
         if "UNIQUE constraint failed" in str(e):
