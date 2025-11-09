@@ -41,7 +41,8 @@ from langbuilder.services.database.models.flow.model import (
 from langbuilder.services.database.models.flow.utils import get_webhook_component_in_flow
 from langbuilder.services.database.models.folder.constants import DEFAULT_FOLDER_NAME
 from langbuilder.services.database.models.folder.model import Folder
-from langbuilder.services.deps import get_settings_service
+from langbuilder.services.deps import get_rbac_service, get_settings_service
+from langbuilder.services.rbac.service import RBACService
 from langbuilder.utils.compression import compress_response
 
 # build router
@@ -62,6 +63,53 @@ async def _save_flow_to_fs(flow: Flow) -> None:
                 await f.write(flow.model_dump_json())
             except OSError:
                 logger.exception("Failed to write flow %s to path %s", flow.name, flow.fs_path)
+
+
+async def _filter_flows_by_read_permission(
+    flows: list[Flow],
+    user_id: UUID,
+    rbac_service: RBACService,
+    session: AsyncSession,
+) -> list[Flow]:
+    """Filter flows to return only those the user has Read permission for.
+
+    This function implements fine-grained RBAC filtering:
+    1. Superusers and Global Admins bypass all checks (return all flows)
+    2. For each flow, check if user has Read permission at Flow scope
+    3. Permission may be inherited from Project scope
+
+    Args:
+        flows: List of flows to filter
+        user_id: The user's ID
+        rbac_service: RBAC service for permission checks
+        session: Database session
+
+    Returns:
+        List of flows the user has Read permission for
+    """
+    # Check if user is superuser or Global Admin (bypass filtering)
+    from langbuilder.services.database.models.user.crud import get_user_by_id
+
+    user = await get_user_by_id(session, user_id)
+    if user and user.is_superuser:
+        return flows
+
+    if await rbac_service._has_global_admin_role(user_id, session):
+        return flows
+
+    # Filter flows by Read permission
+    accessible_flows = []
+    for flow in flows:
+        if await rbac_service.can_access(
+            user_id=user_id,
+            permission_name="Read",
+            scope_type="Flow",
+            scope_id=flow.id,
+            db=session,
+        ):
+            accessible_flows.append(flow)  # noqa: PERF401
+
+    return accessible_flows
 
 
 async def _new_flow(
@@ -194,6 +242,7 @@ async def read_flows(
     *,
     current_user: CurrentActiveUser,
     session: DbSession,
+    rbac_service: Annotated[RBACService, Depends(get_rbac_service)],
     remove_example_flows: bool = False,
     components_only: bool = False,
     get_all: bool = True,
@@ -203,10 +252,16 @@ async def read_flows(
 ):
     """Retrieve a list of flows with pagination support.
 
+    This endpoint implements RBAC filtering to return only flows the user has Read permission for.
+    Permission checks:
+    - Superusers: bypass all checks (see all flows)
+    - Global Admin: bypass all checks (see all flows)
+    - Regular users: see only flows where they have explicit or inherited Read permission
+
     Args:
         current_user (User): The current authenticated user.
         session (Session): The database session.
-        settings_service (SettingsService): The settings service.
+        rbac_service (RBACService): The RBAC service for permission checks.
         components_only (bool, optional): Whether to return only components. Defaults to False.
 
         get_all (bool, optional): Whether to return all flows without pagination. Defaults to True.
@@ -259,6 +314,15 @@ async def read_flows(
                 flows = [flow for flow in flows if flow.is_component]
             if remove_example_flows and starter_folder_id:
                 flows = [flow for flow in flows if flow.folder_id != starter_folder_id]
+
+            # RBAC filtering: Filter flows by Read permission
+            flows = await _filter_flows_by_read_permission(
+                flows=flows,
+                user_id=current_user.id,
+                rbac_service=rbac_service,
+                session=session,
+            )
+
             if header_flows:
                 # Convert to FlowHeader objects and compress the response
                 flow_headers = [FlowHeader.model_validate(flow, from_attributes=True) for flow in flows]
