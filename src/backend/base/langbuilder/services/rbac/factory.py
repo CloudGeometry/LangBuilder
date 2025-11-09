@@ -15,6 +15,6 @@ class RBACServiceFactory(ServiceFactory):
         super().__init__(RBACService)
 
     @override
-    def create(self):
+    def create(self) -> RBACService:
         """Create a new RBACService instance."""
         return RBACService()
