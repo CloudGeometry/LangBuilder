@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from langbuilder.services.chat.service import ChatService
     from langbuilder.services.database.service import DatabaseService
     from langbuilder.services.job_queue.service import JobQueueService
+    from langbuilder.services.rbac.service import RBACService
     from langbuilder.services.session.service import SessionService
     from langbuilder.services.settings.service import SettingsService
     from langbuilder.services.socket.service import SocketIOService
@@ -247,3 +248,14 @@ def get_queue_service() -> JobQueueService:
     from langbuilder.services.job_queue.factory import JobQueueServiceFactory
 
     return get_service(ServiceType.JOB_QUEUE_SERVICE, JobQueueServiceFactory())
+
+
+def get_rbac_service() -> RBACService:
+    """Retrieves the RBACService instance from the service manager.
+
+    Returns:
+        RBACService: The RBACService instance.
+    """
+    from langbuilder.services.rbac.factory import RBACServiceFactory
+
+    return get_service(ServiceType.RBAC_SERVICE, RBACServiceFactory())
