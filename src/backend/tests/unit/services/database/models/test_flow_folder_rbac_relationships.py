@@ -9,7 +9,7 @@ This test module covers:
 """
 
 import pytest
-from langbuilder.services.database.models.flow.model import Flow, FlowCreate
+from langbuilder.services.database.models.flow.model import Flow
 from langbuilder.services.database.models.folder.model import Folder
 from langbuilder.services.database.models.role.crud import create_role
 from langbuilder.services.database.models.role.model import RoleCreate
