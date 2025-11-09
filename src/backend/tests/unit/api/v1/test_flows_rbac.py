@@ -10,9 +10,9 @@ from langbuilder.services.auth.utils import get_password_hash
 from langbuilder.services.database.models.flow.model import Flow
 from langbuilder.services.database.models.folder.model import Folder
 from langbuilder.services.database.models.permission.crud import create_permission
-from langbuilder.services.database.models.permission.model import PermissionCreate
+from langbuilder.services.database.models.permission.model import Permission, PermissionCreate
 from langbuilder.services.database.models.role.crud import create_role
-from langbuilder.services.database.models.role.model import RoleCreate
+from langbuilder.services.database.models.role.model import Role, RoleCreate
 from langbuilder.services.database.models.role_permission.model import RolePermission
 from langbuilder.services.database.models.user.model import User
 from langbuilder.services.database.models.user_role_assignment.crud import create_user_role_assignment
@@ -109,6 +109,10 @@ async def viewer_role(client):  # noqa: ARG001
     """Create a Viewer role with Read permission."""
     db_manager = get_db_service()
     async with db_manager.with_session() as session:
+        # Check if role already exists
+        stmt = select(Role).where(Role.name == "Viewer")
+        if existing_role := (await session.exec(stmt)).first():
+            return existing_role
         role_data = RoleCreate(name="Viewer", description="Read-only access")
         return await create_role(session, role_data)
 
@@ -118,6 +122,10 @@ async def editor_role(client):  # noqa: ARG001
     """Create an Editor role."""
     db_manager = get_db_service()
     async with db_manager.with_session() as session:
+        # Check if role already exists
+        stmt = select(Role).where(Role.name == "Editor")
+        if existing_role := (await session.exec(stmt)).first():
+            return existing_role
         role_data = RoleCreate(name="Editor", description="Can edit flows")
         return await create_role(session, role_data)
 
@@ -127,6 +135,10 @@ async def admin_role(client):  # noqa: ARG001
     """Create an Admin role."""
     db_manager = get_db_service()
     async with db_manager.with_session() as session:
+        # Check if role already exists
+        stmt = select(Role).where(Role.name == "Admin")
+        if existing_role := (await session.exec(stmt)).first():
+            return existing_role
         role_data = RoleCreate(name="Admin", description="Full access")
         return await create_role(session, role_data)
 
@@ -136,6 +148,10 @@ async def flow_read_permission(client):  # noqa: ARG001
     """Create Read permission for Flow scope."""
     db_manager = get_db_service()
     async with db_manager.with_session() as session:
+        # Check if permission already exists
+        stmt = select(Permission).where(Permission.name == "Read", Permission.scope == "Flow")
+        if existing_perm := (await session.exec(stmt)).first():
+            return existing_perm
         perm_data = PermissionCreate(name="Read", scope="Flow", description="Read flow")
         return await create_permission(session, perm_data)
 
@@ -145,6 +161,10 @@ async def flow_update_permission(client):  # noqa: ARG001
     """Create Update permission for Flow scope."""
     db_manager = get_db_service()
     async with db_manager.with_session() as session:
+        # Check if permission already exists
+        stmt = select(Permission).where(Permission.name == "Update", Permission.scope == "Flow")
+        if existing_perm := (await session.exec(stmt)).first():
+            return existing_perm
         perm_data = PermissionCreate(name="Update", scope="Flow", description="Update flow")
         return await create_permission(session, perm_data)
 
@@ -154,6 +174,10 @@ async def project_read_permission(client):  # noqa: ARG001
     """Create Read permission for Project scope."""
     db_manager = get_db_service()
     async with db_manager.with_session() as session:
+        # Check if permission already exists
+        stmt = select(Permission).where(Permission.name == "Read", Permission.scope == "Project")
+        if existing_perm := (await session.exec(stmt)).first():
+            return existing_perm
         perm_data = PermissionCreate(name="Read", scope="Project", description="Read project")
         return await create_permission(session, perm_data)
 
@@ -236,12 +260,18 @@ async def setup_viewer_role_permissions(
     """Set up Viewer role with Read permission for Flow scope."""
     db_manager = get_db_service()
     async with db_manager.with_session() as session:
-        role_perm = RolePermission(
-            role_id=viewer_role.id,
-            permission_id=flow_read_permission.id,
+        # Check if association already exists
+        stmt = select(RolePermission).where(
+            RolePermission.role_id == viewer_role.id,
+            RolePermission.permission_id == flow_read_permission.id,
         )
-        session.add(role_perm)
-        await session.commit()
+        if not (await session.exec(stmt)).first():
+            role_perm = RolePermission(
+                role_id=viewer_role.id,
+                permission_id=flow_read_permission.id,
+            )
+            session.add(role_perm)
+            await session.commit()
         return viewer_role
 
 
@@ -255,16 +285,30 @@ async def setup_editor_role_permissions(
     """Set up Editor role with Read and Update permissions for Flow scope."""
     db_manager = get_db_service()
     async with db_manager.with_session() as session:
-        role_perm_read = RolePermission(
-            role_id=editor_role.id,
-            permission_id=flow_read_permission.id,
+        # Check if Read permission association already exists
+        stmt_read = select(RolePermission).where(
+            RolePermission.role_id == editor_role.id,
+            RolePermission.permission_id == flow_read_permission.id,
         )
-        role_perm_update = RolePermission(
-            role_id=editor_role.id,
-            permission_id=flow_update_permission.id,
+        if not (await session.exec(stmt_read)).first():
+            role_perm_read = RolePermission(
+                role_id=editor_role.id,
+                permission_id=flow_read_permission.id,
+            )
+            session.add(role_perm_read)
+
+        # Check if Update permission association already exists
+        stmt_update = select(RolePermission).where(
+            RolePermission.role_id == editor_role.id,
+            RolePermission.permission_id == flow_update_permission.id,
         )
-        session.add(role_perm_read)
-        session.add(role_perm_update)
+        if not (await session.exec(stmt_update)).first():
+            role_perm_update = RolePermission(
+                role_id=editor_role.id,
+                permission_id=flow_update_permission.id,
+            )
+            session.add(role_perm_update)
+
         await session.commit()
         return editor_role
 
@@ -279,16 +323,30 @@ async def setup_admin_role_permissions(
     """Set up Admin role with all permissions."""
     db_manager = get_db_service()
     async with db_manager.with_session() as session:
-        role_perm_read = RolePermission(
-            role_id=admin_role.id,
-            permission_id=flow_read_permission.id,
+        # Check if Read permission association already exists
+        stmt_read = select(RolePermission).where(
+            RolePermission.role_id == admin_role.id,
+            RolePermission.permission_id == flow_read_permission.id,
         )
-        role_perm_update = RolePermission(
-            role_id=admin_role.id,
-            permission_id=flow_update_permission.id,
+        if not (await session.exec(stmt_read)).first():
+            role_perm_read = RolePermission(
+                role_id=admin_role.id,
+                permission_id=flow_read_permission.id,
+            )
+            session.add(role_perm_read)
+
+        # Check if Update permission association already exists
+        stmt_update = select(RolePermission).where(
+            RolePermission.role_id == admin_role.id,
+            RolePermission.permission_id == flow_update_permission.id,
         )
-        session.add(role_perm_read)
-        session.add(role_perm_update)
+        if not (await session.exec(stmt_update)).first():
+            role_perm_update = RolePermission(
+                role_id=admin_role.id,
+                permission_id=flow_update_permission.id,
+            )
+            session.add(role_perm_update)
+
         await session.commit()
         return admin_role
 
@@ -471,12 +529,18 @@ async def test_list_flows_project_level_inheritance(
     # Add Read permission for Project scope to viewer_role
     db_manager = get_db_service()
     async with db_manager.with_session() as session:
-        role_perm_project = RolePermission(
-            role_id=viewer_role.id,
-            permission_id=project_read_permission.id,
+        # Check if association already exists
+        stmt = select(RolePermission).where(
+            RolePermission.role_id == viewer_role.id,
+            RolePermission.permission_id == project_read_permission.id,
         )
-        session.add(role_perm_project)
-        await session.commit()
+        if not (await session.exec(stmt)).first():
+            role_perm_project = RolePermission(
+                role_id=viewer_role.id,
+                permission_id=project_read_permission.id,
+            )
+            session.add(role_perm_project)
+            await session.commit()
 
         # Assign Viewer role to project (not individual flows)
         assignment_data = UserRoleAssignmentCreate(
@@ -530,12 +594,18 @@ async def test_list_flows_flow_specific_overrides_project(
     # Add Read permission for Project scope to viewer_role
     db_manager = get_db_service()
     async with db_manager.with_session() as session:
-        role_perm_project = RolePermission(
-            role_id=viewer_role.id,
-            permission_id=project_read_permission.id,
+        # Check if association already exists
+        stmt = select(RolePermission).where(
+            RolePermission.role_id == viewer_role.id,
+            RolePermission.permission_id == project_read_permission.id,
         )
-        session.add(role_perm_project)
-        await session.commit()
+        if not (await session.exec(stmt)).first():
+            role_perm_project = RolePermission(
+                role_id=viewer_role.id,
+                permission_id=project_read_permission.id,
+            )
+            session.add(role_perm_project)
+            await session.commit()
 
         # Assign Viewer role to project (gives access to all flows)
         assignment_data_project = UserRoleAssignmentCreate(

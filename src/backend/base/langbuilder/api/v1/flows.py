@@ -294,12 +294,16 @@ async def read_flows(
         if not folder_id:
             folder_id = default_folder_id
 
+        # When RBAC is active, don't filter by user_id in the query.
+        # Instead, let RBAC filtering determine which flows the user can access.
+        # This allows superusers and users with Global Admin roles to see all flows.
         if auth_settings.AUTO_LOGIN:
             stmt = select(Flow).where(
                 (Flow.user_id == None) | (Flow.user_id == current_user.id)  # noqa: E711
             )
         else:
-            stmt = select(Flow).where(Flow.user_id == current_user.id)
+            # Don't filter by user_id - let RBAC handle access control
+            stmt = select(Flow)
 
         if remove_example_flows:
             stmt = stmt.where(Flow.folder_id != starter_folder_id)

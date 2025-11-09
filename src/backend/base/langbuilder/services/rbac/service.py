@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from sqlalchemy.orm import selectinload
 from sqlmodel import select
 
 from langbuilder.services.base import Service
@@ -136,7 +137,7 @@ class RBACService(Service):
                 UserRoleAssignment.scope_type == scope_type,
                 UserRoleAssignment.scope_id == scope_id,
             )
-            .join(Role)
+            .options(selectinload(UserRoleAssignment.role))
         )
 
         result = await db.exec(stmt)
