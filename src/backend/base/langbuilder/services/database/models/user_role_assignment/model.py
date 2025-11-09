@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Optional
 from uuid import UUID, uuid4
 
-from sqlalchemy import UniqueConstraint
+from sqlalchemy import Index, UniqueConstraint
 from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
@@ -30,6 +30,9 @@ class UserRoleAssignment(UserRoleAssignmentBase, table=True):  # type: ignore[ca
 
     __table_args__ = (
         UniqueConstraint("user_id", "role_id", "scope_type", "scope_id", name="unique_user_role_scope"),
+        Index("idx_user_role_assignment_lookup", "user_id", "scope_type", "scope_id"),
+        Index("idx_user_role_assignment_user", "user_id"),
+        Index("idx_user_role_assignment_scope", "scope_type", "scope_id"),
     )
 
 

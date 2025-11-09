@@ -10,14 +10,14 @@ if TYPE_CHECKING:
 
 
 class RoleBase(SQLModel):
-    name: str = Field(unique=True, index=True)
+    name: str = Field(unique=True, index=True, nullable=False)
     description: str | None = Field(default=None)
-    is_system_role: bool = Field(default=False)
+    is_system_role: bool = Field(default=False, nullable=False)
 
 
 class Role(RoleBase, table=True):  # type: ignore[call-arg]
     id: UUID = Field(default_factory=uuid4, primary_key=True)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), nullable=False)
 
     # Relationships
     role_permissions: list["RolePermission"] = Relationship(

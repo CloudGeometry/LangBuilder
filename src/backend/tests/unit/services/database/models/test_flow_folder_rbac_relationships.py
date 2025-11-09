@@ -392,7 +392,7 @@ async def test_folder_is_starter_project_can_be_queried(async_session: AsyncSess
     await async_session.commit()
 
     # Query only starter projects
-    stmt = select(Folder).where(Folder.user_id == test_user.id).where(Folder.is_starter_project == True)
+    stmt = select(Folder).where(Folder.user_id == test_user.id).where(Folder.is_starter_project)
     result = await async_session.execute(stmt)
     starter_folders = result.scalars().all()
 

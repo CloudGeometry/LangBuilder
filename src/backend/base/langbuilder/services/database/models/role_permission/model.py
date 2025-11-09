@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
-from sqlalchemy import UniqueConstraint
+from sqlalchemy import Index, UniqueConstraint
 from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
@@ -23,7 +23,10 @@ class RolePermission(RolePermissionBase, table=True):  # type: ignore[call-arg]
     role: "Role" = Relationship(back_populates="role_permissions")
     permission: "Permission" = Relationship(back_populates="role_permissions")
 
-    __table_args__ = (UniqueConstraint("role_id", "permission_id", name="unique_role_permission"),)
+    __table_args__ = (
+        UniqueConstraint("role_id", "permission_id", name="unique_role_permission"),
+        Index("idx_role_permission_lookup", "role_id", "permission_id"),
+    )
 
 
 class RolePermissionCreate(RolePermissionBase):
