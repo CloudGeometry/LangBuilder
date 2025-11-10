@@ -669,3 +669,315 @@ class TestCheckPermission:
         response = await client.get("api/v1/rbac/check-permission?permission=Update&scope_type=Global")
         # Returns 403 because check-permission requires authentication
         assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.asyncio
+class TestCheckPermissionsBatch:
+    """Test POST /api/v1/rbac/check-permissions endpoint."""
+
+    async def test_check_permissions_batch_success(
+        self,
+        client: AsyncClient,
+        logged_in_headers,
+        logged_in_headers_super_user,
+        session: AsyncSession,
+        active_user: UserRead,
+        super_user: UserRead,  # noqa: ARG002
+        default_folder: Folder,
+    ):
+        """Test batch permission check with multiple permissions."""
+        # Assign Editor role for specific project
+        assignment_data = {
+            "user_id": str(active_user.id),
+            "role_name": "Editor",
+            "scope_type": "Project",
+            "scope_id": str(default_folder.id),
+        }
+        create_response = await client.post(
+            "api/v1/rbac/assignments", json=assignment_data, headers=logged_in_headers_super_user
+        )
+        assert create_response.status_code == 201, f"Failed to create assignment: {create_response.json()}"
+
+        # Expire session to ensure permission check sees the new assignment
+        session.expire_all()
+
+        # Batch check multiple permissions
+        check_request = {
+            "checks": [
+                {"action": "Read", "resource_type": "Project", "resource_id": str(default_folder.id)},
+                {"action": "Update", "resource_type": "Project", "resource_id": str(default_folder.id)},
+                {"action": "Delete", "resource_type": "Project", "resource_id": str(default_folder.id)},
+            ]
+        }
+
+        response = await client.post("api/v1/rbac/check-permissions", json=check_request, headers=logged_in_headers)
+        assert response.status_code == status.HTTP_200_OK
+
+        result = response.json()
+        assert "results" in result, "Response must have 'results' field"
+        assert len(result["results"]) == 3, "Should return results for all 3 checks"
+
+        # Check structure of results
+        for check_result in result["results"]:
+            assert "action" in check_result, "Result must have 'action' field"
+            assert "resource_type" in check_result, "Result must have 'resource_type' field"
+            assert "resource_id" in check_result, "Result must have 'resource_id' field"
+            assert "allowed" in check_result, "Result must have 'allowed' field"
+            assert isinstance(check_result["allowed"], bool), "allowed must be boolean"
+
+        # Verify specific permissions
+        results_by_action = {r["action"]: r for r in result["results"]}
+
+        # Editor has Read permission on Project
+        assert results_by_action["Read"]["allowed"] is True, "Editor should have Read permission"
+
+        # Editor has Update permission on Project
+        assert results_by_action["Update"]["allowed"] is True, "Editor should have Update permission"
+
+        # Editor does NOT have Delete permission on Project
+        assert results_by_action["Delete"]["allowed"] is False, "Editor should not have Delete permission"
+
+    async def test_check_permissions_batch_superuser_always_allowed(
+        self,
+        client: AsyncClient,
+        logged_in_headers_super_user,
+        default_folder: Folder,
+    ):
+        """Test that superusers have all permissions in batch check."""
+        check_request = {
+            "checks": [
+                {"action": "Update", "resource_type": "Project", "resource_id": str(default_folder.id)},
+                {"action": "Delete", "resource_type": "Global", "resource_id": None},
+                {"action": "Create", "resource_type": "Flow", "resource_id": str(default_folder.id)},
+            ]
+        }
+
+        response = await client.post(
+            "api/v1/rbac/check-permissions", json=check_request, headers=logged_in_headers_super_user
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+        result = response.json()
+        assert len(result["results"]) == 3, "Should return results for all 3 checks"
+
+        # All permissions should be allowed for superuser
+        for check_result in result["results"]:
+            assert check_result["allowed"] is True, (
+                f"Superuser should have all permissions, but {check_result['action']} was denied"
+            )
+
+    async def test_check_permissions_batch_no_permissions(
+        self,
+        client: AsyncClient,
+        logged_in_headers,
+        default_folder: Folder,
+    ):
+        """Test batch check for user with no role assignments."""
+        check_request = {
+            "checks": [
+                {"action": "Update", "resource_type": "Project", "resource_id": str(default_folder.id)},
+                {"action": "Delete", "resource_type": "Global", "resource_id": None},
+                {"action": "Read", "resource_type": "Flow", "resource_id": str(default_folder.id)},
+            ]
+        }
+
+        response = await client.post("api/v1/rbac/check-permissions", json=check_request, headers=logged_in_headers)
+        assert response.status_code == status.HTTP_200_OK
+
+        result = response.json()
+        assert len(result["results"]) == 3, "Should return results for all 3 checks"
+
+        # All permissions should be denied for user without role
+        for check_result in result["results"]:
+            assert check_result["allowed"] is False, (
+                f"User without role should have no permissions, but {check_result['action']} was allowed"
+            )
+
+    async def test_check_permissions_batch_empty_list_fails(self, client: AsyncClient, logged_in_headers):
+        """Test batch check with empty checks list should fail validation."""
+        check_request = {"checks": []}
+
+        response = await client.post("api/v1/rbac/check-permissions", json=check_request, headers=logged_in_headers)
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY, "Empty checks list should fail validation"
+
+    async def test_check_permissions_batch_exceeds_max_limit_fails(self, client: AsyncClient, logged_in_headers):
+        """Test batch check exceeding 100 checks should fail validation."""
+        # Create 101 checks (exceeds MAX_PERMISSION_CHECKS = 100)
+        check_request = {
+            "checks": [{"action": "Read", "resource_type": "Global", "resource_id": None} for _ in range(101)]
+        }
+
+        response = await client.post("api/v1/rbac/check-permissions", json=check_request, headers=logged_in_headers)
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY, (
+            "Exceeding max checks should fail validation"
+        )
+
+    async def test_check_permissions_batch_single_check(self, client: AsyncClient, logged_in_headers_super_user):
+        """Test batch check with single permission (edge case)."""
+        check_request = {"checks": [{"action": "Update", "resource_type": "Global", "resource_id": None}]}
+
+        response = await client.post(
+            "api/v1/rbac/check-permissions", json=check_request, headers=logged_in_headers_super_user
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+        result = response.json()
+        assert len(result["results"]) == 1, "Should return result for single check"
+        assert result["results"][0]["allowed"] is True, "Superuser should have permission"
+
+    async def test_check_permissions_batch_max_checks(
+        self,
+        client: AsyncClient,
+        logged_in_headers_super_user,
+    ):
+        """Test batch check with exactly 100 checks (max allowed)."""
+        # Create exactly 100 checks
+        check_request = {
+            "checks": [{"action": "Read", "resource_type": "Global", "resource_id": None} for _ in range(100)]
+        }
+
+        response = await client.post(
+            "api/v1/rbac/check-permissions", json=check_request, headers=logged_in_headers_super_user
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+        result = response.json()
+        assert len(result["results"]) == 100, "Should return results for all 100 checks"
+
+    async def test_check_permissions_batch_mixed_resource_types(
+        self,
+        client: AsyncClient,
+        logged_in_headers,
+        logged_in_headers_super_user,
+        session: AsyncSession,
+        active_user: UserRead,
+        super_user: UserRead,  # noqa: ARG002
+        default_folder: Folder,
+    ):
+        """Test batch check with different resource types and scopes."""
+        # Assign Global Admin role
+        assignment_data = {
+            "user_id": str(active_user.id),
+            "role_name": "Admin",
+            "scope_type": "Global",
+            "scope_id": None,
+        }
+        create_response = await client.post(
+            "api/v1/rbac/assignments", json=assignment_data, headers=logged_in_headers_super_user
+        )
+        assert create_response.status_code == 201, f"Failed to create assignment: {create_response.json()}"
+
+        # Expire session to ensure permission check sees the new assignment
+        session.expire_all()
+
+        check_request = {
+            "checks": [
+                {"action": "Create", "resource_type": "Global", "resource_id": None},
+                {"action": "Update", "resource_type": "Project", "resource_id": str(default_folder.id)},
+                {"action": "Delete", "resource_type": "Flow", "resource_id": str(default_folder.id)},
+            ]
+        }
+
+        response = await client.post("api/v1/rbac/check-permissions", json=check_request, headers=logged_in_headers)
+        assert response.status_code == status.HTTP_200_OK
+
+        result = response.json()
+        assert len(result["results"]) == 3, "Should return results for all 3 checks"
+
+        # Global Admin should have all permissions
+        for check_result in result["results"]:
+            assert check_result["allowed"] is True, (
+                f"Global Admin should have all permissions, but {check_result['action']} was denied"
+            )
+
+    async def test_check_permissions_batch_preserves_request_order(
+        self,
+        client: AsyncClient,
+        logged_in_headers_super_user,
+    ):
+        """Test that batch check preserves the order of requests in results."""
+        check_request = {
+            "checks": [
+                {"action": "Delete", "resource_type": "Global", "resource_id": None},
+                {"action": "Create", "resource_type": "Project", "resource_id": None},
+                {"action": "Update", "resource_type": "Flow", "resource_id": None},
+                {"action": "Read", "resource_type": "Global", "resource_id": None},
+            ]
+        }
+
+        response = await client.post(
+            "api/v1/rbac/check-permissions", json=check_request, headers=logged_in_headers_super_user
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+        result = response.json()
+        assert len(result["results"]) == 4, "Should return results for all 4 checks"
+
+        # Verify order is preserved
+        expected_actions = ["Delete", "Create", "Update", "Read"]
+        expected_resource_types = ["Global", "Project", "Flow", "Global"]
+
+        for i, check_result in enumerate(result["results"]):
+            assert check_result["action"] == expected_actions[i], f"Result {i} should have action {expected_actions[i]}"
+            assert check_result["resource_type"] == expected_resource_types[i], (
+                f"Result {i} should have resource_type {expected_resource_types[i]}"
+            )
+
+    async def test_check_permissions_batch_unauthenticated_fails(self, client: AsyncClient):
+        """Test batch permission check without authentication should fail."""
+        check_request = {"checks": [{"action": "Update", "resource_type": "Global", "resource_id": None}]}
+
+        response = await client.post("api/v1/rbac/check-permissions", json=check_request)
+        # Returns 403 because check-permissions requires authentication
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    async def test_check_permissions_batch_with_viewer_role(
+        self,
+        client: AsyncClient,
+        logged_in_headers,
+        logged_in_headers_super_user,
+        session: AsyncSession,
+        active_user: UserRead,
+        super_user: UserRead,  # noqa: ARG002
+        default_folder: Folder,
+    ):
+        """Test batch check for user with Viewer role (read-only)."""
+        # Assign Viewer role for specific project
+        assignment_data = {
+            "user_id": str(active_user.id),
+            "role_name": "Viewer",
+            "scope_type": "Project",
+            "scope_id": str(default_folder.id),
+        }
+        create_response = await client.post(
+            "api/v1/rbac/assignments", json=assignment_data, headers=logged_in_headers_super_user
+        )
+        assert create_response.status_code == 201, f"Failed to create assignment: {create_response.json()}"
+
+        # Expire session to ensure permission check sees the new assignment
+        session.expire_all()
+
+        check_request = {
+            "checks": [
+                {"action": "Read", "resource_type": "Project", "resource_id": str(default_folder.id)},
+                {"action": "Update", "resource_type": "Project", "resource_id": str(default_folder.id)},
+                {"action": "Delete", "resource_type": "Project", "resource_id": str(default_folder.id)},
+            ]
+        }
+
+        response = await client.post("api/v1/rbac/check-permissions", json=check_request, headers=logged_in_headers)
+        assert response.status_code == status.HTTP_200_OK
+
+        result = response.json()
+        assert len(result["results"]) == 3, "Should return results for all 3 checks"
+
+        results_by_action = {r["action"]: r for r in result["results"]}
+
+        # Viewer has Read permission
+        assert results_by_action["Read"]["allowed"] is True, "Viewer should have Read permission"
+
+        # Viewer does not have Update permission
+        assert results_by_action["Update"]["allowed"] is False, "Viewer should not have Update permission"
+
+        # Viewer does not have Delete permission
+        assert results_by_action["Delete"]["allowed"] is False, "Viewer should not have Delete permission"

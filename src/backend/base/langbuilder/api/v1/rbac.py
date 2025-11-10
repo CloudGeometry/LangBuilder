@@ -18,6 +18,11 @@ from langbuilder.services.database.models.user_role_assignment.model import (
     UserRoleAssignmentReadWithRole,
     UserRoleAssignmentUpdate,
 )
+from langbuilder.services.database.models.user_role_assignment.schema import (
+    PermissionCheckRequest,
+    PermissionCheckResponse,
+    PermissionCheckResult,
+)
 from langbuilder.services.deps import RBACServiceDep
 from langbuilder.services.rbac.exceptions import (
     AssignmentNotFoundException,
@@ -406,3 +411,113 @@ async def check_permission(
     )
 
     return {"has_permission": has_permission}
+
+
+@router.post("/check-permissions", response_model=PermissionCheckResponse)
+async def check_permissions(
+    request: PermissionCheckRequest,
+    current_user: CurrentActiveUser,
+    db: DbSession,
+    rbac: RBACServiceDep,
+):
+    """Check multiple permissions in a single request.
+
+    This endpoint optimizes frontend permission checks by allowing multiple
+    permission checks to be performed in a single HTTP request, reducing
+    network round trips and improving performance.
+
+    Args:
+        request: Batch permission check request containing list of checks
+        current_user: The current authenticated user (dependency injection)
+        db: Database session (dependency injection)
+        rbac: RBAC service instance (dependency injection)
+
+    Returns:
+        PermissionCheckResponse: Results for each permission check
+
+    Note:
+        - This endpoint is available to all authenticated users (not Admin-only)
+        - Maximum 100 permission checks per request (enforced by schema validation)
+        - Superusers always have permission
+        - Global Admin role bypasses all checks
+        - Permission inheritance: Flow permissions inherit from Project
+
+    Example Request:
+        ```json
+        {
+            "checks": [
+                {
+                    "action": "Update",
+                    "resource_type": "Flow",
+                    "resource_id": "uuid"
+                },
+                {
+                    "action": "Delete",
+                    "resource_type": "Project",
+                    "resource_id": "uuid"
+                },
+                {
+                    "action": "Create",
+                    "resource_type": "Global",
+                    "resource_id": null
+                }
+            ]
+        }
+        ```
+
+    Example Response:
+        ```json
+        {
+            "results": [
+                {
+                    "action": "Update",
+                    "resource_type": "Flow",
+                    "resource_id": "uuid",
+                    "allowed": true
+                },
+                {
+                    "action": "Delete",
+                    "resource_type": "Project",
+                    "resource_id": "uuid",
+                    "allowed": false
+                },
+                {
+                    "action": "Create",
+                    "resource_type": "Global",
+                    "resource_id": null,
+                    "allowed": true
+                }
+            ]
+        }
+        ```
+
+    Use Case:
+        Frontend can batch-check permissions for multiple resources when rendering
+        lists or complex UIs, reducing API calls from N to 1.
+
+    Performance:
+        - Target: <100ms for 10 permission checks
+        - Checks are performed sequentially (can be optimized to parallel in future)
+        - Each check uses the same optimized RBAC logic as single check endpoint
+    """
+    results = []
+
+    for check in request.checks:
+        has_permission = await rbac.can_access(
+            current_user.id,
+            check.action,
+            check.resource_type,
+            check.resource_id,
+            db,
+        )
+
+        results.append(
+            PermissionCheckResult(
+                action=check.action,
+                resource_type=check.resource_type,
+                resource_id=check.resource_id,
+                allowed=has_permission,
+            )
+        )
+
+    return PermissionCheckResponse(results=results)
