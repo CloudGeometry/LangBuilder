@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from loguru import logger
 from sqlalchemy.orm import selectinload
 from sqlmodel import select
 
@@ -282,6 +283,22 @@ class RBACService(Service):
         await db.commit()
         await db.refresh(assignment)
 
+        # 6. Audit log
+        logger.info(
+            "RBAC: Role assigned",
+            extra={
+                "action": "assign_role",
+                "user_id": str(user_id),
+                "role_name": role_name,
+                "role_id": str(role.id),
+                "scope_type": scope_type,
+                "scope_id": str(scope_id) if scope_id else None,
+                "created_by": str(created_by),
+                "assignment_id": str(assignment.id),
+                "is_immutable": is_immutable,
+            },
+        )
+
         return assignment
 
     async def remove_role(
@@ -307,8 +324,27 @@ class RBACService(Service):
         if assignment.is_immutable:
             raise ImmutableAssignmentException(operation="remove")
 
+        # Capture assignment details before deletion
+        user_id = assignment.user_id
+        role_id = assignment.role_id
+        scope_type = assignment.scope_type
+        scope_id = assignment.scope_id
+
         await db.delete(assignment)
         await db.commit()
+
+        # Audit log
+        logger.info(
+            "RBAC: Role removed",
+            extra={
+                "action": "remove_role",
+                "assignment_id": str(assignment_id),
+                "user_id": str(user_id),
+                "role_id": str(role_id),
+                "scope_type": scope_type,
+                "scope_id": str(scope_id) if scope_id else None,
+            },
+        )
 
     async def update_role(
         self,
@@ -343,9 +379,27 @@ class RBACService(Service):
         if not new_role:
             raise RoleNotFoundException(new_role_name)
 
+        # Capture old role_id before update
+        old_role_id = assignment.role_id
+
         assignment.role_id = new_role.id
         await db.commit()
         await db.refresh(assignment)
+
+        # Audit log
+        logger.info(
+            "RBAC: Role updated",
+            extra={
+                "action": "update_role",
+                "assignment_id": str(assignment_id),
+                "user_id": str(assignment.user_id),
+                "old_role_id": str(old_role_id),
+                "new_role_id": str(new_role.id),
+                "new_role_name": new_role_name,
+                "scope_type": assignment.scope_type,
+                "scope_id": str(assignment.scope_id) if assignment.scope_id else None,
+            },
+        )
 
         return assignment
 
