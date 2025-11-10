@@ -33,7 +33,7 @@ from langbuilder.services.deps import get_db_service, session_scope
 from loguru import logger
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.orm import selectinload
-from sqlmodel import Session, SQLModel, create_engine, select
+from sqlmodel import Session, SQLModel, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlmodel.pool import StaticPool
 from typer.testing import CliRunner
@@ -194,22 +194,6 @@ async def async_client() -> AsyncGenerator:
     app = create_app()
     async with AsyncClient(app=app, base_url="http://testserver", http2=True) as client:
         yield client
-
-
-@pytest.fixture(name="session")
-def session_fixture():
-    engine = create_engine(
-        "sqlite+pysqlite:///:memory:",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
-    try:
-        SQLModel.metadata.create_all(engine)
-        with Session(engine) as session:
-            yield session
-    finally:
-        SQLModel.metadata.drop_all(engine)
-        engine.dispose()
 
 
 @pytest.fixture
@@ -436,6 +420,41 @@ async def client_fixture(
 
 
 @pytest.fixture
+async def session() -> AsyncGenerator[AsyncSession, None]:
+    """Provide an async database session for tests.
+
+    This fixture creates an async session that uses the test database.
+    """
+    db_manager = get_db_service()
+    # Get the async engine from the database service
+    engine = db_manager.engine
+    async with AsyncSession(engine, expire_on_commit=False) as session:
+        yield session
+
+
+@pytest.fixture
+async def default_folder(client, active_user) -> AsyncGenerator[Folder, None]:  # noqa: ARG001
+    """Provide a default folder for testing RBAC with Project scope.
+
+    This fixture creates a test folder (project) for testing project-scoped permissions.
+    """
+    db_manager = get_db_service()
+    async with db_manager.with_session() as session:
+        folder = Folder(
+            name="Test Project",
+            description="Test project for RBAC testing",
+            user_id=active_user.id,
+        )
+        session.add(folder)
+        await session.commit()
+        await session.refresh(folder)
+        yield folder
+        # Cleanup
+        await session.delete(folder)
+        await session.commit()
+
+
+@pytest.fixture
 def runner(tmp_path):
     env = {"LANGBUILDER_DATABASE_URL": f"sqlite:///{tmp_path}/test.db"}
     return CliRunner(env=env)
@@ -478,17 +497,19 @@ async def active_user(client):  # noqa: ARG001
     # Now cleanup transactions, vertex_build
     try:
         async with db_manager.with_session() as session:
-            user = await session.get(User, user.id, options=[selectinload(User.flows)])
-            await _delete_transactions_and_vertex_builds(session, user.flows)
-            await session.commit()
+            user_db = await session.get(User, user.id, options=[selectinload(User.flows)])
+            if user_db and user_db.flows:
+                await _delete_transactions_and_vertex_builds(session, user_db.flows)
+                await session.commit()
     except Exception as e:
         logger.exception(f"Error deleting transactions and vertex builds for user: {e}")
 
     try:
         async with db_manager.with_session() as session:
-            user = await session.get(User, user.id)
-            await session.delete(user)
-            await session.commit()
+            user_db = await session.get(User, user.id)
+            if user_db:
+                await session.delete(user_db)
+                await session.commit()
     except Exception as e:
         logger.exception(f"Error deleting user: {e}")
 
@@ -508,14 +529,19 @@ async def active_super_user(client):  # noqa: ARG001
     db_manager = get_db_service()
     async with db_manager.with_session() as session:
         user = User(
-            username="activeuser",
+            username="activesuperuser",
             password=get_password_hash("testpassword"),
             is_active=True,
             is_superuser=True,
         )
         stmt = select(User).where(User.username == user.username)
-        if active_user := (await session.exec(stmt)).first():
-            user = active_user
+        if existing_user := (await session.exec(stmt)).first():
+            # Ensure existing user is a superuser
+            existing_user.is_superuser = True
+            session.add(existing_user)
+            await session.commit()
+            await session.refresh(existing_user)
+            user = existing_user
         else:
             session.add(user)
             await session.commit()
@@ -524,12 +550,49 @@ async def active_super_user(client):  # noqa: ARG001
     yield user
     # Clean up
     # Now cleanup transactions, vertex_build
-    async with db_manager.with_session() as session:
-        user = await session.get(User, user.id, options=[selectinload(User.flows)])
-        await _delete_transactions_and_vertex_builds(session, user.flows)
-        await session.delete(user)
+    try:
+        async with db_manager.with_session() as session:
+            user_db = await session.get(User, user.id, options=[selectinload(User.flows)])
+            if user_db:
+                if user_db.flows:
+                    await _delete_transactions_and_vertex_builds(session, user_db.flows)
+                await session.delete(user_db)
+                await session.commit()
+    except Exception as e:
+        logger.exception(f"Error deleting user in active_super_user fixture: {e}")
 
-        await session.commit()
+
+@pytest.fixture
+async def super_user(client):  # noqa: ARG001
+    """Create a superuser for testing (alias for active_super_user)."""
+    db_manager = get_db_service()
+    async with db_manager.with_session() as session:
+        user = User(
+            username="superuser",
+            password=get_password_hash("testpassword"),
+            is_active=True,
+            is_superuser=True,
+        )
+        stmt = select(User).where(User.username == user.username)
+        if existing_user := (await session.exec(stmt)).first():
+            user = existing_user
+        else:
+            session.add(user)
+            await session.commit()
+            await session.refresh(user)
+        user = UserRead.model_validate(user, from_attributes=True)
+    yield user
+    # Clean up
+    try:
+        async with db_manager.with_session() as session:
+            user_db = await session.get(User, user.id, options=[selectinload(User.flows)])
+            if user_db:
+                if user_db.flows:
+                    await _delete_transactions_and_vertex_builds(session, user_db.flows)
+                await session.delete(user_db)
+                await session.commit()
+    except Exception as e:
+        logger.exception(f"Error deleting user in super_user fixture: {e}")
 
 
 @pytest.fixture

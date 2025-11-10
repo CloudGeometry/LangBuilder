@@ -69,9 +69,12 @@ class UserRoleAssignmentReadWithRole(SQLModel):
         from_attributes = True
 
 
-# Import RoleRead for type checking
-if TYPE_CHECKING:
-    from langbuilder.services.database.models.role.model import RoleRead
+# Import RoleRead at runtime to resolve forward reference
+# This must be done after the class is defined to avoid circular imports
+from langbuilder.services.database.models.role.model import RoleRead  # noqa: E402, TC001
+
+# Rebuild the model to resolve the forward reference
+UserRoleAssignmentReadWithRole.model_rebuild()
 
 
 class UserRoleAssignmentUpdate(SQLModel):

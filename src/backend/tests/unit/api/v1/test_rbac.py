@@ -13,13 +13,8 @@ import pytest
 from fastapi import status
 from httpx import AsyncClient
 from langbuilder.services.database.models.folder.model import Folder
-from langbuilder.services.database.models.role.crud import get_role_by_name
 from langbuilder.services.database.models.user.model import UserRead
-from langbuilder.services.database.models.user_role_assignment.crud import (
-    create_user_role_assignment,
-    get_user_role_assignment_by_id,
-)
-from langbuilder.services.database.models.user_role_assignment.model import UserRoleAssignmentCreate
+from langbuilder.services.database.models.user_role_assignment.crud import get_user_role_assignment_by_id
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 
@@ -69,18 +64,21 @@ class TestListAssignments:
     """Test GET /api/v1/rbac/assignments endpoint."""
 
     async def test_list_assignments_as_superuser(
-        self, client: AsyncClient, logged_in_headers_super_user, session: AsyncSession, active_user: UserRead
+        self,
+        client: AsyncClient,
+        logged_in_headers_super_user,
+        session: AsyncSession,  # noqa: ARG002
+        active_user: UserRead,
     ):
         """Test listing all assignments as a superuser."""
-        # Create a test assignment
-        role = await get_role_by_name(session, "Viewer")
-        assignment_data = UserRoleAssignmentCreate(
-            user_id=active_user.id,
-            role_id=role.id,
-            scope_type="Global",
-            scope_id=None,
-        )
-        await create_user_role_assignment(session, assignment_data)
+        # Create a test assignment via API
+        assignment_data = {
+            "user_id": str(active_user.id),
+            "role_name": "Viewer",
+            "scope_type": "Global",
+            "scope_id": None,
+        }
+        await client.post("api/v1/rbac/assignments", json=assignment_data, headers=logged_in_headers_super_user)
 
         response = await client.get("api/v1/rbac/assignments", headers=logged_in_headers_super_user)
         assert response.status_code == status.HTTP_200_OK
@@ -110,21 +108,19 @@ class TestListAssignments:
         self,
         client: AsyncClient,
         logged_in_headers_super_user,
-        session: AsyncSession,
+        session: AsyncSession,  # noqa: ARG002
         active_user: UserRead,
         super_user: UserRead,  # noqa: ARG002
     ):
         """Test filtering assignments by user_id."""
-        # Create assignments for two different users
-        viewer_role = await get_role_by_name(session, "Viewer")
-
-        assignment1 = UserRoleAssignmentCreate(
-            user_id=active_user.id,
-            role_id=viewer_role.id,
-            scope_type="Global",
-            scope_id=None,
-        )
-        await create_user_role_assignment(session, assignment1)
+        # Create assignment via API
+        assignment_data = {
+            "user_id": str(active_user.id),
+            "role_name": "Viewer",
+            "scope_type": "Global",
+            "scope_id": None,
+        }
+        await client.post("api/v1/rbac/assignments", json=assignment_data, headers=logged_in_headers_super_user)
 
         response = await client.get(
             f"api/v1/rbac/assignments?user_id={active_user.id}", headers=logged_in_headers_super_user
@@ -139,19 +135,21 @@ class TestListAssignments:
             assert assignment["user_id"] == str(active_user.id), "All assignments should be for the filtered user"
 
     async def test_list_assignments_filter_by_role_name(
-        self, client: AsyncClient, logged_in_headers_super_user, session: AsyncSession, active_user: UserRead
+        self,
+        client: AsyncClient,
+        logged_in_headers_super_user,
+        session: AsyncSession,  # noqa: ARG002
+        active_user: UserRead,
     ):
         """Test filtering assignments by role_name."""
-        # Create assignments with different roles
-        viewer_role = await get_role_by_name(session, "Viewer")
-
-        assignment1 = UserRoleAssignmentCreate(
-            user_id=active_user.id,
-            role_id=viewer_role.id,
-            scope_type="Global",
-            scope_id=None,
-        )
-        await create_user_role_assignment(session, assignment1)
+        # Create assignment via API
+        assignment_data = {
+            "user_id": str(active_user.id),
+            "role_name": "Viewer",
+            "scope_type": "Global",
+            "scope_id": None,
+        }
+        await client.post("api/v1/rbac/assignments", json=assignment_data, headers=logged_in_headers_super_user)
 
         response = await client.get("api/v1/rbac/assignments?role_name=Viewer", headers=logged_in_headers_super_user)
         assert response.status_code == status.HTTP_200_OK
@@ -164,18 +162,21 @@ class TestListAssignments:
             assert assignment["role"]["name"] == "Viewer", "All assignments should be for the filtered role"
 
     async def test_list_assignments_filter_by_scope_type(
-        self, client: AsyncClient, logged_in_headers_super_user, session: AsyncSession, active_user: UserRead
+        self,
+        client: AsyncClient,
+        logged_in_headers_super_user,
+        session: AsyncSession,  # noqa: ARG002
+        active_user: UserRead,
     ):
         """Test filtering assignments by scope_type."""
-        viewer_role = await get_role_by_name(session, "Viewer")
-
-        assignment1 = UserRoleAssignmentCreate(
-            user_id=active_user.id,
-            role_id=viewer_role.id,
-            scope_type="Global",
-            scope_id=None,
-        )
-        await create_user_role_assignment(session, assignment1)
+        # Create assignment via API
+        assignment_data = {
+            "user_id": str(active_user.id),
+            "role_name": "Viewer",
+            "scope_type": "Global",
+            "scope_id": None,
+        }
+        await client.post("api/v1/rbac/assignments", json=assignment_data, headers=logged_in_headers_super_user)
 
         response = await client.get("api/v1/rbac/assignments?scope_type=Global", headers=logged_in_headers_super_user)
         assert response.status_code == status.HTTP_200_OK
@@ -199,14 +200,15 @@ class TestCreateAssignment:
     """Test POST /api/v1/rbac/assignments endpoint."""
 
     async def test_create_assignment_global_scope(
-        self, client: AsyncClient, logged_in_headers_super_user, session: AsyncSession, active_user: UserRead
+        self,
+        client: AsyncClient,
+        logged_in_headers_super_user,
+        session: AsyncSession,  # noqa: ARG002
+        active_user: UserRead,
     ):
         """Test creating a global scope assignment."""
-        viewer_role = await get_role_by_name(session, "Viewer")
-
         assignment_data = {
             "user_id": str(active_user.id),
-            "role_id": str(viewer_role.id),
             "role_name": "Viewer",
             "scope_type": "Global",
             "scope_id": None,
@@ -228,16 +230,13 @@ class TestCreateAssignment:
         self,
         client: AsyncClient,
         logged_in_headers_super_user,
-        session: AsyncSession,
+        session: AsyncSession,  # noqa: ARG002
         active_user: UserRead,
         default_folder: Folder,
     ):
         """Test creating a project scope assignment."""
-        editor_role = await get_role_by_name(session, "Editor")
-
         assignment_data = {
             "user_id": str(active_user.id),
-            "role_id": str(editor_role.id),
             "role_name": "Editor",
             "scope_type": "Project",
             "scope_id": str(default_folder.id),
@@ -255,14 +254,15 @@ class TestCreateAssignment:
         assert result["scope_id"] == str(default_folder.id)
 
     async def test_create_duplicate_assignment_fails(
-        self, client: AsyncClient, logged_in_headers_super_user, session: AsyncSession, active_user: UserRead
+        self,
+        client: AsyncClient,
+        logged_in_headers_super_user,
+        session: AsyncSession,  # noqa: ARG002
+        active_user: UserRead,
     ):
         """Test creating a duplicate assignment should fail."""
-        viewer_role = await get_role_by_name(session, "Viewer")
-
         assignment_data = {
             "user_id": str(active_user.id),
-            "role_id": str(viewer_role.id),
             "role_name": "Viewer",
             "scope_type": "Global",
             "scope_id": None,
@@ -286,7 +286,6 @@ class TestCreateAssignment:
         """Test creating assignment with invalid role should fail."""
         assignment_data = {
             "user_id": str(active_user.id),
-            "role_id": "00000000-0000-0000-0000-000000000000",
             "role_name": "NonExistentRole",
             "scope_type": "Global",
             "scope_id": None,
@@ -298,14 +297,15 @@ class TestCreateAssignment:
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     async def test_create_assignment_as_regular_user_fails(
-        self, client: AsyncClient, logged_in_headers, session: AsyncSession, active_user: UserRead
+        self,
+        client: AsyncClient,
+        logged_in_headers,
+        session: AsyncSession,  # noqa: ARG002
+        active_user: UserRead,
     ):
         """Test creating assignment as regular user should fail."""
-        viewer_role = await get_role_by_name(session, "Viewer")
-
         assignment_data = {
             "user_id": str(active_user.id),
-            "role_id": str(viewer_role.id),
             "role_name": "Viewer",
             "scope_type": "Global",
             "scope_id": None,
@@ -321,29 +321,35 @@ class TestUpdateAssignment:
     """Test PATCH /api/v1/rbac/assignments/{id} endpoint."""
 
     async def test_update_assignment_role(
-        self, client: AsyncClient, logged_in_headers_super_user, session: AsyncSession, active_user: UserRead
+        self,
+        client: AsyncClient,
+        logged_in_headers_super_user,
+        session: AsyncSession,  # noqa: ARG002
+        active_user: UserRead,
     ):
         """Test updating an assignment's role."""
-        # Create initial assignment with Viewer role
-        viewer_role = await get_role_by_name(session, "Viewer")
-        assignment_data = UserRoleAssignmentCreate(
-            user_id=active_user.id,
-            role_id=viewer_role.id,
-            scope_type="Global",
-            scope_id=None,
+        # Create initial assignment with Viewer role via API
+        assignment_data = {
+            "user_id": str(active_user.id),
+            "role_name": "Viewer",
+            "scope_type": "Global",
+            "scope_id": None,
+        }
+        create_response = await client.post(
+            "api/v1/rbac/assignments", json=assignment_data, headers=logged_in_headers_super_user
         )
-        assignment = await create_user_role_assignment(session, assignment_data)
+        assignment = create_response.json()
 
         # Update to Editor role
         update_data = {"role_name": "Editor"}
 
         response = await client.patch(
-            f"api/v1/rbac/assignments/{assignment.id}", json=update_data, headers=logged_in_headers_super_user
+            f"api/v1/rbac/assignments/{assignment['id']}", json=update_data, headers=logged_in_headers_super_user
         )
         assert response.status_code == status.HTTP_200_OK
 
         result = response.json()
-        assert result["id"] == str(assignment.id)
+        assert result["id"] == assignment["id"]
         assert result["role"]["name"] == "Editor"
         assert result["user_id"] == str(active_user.id)
 
@@ -351,35 +357,44 @@ class TestUpdateAssignment:
         self,
         client: AsyncClient,
         logged_in_headers_super_user,
-        session: AsyncSession,
+        session: AsyncSession,  # noqa: ARG002
         active_user: UserRead,
         super_user: UserRead,  # noqa: ARG002
     ):
         """Test updating an immutable assignment should fail."""
-        # Create immutable assignment
-        owner_role = await get_role_by_name(session, "Owner")
-        assignment_data = UserRoleAssignmentCreate(
-            user_id=active_user.id,
-            role_id=owner_role.id,
-            scope_type="Global",
-            scope_id=None,
+        # Create assignment via API
+        assignment_data = {
+            "user_id": str(active_user.id),
+            "role_name": "Owner",
+            "scope_type": "Global",
+            "scope_id": None,
+        }
+        create_response = await client.post(
+            "api/v1/rbac/assignments", json=assignment_data, headers=logged_in_headers_super_user
         )
-        assignment = await create_user_role_assignment(session, assignment_data)
+        assert create_response.status_code == 201, f"Failed to create assignment: {create_response.json()}"
+        assignment = create_response.json()
 
-        # Fetch it again to update it
+        # Mark as immutable using direct DB access
+        from uuid import UUID
+
         from langbuilder.services.database.models.user_role_assignment.crud import get_user_role_assignment_by_id
+        from langbuilder.services.deps import get_db_service
 
-        fetched_assignment = await get_user_role_assignment_by_id(session, assignment.id)
-        fetched_assignment.is_immutable = True
-        session.add(fetched_assignment)
-        await session.commit()
-        await session.refresh(fetched_assignment)
+        # Use a fresh session to see data committed by API
+        db_manager = get_db_service()
+        async with db_manager.with_session() as fresh_session:
+            fetched_assignment = await get_user_role_assignment_by_id(fresh_session, UUID(assignment["id"]))
+            assert fetched_assignment is not None, f"Assignment {assignment['id']} not found in database"
+            fetched_assignment.is_immutable = True
+            fresh_session.add(fetched_assignment)
+            await fresh_session.commit()
 
         # Try to update
         update_data = {"role_name": "Editor"}
 
         response = await client.patch(
-            f"api/v1/rbac/assignments/{assignment.id}", json=update_data, headers=logged_in_headers_super_user
+            f"api/v1/rbac/assignments/{assignment['id']}", json=update_data, headers=logged_in_headers_super_user
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -394,42 +409,59 @@ class TestUpdateAssignment:
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     async def test_update_assignment_invalid_role_fails(
-        self, client: AsyncClient, logged_in_headers_super_user, session: AsyncSession, active_user: UserRead
+        self,
+        client: AsyncClient,
+        logged_in_headers_super_user,
+        session: AsyncSession,  # noqa: ARG002
+        active_user: UserRead,
     ):
         """Test updating to an invalid role should fail."""
-        viewer_role = await get_role_by_name(session, "Viewer")
-        assignment_data = UserRoleAssignmentCreate(
-            user_id=active_user.id,
-            role_id=viewer_role.id,
-            scope_type="Global",
-            scope_id=None,
+        # Create assignment via API
+        assignment_data = {
+            "user_id": str(active_user.id),
+            "role_name": "Viewer",
+            "scope_type": "Global",
+            "scope_id": None,
+        }
+        create_response = await client.post(
+            "api/v1/rbac/assignments", json=assignment_data, headers=logged_in_headers_super_user
         )
-        assignment = await create_user_role_assignment(session, assignment_data)
+        assignment = create_response.json()
 
         update_data = {"role_name": "NonExistentRole"}
 
         response = await client.patch(
-            f"api/v1/rbac/assignments/{assignment.id}", json=update_data, headers=logged_in_headers_super_user
+            f"api/v1/rbac/assignments/{assignment['id']}", json=update_data, headers=logged_in_headers_super_user
         )
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     async def test_update_assignment_as_regular_user_fails(
-        self, client: AsyncClient, logged_in_headers, session: AsyncSession, active_user: UserRead
+        self,
+        client: AsyncClient,
+        logged_in_headers,
+        logged_in_headers_super_user,
+        session: AsyncSession,  # noqa: ARG002
+        active_user: UserRead,
+        super_user: UserRead,  # noqa: ARG002
     ):
         """Test updating assignment as regular user should fail."""
-        viewer_role = await get_role_by_name(session, "Viewer")
-        assignment_data = UserRoleAssignmentCreate(
-            user_id=active_user.id,
-            role_id=viewer_role.id,
-            scope_type="Global",
-            scope_id=None,
+        # Create assignment via API (needs super user)
+        assignment_data = {
+            "user_id": str(active_user.id),
+            "role_name": "Viewer",
+            "scope_type": "Global",
+            "scope_id": None,
+        }
+        create_response = await client.post(
+            "api/v1/rbac/assignments", json=assignment_data, headers=logged_in_headers_super_user
         )
-        assignment = await create_user_role_assignment(session, assignment_data)
+        assert create_response.status_code == 201, f"Failed to create assignment: {create_response.json()}"
+        assignment = create_response.json()
 
         update_data = {"role_name": "Editor"}
 
         response = await client.patch(
-            f"api/v1/rbac/assignments/{assignment.id}", json=update_data, headers=logged_in_headers
+            f"api/v1/rbac/assignments/{assignment['id']}", json=update_data, headers=logged_in_headers
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
@@ -442,43 +474,66 @@ class TestDeleteAssignment:
         self, client: AsyncClient, logged_in_headers_super_user, session: AsyncSession, active_user: UserRead
     ):
         """Test deleting an assignment."""
-        viewer_role = await get_role_by_name(session, "Viewer")
-        assignment_data = UserRoleAssignmentCreate(
-            user_id=active_user.id,
-            role_id=viewer_role.id,
-            scope_type="Global",
-            scope_id=None,
+        # Create assignment via API
+        assignment_data = {
+            "user_id": str(active_user.id),
+            "role_name": "Viewer",
+            "scope_type": "Global",
+            "scope_id": None,
+        }
+        create_response = await client.post(
+            "api/v1/rbac/assignments", json=assignment_data, headers=logged_in_headers_super_user
         )
-        assignment = await create_user_role_assignment(session, assignment_data)
+        assignment = create_response.json()
 
-        response = await client.delete(f"api/v1/rbac/assignments/{assignment.id}", headers=logged_in_headers_super_user)
+        response = await client.delete(
+            f"api/v1/rbac/assignments/{assignment['id']}", headers=logged_in_headers_super_user
+        )
         assert response.status_code == status.HTTP_204_NO_CONTENT
 
-        # Verify assignment was deleted
-        deleted_assignment = await get_user_role_assignment_by_id(session, assignment.id)
+        # Verify assignment was deleted by trying to fetch it
+        from uuid import UUID
+
+        deleted_assignment = await get_user_role_assignment_by_id(session, UUID(assignment["id"]))
         assert deleted_assignment is None
 
     async def test_delete_immutable_assignment_fails(
-        self, client: AsyncClient, logged_in_headers_super_user, session: AsyncSession, active_user: UserRead
+        self,
+        client: AsyncClient,
+        logged_in_headers_super_user,
+        session: AsyncSession,  # noqa: ARG002
+        active_user: UserRead,
     ):
         """Test deleting an immutable assignment should fail."""
-        owner_role = await get_role_by_name(session, "Owner")
-        assignment_data = UserRoleAssignmentCreate(
-            user_id=active_user.id,
-            role_id=owner_role.id,
-            scope_type="Global",
-            scope_id=None,
+        # Create assignment via API
+        assignment_data = {
+            "user_id": str(active_user.id),
+            "role_name": "Owner",
+            "scope_type": "Global",
+            "scope_id": None,
+        }
+        create_response = await client.post(
+            "api/v1/rbac/assignments", json=assignment_data, headers=logged_in_headers_super_user
         )
-        assignment = await create_user_role_assignment(session, assignment_data)
+        assignment = create_response.json()
 
-        # Fetch it again to update it
-        fetched_assignment = await get_user_role_assignment_by_id(session, assignment.id)
-        fetched_assignment.is_immutable = True
-        session.add(fetched_assignment)
-        await session.commit()
-        await session.refresh(fetched_assignment)
+        # Mark as immutable using direct DB access
+        from uuid import UUID
 
-        response = await client.delete(f"api/v1/rbac/assignments/{assignment.id}", headers=logged_in_headers_super_user)
+        from langbuilder.services.deps import get_db_service
+
+        # Use a fresh session to see data committed by API
+        db_manager = get_db_service()
+        async with db_manager.with_session() as fresh_session:
+            fetched_assignment = await get_user_role_assignment_by_id(fresh_session, UUID(assignment["id"]))
+            assert fetched_assignment is not None, f"Assignment {assignment['id']} not found in database"
+            fetched_assignment.is_immutable = True
+            fresh_session.add(fetched_assignment)
+            await fresh_session.commit()
+
+        response = await client.delete(
+            f"api/v1/rbac/assignments/{assignment['id']}", headers=logged_in_headers_super_user
+        )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     async def test_delete_nonexistent_assignment_fails(self, client: AsyncClient, logged_in_headers_super_user):
@@ -489,19 +544,29 @@ class TestDeleteAssignment:
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     async def test_delete_assignment_as_regular_user_fails(
-        self, client: AsyncClient, logged_in_headers, session: AsyncSession, active_user: UserRead
+        self,
+        client: AsyncClient,
+        logged_in_headers,
+        logged_in_headers_super_user,
+        session: AsyncSession,  # noqa: ARG002
+        active_user: UserRead,
+        super_user: UserRead,  # noqa: ARG002
     ):
         """Test deleting assignment as regular user should fail."""
-        viewer_role = await get_role_by_name(session, "Viewer")
-        assignment_data = UserRoleAssignmentCreate(
-            user_id=active_user.id,
-            role_id=viewer_role.id,
-            scope_type="Global",
-            scope_id=None,
+        # Create assignment via API (needs super user)
+        assignment_data = {
+            "user_id": str(active_user.id),
+            "role_name": "Viewer",
+            "scope_type": "Global",
+            "scope_id": None,
+        }
+        create_response = await client.post(
+            "api/v1/rbac/assignments", json=assignment_data, headers=logged_in_headers_super_user
         )
-        assignment = await create_user_role_assignment(session, assignment_data)
+        assert create_response.status_code == 201, f"Failed to create assignment: {create_response.json()}"
+        assignment = create_response.json()
 
-        response = await client.delete(f"api/v1/rbac/assignments/{assignment.id}", headers=logged_in_headers)
+        response = await client.delete(f"api/v1/rbac/assignments/{assignment['id']}", headers=logged_in_headers)
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
@@ -532,18 +597,29 @@ class TestCheckPermission:
         assert result["has_permission"] is False
 
     async def test_check_permission_user_with_role_granted(
-        self, client: AsyncClient, logged_in_headers, session: AsyncSession, active_user: UserRead
+        self,
+        client: AsyncClient,
+        logged_in_headers,
+        logged_in_headers_super_user,
+        session: AsyncSession,
+        active_user: UserRead,
+        super_user: UserRead,  # noqa: ARG002
     ):
         """Test that users with appropriate role are granted permission."""
-        # Assign Global Admin role to user
-        admin_role = await get_role_by_name(session, "Admin")
-        assignment_data = UserRoleAssignmentCreate(
-            user_id=active_user.id,
-            role_id=admin_role.id,
-            scope_type="Global",
-            scope_id=None,
+        # Assign Global Admin role to user via API
+        assignment_data = {
+            "user_id": str(active_user.id),
+            "role_name": "Admin",
+            "scope_type": "Global",
+            "scope_id": None,
+        }
+        create_response = await client.post(
+            "api/v1/rbac/assignments", json=assignment_data, headers=logged_in_headers_super_user
         )
-        await create_user_role_assignment(session, assignment_data)
+        assert create_response.status_code == 201, f"Failed to create assignment: {create_response.json()}"
+
+        # Expire session to ensure permission check sees the new assignment
+        session.expire_all()
 
         response = await client.get(
             "api/v1/rbac/check-permission?permission=Update&scope_type=Global", headers=logged_in_headers
@@ -551,26 +627,33 @@ class TestCheckPermission:
         assert response.status_code == status.HTTP_200_OK
 
         result = response.json()
-        assert result["has_permission"] is True
+        assert result["has_permission"] is True, f"Expected permission check to return True, got {result}"
 
     async def test_check_permission_with_scope_id(
         self,
         client: AsyncClient,
         logged_in_headers,
+        logged_in_headers_super_user,
         session: AsyncSession,
         active_user: UserRead,
+        super_user: UserRead,  # noqa: ARG002
         default_folder: Folder,
     ):
         """Test permission check with specific scope_id."""
-        # Assign Editor role for specific project
-        editor_role = await get_role_by_name(session, "Editor")
-        assignment_data = UserRoleAssignmentCreate(
-            user_id=active_user.id,
-            role_id=editor_role.id,
-            scope_type="Project",
-            scope_id=default_folder.id,
+        # Assign Editor role for specific project via API
+        assignment_data = {
+            "user_id": str(active_user.id),
+            "role_name": "Editor",
+            "scope_type": "Project",
+            "scope_id": str(default_folder.id),
+        }
+        create_response = await client.post(
+            "api/v1/rbac/assignments", json=assignment_data, headers=logged_in_headers_super_user
         )
-        await create_user_role_assignment(session, assignment_data)
+        assert create_response.status_code == 201, f"Failed to create assignment: {create_response.json()}"
+
+        # Expire session to ensure permission check sees the new assignment
+        session.expire_all()
 
         response = await client.get(
             f"api/v1/rbac/check-permission?permission=Update&scope_type=Project&scope_id={default_folder.id}",
@@ -579,7 +662,7 @@ class TestCheckPermission:
         assert response.status_code == status.HTTP_200_OK
 
         result = response.json()
-        assert result["has_permission"] is True
+        assert result["has_permission"] is True, f"Expected permission check to return True, got {result}"
 
     async def test_check_permission_unauthenticated_fails(self, client: AsyncClient):
         """Test checking permission without authentication should fail."""
