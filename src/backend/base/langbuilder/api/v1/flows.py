@@ -230,13 +230,23 @@ async def create_flow(
         FlowRead: The created flow
 
     Raises:
+        HTTPException: 404 if project not found
         HTTPException: 403 if user lacks Create permission on target Project
         HTTPException: 400 if unique constraint violated
-        HTTPException: 500 for other errors
+        HTTPException: 500 for other errors (including role assignment failures)
     """
     try:
         # 1. Check if user has Create permission on the target Project (if specified)
         if flow.folder_id:
+            # Validate folder exists
+            folder = await session.get(Folder, flow.folder_id)
+            if not folder:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Project with ID {flow.folder_id} not found",
+                )
+
+            # Check permission
             has_permission = await rbac_service.can_access(
                 user_id=current_user.id,
                 permission_name="Create",
@@ -248,26 +258,41 @@ async def create_flow(
             if not has_permission:
                 raise HTTPException(
                     status_code=403,
-                    detail="You do not have permission to create flows in this project",
+                    detail=f"You do not have permission to create flows in project '{folder.name}'",
                 )
 
-        # 2. Create the flow
+        # 2. Create the flow (but don't commit yet)
         db_flow = await _new_flow(session=session, flow=flow, user_id=current_user.id)
+
+        # 3. Assign Owner role to creating user for this Flow (before commit for atomicity)
+        try:
+            await rbac_service.assign_role(
+                user_id=current_user.id,
+                role_name="Owner",
+                scope_type="Flow",
+                scope_id=db_flow.id,
+                created_by=current_user.id,
+                db=session,
+            )
+        except Exception as role_error:
+            # Log the specific error for debugging
+            logger.error(f"Failed to assign Owner role for new flow: {role_error}")
+            # Re-raise to trigger rollback
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to assign owner role: {role_error!s}",
+            ) from role_error
+
+        # 4. Commit both flow and role assignment atomically
         await session.commit()
         await session.refresh(db_flow)
 
+        # 5. Save to filesystem (after commit)
         await _save_flow_to_fs(db_flow)
 
-        # 3. Assign Owner role to creating user for this Flow
-        await rbac_service.assign_role(
-            user_id=current_user.id,
-            role_name="Owner",
-            scope_type="Flow",
-            scope_id=db_flow.id,
-            created_by=current_user.id,
-            db=session,
-        )
-
+    except HTTPException:
+        # Re-raise HTTP exceptions (including role assignment failures and permission denials)
+        raise
     except Exception as e:
         if "UNIQUE constraint failed" in str(e):
             # Get the name of the column that failed
@@ -280,8 +305,6 @@ async def create_flow(
             raise HTTPException(
                 status_code=400, detail=f"{column.capitalize().replace('_', ' ')} must be unique"
             ) from e
-        if isinstance(e, HTTPException):
-            raise
         raise HTTPException(status_code=500, detail=str(e)) from e
     return db_flow
 

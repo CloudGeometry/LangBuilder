@@ -1258,3 +1258,98 @@ async def test_create_flow_different_users_different_projects(
     response2 = await client.post("api/v1/flows/", json=flow_data2, headers=headers)
     assert response2.status_code == 403
     assert "permission" in response2.json()["detail"].lower()
+
+
+@pytest.mark.asyncio
+async def test_create_flow_role_assignment_failure_rollback(
+    client: AsyncClient,
+    editor_user,
+    editor_role,
+    setup_editor_role_permissions,  # noqa: ARG001
+    setup_editor_project_create_permission,  # noqa: ARG001
+    test_folder,
+    monkeypatch,
+):
+    """Test that flow creation is rolled back if owner role assignment fails."""
+    # Assign Editor role to user for the project
+    db_manager = get_db_service()
+    async with db_manager.with_session() as session:
+        assignment_data = UserRoleAssignmentCreate(
+            user_id=editor_user.id,
+            role_id=editor_role.id,
+            scope_type="Project",
+            scope_id=test_folder.id,
+            created_by=editor_user.id,
+        )
+        await create_user_role_assignment(session, assignment_data)
+
+    # Login as editor
+    response = await client.post(
+        "api/v1/login",
+        data={"username": "editor_user", "password": "password"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Mock assign_role to fail
+    async def mock_assign_role(*args, **kwargs):  # noqa: ARG001
+        msg = "Owner role not found"
+        raise RuntimeError(msg)
+
+    # Patch the RBACService.assign_role method
+    from langbuilder.services.rbac.service import RBACService
+
+    monkeypatch.setattr(RBACService, "assign_role", mock_assign_role)
+
+    # Attempt to create flow
+    flow_data = {
+        "name": "Test Flow with Role Failure",
+        "data": {},
+        "folder_id": str(test_folder.id),
+    }
+    response = await client.post("api/v1/flows/", json=flow_data, headers=headers)
+
+    # Should receive 500 error
+    assert response.status_code == 500
+    assert "owner role" in response.json()["detail"].lower()
+
+    # Verify flow was NOT created (rollback occurred)
+    async with db_manager.with_session() as session:
+        stmt = select(Flow).where(Flow.name == "Test Flow with Role Failure")
+        result = await session.exec(stmt)
+        flow = result.first()
+        assert flow is None, "Flow should have been rolled back"
+
+
+@pytest.mark.asyncio
+async def test_create_flow_with_invalid_folder_id(
+    client: AsyncClient,
+    editor_user,  # noqa: ARG001
+):
+    """Test that creating flow with non-existent folder_id returns proper error."""
+    # Login as editor
+    response = await client.post(
+        "api/v1/login",
+        data={"username": "editor_user", "password": "password"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Attempt to create flow with non-existent folder_id
+    import uuid
+
+    fake_folder_id = str(uuid.uuid4())
+    flow_data = {
+        "name": "Test Flow with Invalid Folder",
+        "data": {},
+        "folder_id": fake_folder_id,
+    }
+    response = await client.post("api/v1/flows/", json=flow_data, headers=headers)
+
+    # Should receive 404 error
+    assert response.status_code == 404
+    # Error message should indicate project not found
+    assert "not found" in response.json()["detail"].lower()
+    assert fake_folder_id in response.json()["detail"]
