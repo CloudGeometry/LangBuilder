@@ -2,6 +2,52 @@
 
 This module defines request and response schemas for user role assignments,
 including denormalized fields (role_name, scope_name) for better frontend usability.
+
+Schema Organization:
+--------------------
+This module contains API-specific Pydantic schemas that are separate from the ORM schemas
+defined in model.py. This separation exists due to a naming conflict and different purposes:
+
+- model.py: SQLModel schemas for database operations (ORM layer)
+  - Used for database table mapping, relationships, and ORM queries
+  - Inherit from SQLModel and UserRoleAssignmentBase
+  - Focus on database structure and constraints
+
+- schema.py: Pydantic schemas for API requests/responses (API layer)
+  - Used for FastAPI endpoint request/response models
+  - Inherit from pure Pydantic BaseModel
+  - Include denormalized fields (role_name, scope_name) to reduce frontend API calls
+  - Include additional validation rules for cross-field dependencies
+  - Optimized for API documentation generation and client consumption
+
+Naming Conflict Resolution:
+---------------------------
+Both model.py and schema.py define schemas with the same names:
+- UserRoleAssignmentCreate
+- UserRoleAssignmentRead
+- UserRoleAssignmentUpdate
+
+To resolve this conflict, __init__.py uses aliased imports for the schema.py versions:
+- UserRoleAssignmentCreateSchema (from schema.py)
+- UserRoleAssignmentReadSchema (from schema.py)
+- UserRoleAssignmentUpdateSchema (from schema.py)
+
+The model.py versions retain their original names for backward compatibility.
+
+Usage:
+------
+For FastAPI endpoint request/response models, import the API schemas:
+    from langbuilder.services.database.models.user_role_assignment.schema import (
+        UserRoleAssignmentCreate,
+        UserRoleAssignmentRead,
+        PermissionCheckRequest,
+    )
+
+Or use the aliased versions from __init__.py to avoid confusion:
+    from langbuilder.services.database.models.user_role_assignment import (
+        UserRoleAssignmentCreateSchema,
+        UserRoleAssignmentReadSchema,
+    )
 """
 
 from datetime import datetime
