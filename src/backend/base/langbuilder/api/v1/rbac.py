@@ -28,7 +28,10 @@ from langbuilder.services.rbac.exceptions import (
     AssignmentNotFoundException,
     DuplicateAssignmentException,
     ImmutableAssignmentException,
+    InvalidScopeException,
+    ResourceNotFoundException,
     RoleNotFoundException,
+    UserNotFoundException,
 )
 
 router = APIRouter(prefix="/rbac", tags=["RBAC"])
@@ -227,10 +230,16 @@ async def create_assignment(
         await db.refresh(created_assignment, ["role"])
 
         return UserRoleAssignmentReadWithRole.model_validate(created_assignment)
+    except UserNotFoundException as e:
+        raise HTTPException(status_code=404, detail=str(e.detail)) from e
     except RoleNotFoundException as e:
-        raise HTTPException(status_code=404, detail=str(e)) from e
+        raise HTTPException(status_code=404, detail=str(e.detail)) from e
+    except ResourceNotFoundException as e:
+        raise HTTPException(status_code=404, detail=str(e.detail)) from e
+    except InvalidScopeException as e:
+        raise HTTPException(status_code=400, detail=str(e.detail)) from e
     except DuplicateAssignmentException as e:
-        raise HTTPException(status_code=400, detail=str(e)) from e
+        raise HTTPException(status_code=409, detail=str(e.detail)) from e
 
 
 @router.patch("/assignments/{assignment_id}", response_model=UserRoleAssignmentReadWithRole)

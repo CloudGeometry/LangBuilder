@@ -86,3 +86,49 @@ class PermissionDeniedException(RBACException):
             detail=f"Permission denied: Cannot {action} {resource}",
             status_code=status.HTTP_403_FORBIDDEN,
         )
+
+
+class UserNotFoundException(RBACException):
+    """Raised when a user is not found."""
+
+    def __init__(self, user_id: str) -> None:
+        """Initialize UserNotFoundException.
+
+        Args:
+            user_id: ID of the user that was not found
+        """
+        super().__init__(
+            detail=f"User '{user_id}' not found",
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+
+
+class ResourceNotFoundException(RBACException):
+    """Raised when a resource (Flow or Project) is not found."""
+
+    def __init__(self, resource_type: str, resource_id: str) -> None:
+        """Initialize ResourceNotFoundException.
+
+        Args:
+            resource_type: Type of resource (e.g., "Flow", "Project")
+            resource_id: ID of the resource that was not found
+        """
+        super().__init__(
+            detail=f"{resource_type} '{resource_id}' not found",
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+
+
+class InvalidScopeException(RBACException):
+    """Raised when an invalid scope type or scope_id is provided."""
+
+    def __init__(self, detail: str) -> None:
+        """Initialize InvalidScopeException.
+
+        Args:
+            detail: Detailed error message explaining the invalid scope
+        """
+        super().__init__(
+            detail=detail,
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )

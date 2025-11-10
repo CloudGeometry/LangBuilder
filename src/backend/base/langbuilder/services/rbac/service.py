@@ -9,6 +9,7 @@ from sqlmodel import select
 
 from langbuilder.services.base import Service
 from langbuilder.services.database.models.flow.model import Flow
+from langbuilder.services.database.models.folder.model import Folder
 from langbuilder.services.database.models.permission.model import Permission
 from langbuilder.services.database.models.role.crud import get_role_by_name
 from langbuilder.services.database.models.role.model import Role
@@ -23,7 +24,10 @@ from langbuilder.services.rbac.exceptions import (
     AssignmentNotFoundException,
     DuplicateAssignmentException,
     ImmutableAssignmentException,
+    InvalidScopeException,
+    ResourceNotFoundException,
     RoleNotFoundException,
+    UserNotFoundException,
 )
 
 if TYPE_CHECKING:
@@ -212,20 +216,59 @@ class RBACService(Service):
             UserRoleAssignment: The created assignment
 
         Raises:
+            UserNotFoundException: If user not found
             RoleNotFoundException: If role not found
+            ResourceNotFoundException: If scope resource (Flow or Project) not found
+            InvalidScopeException: If scope_type is invalid or scope_id is invalid for the scope_type
             DuplicateAssignmentException: If assignment already exists
         """
-        # Get role by name
+        # 1. Validate user exists
+        user = await get_user_by_id(db, user_id)
+        if not user:
+            raise UserNotFoundException(str(user_id))
+
+        # 2. Validate role exists
         role = await get_role_by_name(db, role_name)
         if not role:
             raise RoleNotFoundException(role_name)
 
-        # Check for duplicate assignment
+        # 3. Validate scope and resource existence
+        if scope_type == "Flow":
+            if not scope_id:
+                msg = "Flow scope requires scope_id"
+                raise InvalidScopeException(msg)
+            flow_stmt = select(Flow).where(Flow.id == scope_id)
+            flow_result = await db.exec(flow_stmt)
+            flow = flow_result.first()
+            if not flow:
+                resource_type = "Flow"
+                resource_id = str(scope_id)
+                raise ResourceNotFoundException(resource_type, resource_id)
+        elif scope_type == "Project":
+            if not scope_id:
+                msg = "Project scope requires scope_id"
+                raise InvalidScopeException(msg)
+            folder_stmt = select(Folder).where(Folder.id == scope_id)
+            folder_result = await db.exec(folder_stmt)
+            folder = folder_result.first()
+            if not folder:
+                resource_type = "Project"
+                resource_id = str(scope_id)
+                raise ResourceNotFoundException(resource_type, resource_id)
+        elif scope_type == "Global":
+            if scope_id is not None:
+                msg = "Global scope should not have scope_id"
+                raise InvalidScopeException(msg)
+        else:
+            msg = f"Invalid scope_type: {scope_type}. Must be 'Flow', 'Project', or 'Global'"
+            raise InvalidScopeException(msg)
+
+        # 4. Check for duplicate assignment
         existing = await get_user_role_assignment(db, user_id, role.id, scope_type, scope_id)
         if existing:
             raise DuplicateAssignmentException
 
-        # Create assignment
+        # 5. Create assignment
         assignment = UserRoleAssignment(
             user_id=user_id,
             role_id=role.id,

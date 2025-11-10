@@ -12,8 +12,7 @@ from langbuilder.services.database.models.role.crud import create_role
 from langbuilder.services.database.models.role.model import RoleCreate
 from langbuilder.services.database.models.role_permission.model import RolePermission
 from langbuilder.services.database.models.user.model import User
-from langbuilder.services.database.models.user_role_assignment.crud import create_user_role_assignment
-from langbuilder.services.database.models.user_role_assignment.model import UserRoleAssignmentCreate
+from langbuilder.services.database.models.user_role_assignment.model import UserRoleAssignment
 from langbuilder.services.rbac.exceptions import (
     AssignmentNotFoundException,
     DuplicateAssignmentException,
@@ -148,17 +147,23 @@ async def test_can_access_superuser_bypass(rbac_service, async_session, superuse
 
 @pytest.mark.asyncio
 async def test_can_access_global_admin_bypass(
-    rbac_service, async_session, test_user, admin_role, flow_read_permission  # noqa: ARG001
+    rbac_service,
+    async_session,
+    test_user,
+    admin_role,
+    flow_read_permission,  # noqa: ARG001
 ):
     """Test that Global Admin role bypasses permission checks."""
-    # Assign Global Admin role
-    assignment_data = UserRoleAssignmentCreate(
+    # Assign Global Admin role directly (bypass validation for test setup)
+    assignment = UserRoleAssignment(
         user_id=test_user.id,
         role_id=admin_role.id,
         scope_type="Global",
         scope_id=None,
+        created_by=test_user.id,
     )
-    await create_user_role_assignment(async_session, assignment_data)
+    async_session.add(assignment)
+    await async_session.commit()
 
     result = await rbac_service.can_access(
         user_id=test_user.id,
@@ -180,14 +185,16 @@ async def test_can_access_with_flow_permission(
     async_session.add(role_perm)
     await async_session.commit()
 
-    # Assign role to user for specific flow
-    assignment_data = UserRoleAssignmentCreate(
+    # Assign role to user for specific flow (bypass validation for test setup)
+    assignment = UserRoleAssignment(
         user_id=test_user.id,
         role_id=test_role.id,
         scope_type="Flow",
         scope_id=test_flow.id,
+        created_by=test_user.id,
     )
-    await create_user_role_assignment(async_session, assignment_data)
+    async_session.add(assignment)
+    await async_session.commit()
 
     result = await rbac_service.can_access(
         user_id=test_user.id,
@@ -209,14 +216,16 @@ async def test_can_access_inherited_from_project(
     async_session.add(role_perm)
     await async_session.commit()
 
-    # Assign role to user at Project level (not Flow level)
-    assignment_data = UserRoleAssignmentCreate(
+    # Assign role to user at Project level (bypass validation for test setup)
+    assignment = UserRoleAssignment(
         user_id=test_user.id,
         role_id=test_role.id,
         scope_type="Project",
         scope_id=test_folder.id,
+        created_by=test_user.id,
     )
-    await create_user_role_assignment(async_session, assignment_data)
+    async_session.add(assignment)
+    await async_session.commit()
 
     # Check Flow permission (should inherit from Project)
     result = await rbac_service.can_access(
@@ -252,14 +261,16 @@ async def test_can_access_wrong_permission(
     async_session.add(role_perm)
     await async_session.commit()
 
-    # Assign role to user
-    assignment_data = UserRoleAssignmentCreate(
+    # Assign role to user (bypass validation for test setup)
+    assignment = UserRoleAssignment(
         user_id=test_user.id,
         role_id=test_role.id,
         scope_type="Flow",
         scope_id=test_flow.id,
+        created_by=test_user.id,
     )
-    await create_user_role_assignment(async_session, assignment_data)
+    async_session.add(assignment)
+    await async_session.commit()
 
     # Check for Update permission (role only has Read)
     result = await rbac_service.can_access(
@@ -278,12 +289,12 @@ async def test_can_access_wrong_permission(
 @pytest.mark.asyncio
 async def test_assign_role_success(rbac_service, async_session, test_user, test_role):
     """Test successful role assignment."""
-    flow_id = uuid4()
+    # Use Global scope to avoid needing to create a Flow
     assignment = await rbac_service.assign_role(
         user_id=test_user.id,
         role_name="Editor",
-        scope_type="Flow",
-        scope_id=flow_id,
+        scope_type="Global",
+        scope_id=None,
         created_by=test_user.id,
         db=async_session,
     )
@@ -291,20 +302,20 @@ async def test_assign_role_success(rbac_service, async_session, test_user, test_
     assert assignment.id is not None
     assert assignment.user_id == test_user.id
     assert assignment.role_id == test_role.id
-    assert assignment.scope_type == "Flow"
-    assert assignment.scope_id == flow_id
+    assert assignment.scope_type == "Global"
+    assert assignment.scope_id is None
     assert assignment.is_immutable is False
 
 
 @pytest.mark.asyncio
 async def test_assign_role_immutable(rbac_service, async_session, test_user, test_role):  # noqa: ARG001
     """Test assigning an immutable role."""
-    flow_id = uuid4()
+    # Use Global scope to avoid needing to create a Flow
     assignment = await rbac_service.assign_role(
         user_id=test_user.id,
         role_name="Editor",
-        scope_type="Flow",
-        scope_id=flow_id,
+        scope_type="Global",
+        scope_id=None,
         created_by=test_user.id,
         db=async_session,
         is_immutable=True,
@@ -331,14 +342,13 @@ async def test_assign_role_not_found(rbac_service, async_session, test_user):
 @pytest.mark.asyncio
 async def test_assign_role_duplicate(rbac_service, async_session, test_user, test_role):  # noqa: ARG001
     """Test assigning a duplicate role."""
-    flow_id = uuid4()
-
+    # Use Global scope to avoid needing to create a Flow
     # First assignment
     await rbac_service.assign_role(
         user_id=test_user.id,
         role_name="Editor",
-        scope_type="Flow",
-        scope_id=flow_id,
+        scope_type="Global",
+        scope_id=None,
         created_by=test_user.id,
         db=async_session,
     )
@@ -348,8 +358,8 @@ async def test_assign_role_duplicate(rbac_service, async_session, test_user, tes
         await rbac_service.assign_role(
             user_id=test_user.id,
             role_name="Editor",
-            scope_type="Flow",
-            scope_id=flow_id,
+            scope_type="Global",
+            scope_id=None,
             created_by=test_user.id,
             db=async_session,
         )
@@ -361,12 +371,12 @@ async def test_assign_role_duplicate(rbac_service, async_session, test_user, tes
 @pytest.mark.asyncio
 async def test_remove_role_success(rbac_service, async_session, test_user, test_role):  # noqa: ARG001
     """Test successful role removal."""
-    flow_id = uuid4()
+    # Use Global scope to avoid needing to create a Flow
     assignment = await rbac_service.assign_role(
         user_id=test_user.id,
         role_name="Editor",
-        scope_type="Flow",
-        scope_id=flow_id,
+        scope_type="Global",
+        scope_id=None,
         created_by=test_user.id,
         db=async_session,
     )
@@ -390,12 +400,12 @@ async def test_remove_role_not_found(rbac_service, async_session):
 @pytest.mark.asyncio
 async def test_remove_role_immutable(rbac_service, async_session, test_user, test_role):  # noqa: ARG001
     """Test removing an immutable role assignment fails."""
-    flow_id = uuid4()
+    # Use Global scope to avoid needing to create a Flow
     assignment = await rbac_service.assign_role(
         user_id=test_user.id,
         role_name="Editor",
-        scope_type="Flow",
-        scope_id=flow_id,
+        scope_type="Global",
+        scope_id=None,
         created_by=test_user.id,
         db=async_session,
         is_immutable=True,
@@ -412,12 +422,12 @@ async def test_remove_role_immutable(rbac_service, async_session, test_user, tes
 @pytest.mark.asyncio
 async def test_update_role_success(rbac_service, async_session, test_user, test_role, viewer_role):  # noqa: ARG001
     """Test successful role update."""
-    flow_id = uuid4()
+    # Use Global scope to avoid needing to create a Flow
     assignment = await rbac_service.assign_role(
         user_id=test_user.id,
         role_name="Editor",
-        scope_type="Flow",
-        scope_id=flow_id,
+        scope_type="Global",
+        scope_id=None,
         created_by=test_user.id,
         db=async_session,
     )
@@ -445,12 +455,12 @@ async def test_update_role_not_found(rbac_service, async_session):
 @pytest.mark.asyncio
 async def test_update_role_immutable(rbac_service, async_session, test_user, test_role):  # noqa: ARG001
     """Test updating an immutable role assignment fails."""
-    flow_id = uuid4()
+    # Use Global scope to avoid needing to create a Flow
     assignment = await rbac_service.assign_role(
         user_id=test_user.id,
         role_name="Editor",
-        scope_type="Flow",
-        scope_id=flow_id,
+        scope_type="Global",
+        scope_id=None,
         created_by=test_user.id,
         db=async_session,
         is_immutable=True,
@@ -468,12 +478,12 @@ async def test_update_role_immutable(rbac_service, async_session, test_user, tes
 @pytest.mark.asyncio
 async def test_update_role_new_role_not_found(rbac_service, async_session, test_user, test_role):  # noqa: ARG001
     """Test updating to a non-existent role."""
-    flow_id = uuid4()
+    # Use Global scope to avoid needing to create a Flow
     assignment = await rbac_service.assign_role(
         user_id=test_user.id,
         role_name="Editor",
-        scope_type="Flow",
-        scope_id=flow_id,
+        scope_type="Global",
+        scope_id=None,
         created_by=test_user.id,
         db=async_session,
     )
@@ -490,14 +500,14 @@ async def test_update_role_new_role_not_found(rbac_service, async_session, test_
 
 
 @pytest.mark.asyncio
-async def test_list_user_assignments_all(rbac_service, async_session, test_user, test_role, viewer_role):  # noqa: ARG001
+async def test_list_user_assignments_all(rbac_service, async_session, test_user, test_role, viewer_role, test_folder):  # noqa: ARG001
     """Test listing all role assignments."""
-    # Create multiple assignments
+    # Create multiple assignments with Global and Project scopes
     await rbac_service.assign_role(
         user_id=test_user.id,
         role_name="Editor",
-        scope_type="Flow",
-        scope_id=uuid4(),
+        scope_type="Global",
+        scope_id=None,
         created_by=test_user.id,
         db=async_session,
     )
@@ -505,7 +515,7 @@ async def test_list_user_assignments_all(rbac_service, async_session, test_user,
         user_id=test_user.id,
         role_name="Viewer",
         scope_type="Project",
-        scope_id=uuid4(),
+        scope_id=test_folder.id,
         created_by=test_user.id,
         db=async_session,
     )
@@ -517,12 +527,12 @@ async def test_list_user_assignments_all(rbac_service, async_session, test_user,
 @pytest.mark.asyncio
 async def test_list_user_assignments_filtered(rbac_service, async_session, test_user, test_role):  # noqa: ARG001
     """Test listing role assignments filtered by user."""
-    # Create assignment for test_user
+    # Create assignment for test_user with Global scope
     await rbac_service.assign_role(
         user_id=test_user.id,
         role_name="Editor",
-        scope_type="Flow",
-        scope_id=uuid4(),
+        scope_type="Global",
+        scope_id=None,
         created_by=test_user.id,
         db=async_session,
     )
@@ -540,8 +550,8 @@ async def test_list_user_assignments_filtered(rbac_service, async_session, test_
     await rbac_service.assign_role(
         user_id=other_user.id,
         role_name="Editor",
-        scope_type="Flow",
-        scope_id=uuid4(),
+        scope_type="Global",
+        scope_id=None,
         created_by=other_user.id,
         db=async_session,
     )
@@ -567,14 +577,16 @@ async def test_get_user_permissions_for_scope(
     async_session.add(role_perm2)
     await async_session.commit()
 
-    # Assign role to user
-    assignment_data = UserRoleAssignmentCreate(
+    # Assign role to user (bypass validation for test setup)
+    assignment = UserRoleAssignment(
         user_id=test_user.id,
         role_id=test_role.id,
         scope_type="Flow",
         scope_id=test_flow.id,
+        created_by=test_user.id,
     )
-    await create_user_role_assignment(async_session, assignment_data)
+    async_session.add(assignment)
+    await async_session.commit()
 
     # Get permissions
     permissions = await rbac_service.get_user_permissions_for_scope(
@@ -613,14 +625,16 @@ async def test_get_user_permissions_inherited_from_project(
     async_session.add(role_perm)
     await async_session.commit()
 
-    # Assign role at Project level
-    assignment_data = UserRoleAssignmentCreate(
+    # Assign role at Project level (bypass validation for test setup)
+    assignment = UserRoleAssignment(
         user_id=test_user.id,
         role_id=test_role.id,
         scope_type="Project",
         scope_id=test_folder.id,
+        created_by=test_user.id,
     )
-    await create_user_role_assignment(async_session, assignment_data)
+    async_session.add(assignment)
+    await async_session.commit()
 
     # Get Flow permissions (should inherit from Project)
     permissions = await rbac_service.get_user_permissions_for_scope(
