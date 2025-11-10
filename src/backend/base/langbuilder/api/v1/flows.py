@@ -438,11 +438,56 @@ async def read_flow(
     session: DbSession,
     flow_id: UUID,
     current_user: CurrentActiveUser,
+    rbac_service: Annotated[RBACService, Depends(get_rbac_service)],
 ):
-    """Read a flow."""
-    if user_flow := await _read_flow(session, flow_id, current_user.id):
-        return user_flow
-    raise HTTPException(status_code=404, detail="Flow not found")
+    """Read a flow with RBAC permission enforcement.
+
+    This endpoint enforces Read permission on the Flow:
+    1. User must have Read permission on the specific Flow
+    2. Superusers and Global Admins bypass permission checks
+    3. Permission may be inherited from Project scope
+
+    Security Note:
+        Permission checks (403) are performed BEFORE flow existence checks (404)
+        to prevent information disclosure. Users without permission will receive
+        403 even for non-existent flows, preventing them from discovering which
+        flow IDs exist in the system.
+
+    Args:
+        session: Database session
+        flow_id: UUID of the flow to read
+        current_user: The current authenticated user
+        rbac_service: RBAC service for permission checks
+
+    Returns:
+        FlowRead: The requested flow
+
+    Raises:
+        HTTPException: 403 if user lacks Read permission on the Flow
+        HTTPException: 404 if flow not found (only after permission check passes)
+    """
+    # 1. Check if user has Read permission on the Flow (403 before 404)
+    has_permission = await rbac_service.can_access(
+        user_id=current_user.id,
+        permission_name="Read",
+        scope_type="Flow",
+        scope_id=flow_id,
+        db=session,
+    )
+
+    if not has_permission:
+        raise HTTPException(
+            status_code=403,
+            detail="You do not have permission to view this flow",
+        )
+
+    # 2. Retrieve the flow (no longer filtering by user_id)
+    db_flow = (await session.exec(select(Flow).where(Flow.id == flow_id))).first()
+
+    if not db_flow:
+        raise HTTPException(status_code=404, detail="Flow not found")
+
+    return db_flow
 
 
 @router.get("/public_flow/{flow_id}", response_model=FlowRead, status_code=200)
@@ -658,26 +703,106 @@ async def upload_file(
     session: DbSession,
     file: Annotated[UploadFile, File(...)],
     current_user: CurrentActiveUser,
+    rbac_service: Annotated[RBACService, Depends(get_rbac_service)],
     folder_id: UUID | None = None,
 ):
-    """Upload flows from a file."""
-    contents = await file.read()
-    data = orjson.loads(contents)
-    response_list = []
-    flow_list = FlowListCreate(**data) if "flows" in data else FlowListCreate(flows=[FlowCreate(**data)])
-    # Now we set the user_id for all flows
-    for flow in flow_list.flows:
-        flow.user_id = current_user.id
-        if folder_id:
-            flow.folder_id = folder_id
-        response = await _new_flow(session=session, flow=flow, user_id=current_user.id)
-        response_list.append(response)
+    """Upload flows from a file with RBAC permission enforcement.
 
+    This endpoint enforces Update permission on the target Project for flow import:
+    1. If folder_id is specified, user must have Update permission on that Project
+    2. If folder_id is not specified, no permission check is required (uses default folder)
+    3. Superusers and Global Admins bypass permission checks
+    4. Each imported flow will auto-assign Owner role to the importing user
+
+    Security Note:
+        Flow import (upload) is considered a Project-level operation requiring
+        Update permission. This prevents unauthorized users from importing flows
+        into projects they don't have appropriate access to.
+
+    Args:
+        session: Database session
+        file: Uploaded file containing flow(s) in JSON format
+        current_user: The current authenticated user
+        rbac_service: RBAC service for permission checks
+        folder_id: Optional UUID of the target project/folder
+
+    Returns:
+        list[FlowRead]: List of imported flows
+
+    Raises:
+        HTTPException: 404 if project not found
+        HTTPException: 403 if user lacks Update permission on target Project
+        HTTPException: 400 if unique constraint violated
+        HTTPException: 500 for other errors (including role assignment failures)
+    """
     try:
+        # 1. Check if user has Update permission on the target Project (if specified)
+        if folder_id:
+            # Validate folder exists
+            folder = await session.get(Folder, folder_id)
+            if not folder:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Project with ID {folder_id} not found",
+                )
+
+            # Check permission
+            has_permission = await rbac_service.can_access(
+                user_id=current_user.id,
+                permission_name="Update",
+                scope_type="Project",
+                scope_id=folder_id,
+                db=session,
+            )
+
+            if not has_permission:
+                raise HTTPException(
+                    status_code=403,
+                    detail=f"You do not have permission to import flows into project '{folder.name}'",
+                )
+
+        # 2. Parse and create flows
+        contents = await file.read()
+        data = orjson.loads(contents)
+        response_list = []
+        flow_list = FlowListCreate(**data) if "flows" in data else FlowListCreate(flows=[FlowCreate(**data)])
+
+        # 3. Set the user_id for all flows and create them
+        for flow in flow_list.flows:
+            flow.user_id = current_user.id
+            if folder_id:
+                flow.folder_id = folder_id
+            db_flow = await _new_flow(session=session, flow=flow, user_id=current_user.id)
+            response_list.append(db_flow)
+
+            # 4. Assign Owner role to importing user for each Flow (before commit for atomicity)
+            try:
+                await rbac_service.assign_role(
+                    user_id=current_user.id,
+                    role_name="Owner",
+                    scope_type="Flow",
+                    scope_id=db_flow.id,
+                    created_by=current_user.id,
+                    db=session,
+                )
+            except Exception as role_error:
+                # Log the specific error for debugging
+                logger.error(f"Failed to assign Owner role for uploaded flow: {role_error}")
+                # Re-raise to trigger rollback
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Failed to assign owner role: {role_error!s}",
+                ) from role_error
+
+        # 5. Commit all flows and role assignments atomically
         await session.commit()
         for db_flow in response_list:
             await session.refresh(db_flow)
             await _save_flow_to_fs(db_flow)
+
+    except HTTPException:
+        # Re-raise HTTP exceptions (including role assignment failures and permission denials)
+        raise
     except Exception as e:
         if "UNIQUE constraint failed" in str(e):
             # Get the name of the column that failed
@@ -690,8 +815,6 @@ async def upload_file(
             raise HTTPException(
                 status_code=400, detail=f"{column.capitalize().replace('_', ' ')} must be unique"
             ) from e
-        if isinstance(e, HTTPException):
-            raise
         raise HTTPException(status_code=500, detail=str(e)) from e
 
     return response_list

@@ -55,11 +55,13 @@ from langbuilder.services.database.models.flow.model import Flow
 from langbuilder.services.deps import (
     get_chat_service,
     get_queue_service,
+    get_rbac_service,
     get_session,
     get_telemetry_service,
     session_scope,
 )
 from langbuilder.services.job_queue.service import JobQueueNotFoundError, JobQueueService
+from langbuilder.services.rbac.service import RBACService
 from langbuilder.services.telemetry.schema import ComponentPayload, PlaygroundPayload
 
 if TYPE_CHECKING:
@@ -152,13 +154,26 @@ async def build_flow(
     log_builds: bool = True,
     current_user: CurrentActiveUser,
     queue_service: Annotated[JobQueueService, Depends(get_queue_service)],
+    rbac_service: Annotated[RBACService, Depends(get_rbac_service)],
     flow_name: str | None = None,
     event_delivery: EventDeliveryType = EventDeliveryType.POLLING,
 ):
-    """Build and process a flow, returning a job ID for event polling.
+    """Build and process a flow with RBAC permission enforcement.
+
+    This endpoint enforces Read permission on the Flow for execution:
+    1. User must have Read permission on the specific Flow to execute it
+    2. Superusers and Global Admins bypass permission checks
+    3. Permission may be inherited from Project scope
+    4. Flow execution requires viewing (Read) permission
 
     This endpoint requires authentication through the CurrentActiveUser dependency.
     For public flows that don't require authentication, use the /build_public_tmp/flow_id/flow endpoint.
+
+    Security Note:
+        Permission checks (403) are performed BEFORE flow existence checks (404)
+        to prevent information disclosure. Users without permission will receive
+        403 even for non-existent flows, preventing them from discovering which
+        flow IDs exist in the system.
 
     Args:
         flow_id: UUID of the flow to build
@@ -171,14 +186,34 @@ async def build_flow(
         log_builds: Whether to log the build process
         current_user: The authenticated user
         queue_service: Queue service for job management
+        rbac_service: RBAC service for permission checks
         flow_name: Optional name for the flow
         event_delivery: Optional event delivery type - default is streaming
 
     Returns:
         Dict with job_id that can be used to poll for build status
+
+    Raises:
+        HTTPException: 403 if user lacks Read permission on the Flow
+        HTTPException: 404 if flow not found (only after permission check passes)
     """
-    # First verify the flow exists
+    # 1. Check if user has Read permission on the Flow (403 before 404)
     async with session_scope() as session:
+        has_permission = await rbac_service.can_access(
+            user_id=current_user.id,
+            permission_name="Read",
+            scope_type="Flow",
+            scope_id=flow_id,
+            db=session,
+        )
+
+        if not has_permission:
+            raise HTTPException(
+                status_code=403,
+                detail="You do not have permission to execute this flow",
+            )
+
+        # 2. Verify the flow exists (after permission check)
         flow = await session.get(Flow, flow_id)
         if not flow:
             raise HTTPException(status_code=404, detail=f"Flow with id {flow_id} not found")
