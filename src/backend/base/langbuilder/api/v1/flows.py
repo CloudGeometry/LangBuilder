@@ -569,7 +569,7 @@ async def update_flow(
     return db_flow
 
 
-@router.delete("/{flow_id}", status_code=200)
+@router.delete("/{flow_id}", status_code=204)
 async def delete_flow(
     *,
     session: DbSession,
@@ -597,7 +597,7 @@ async def delete_flow(
         rbac_service: RBAC service for permission checks
 
     Returns:
-        dict: Success message
+        Response with status code 204 (No Content)
 
     Raises:
         HTTPException: 403 if user lacks Delete permission on the Flow
@@ -629,7 +629,7 @@ async def delete_flow(
     await cascade_delete_flow(session, flow.id)
     await session.commit()
 
-    return {"message": "Flow deleted successfully"}
+    return Response(status_code=204)
 
 
 @router.post("/batch/", response_model=list[FlowRead], status_code=201)

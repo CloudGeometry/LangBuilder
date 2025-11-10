@@ -1885,8 +1885,7 @@ async def test_delete_flow_with_delete_permission_owner(
     # Delete the flow
     response = await client.delete(f"api/v1/flows/{test_flow_1.id}", headers=headers)
 
-    assert response.status_code == 200
-    assert response.json()["message"] == "Flow deleted successfully"
+    assert response.status_code == 204
 
     # Verify flow is actually deleted
     async with db_manager.with_session() as session:
@@ -2005,8 +2004,7 @@ async def test_delete_flow_superuser_bypasses_permission_check(
     # Delete the flow
     response = await client.delete(f"api/v1/flows/{test_flow_1.id}", headers=headers)
 
-    assert response.status_code == 200
-    assert response.json()["message"] == "Flow deleted successfully"
+    assert response.status_code == 204
 
     # Verify flow is actually deleted
     db_manager = get_db_service()
@@ -2051,8 +2049,7 @@ async def test_delete_flow_global_admin_bypasses_permission_check(
     # Delete the flow
     response = await client.delete(f"api/v1/flows/{test_flow_1.id}", headers=headers)
 
-    assert response.status_code == 200
-    assert response.json()["message"] == "Flow deleted successfully"
+    assert response.status_code == 204
 
     # Verify flow is actually deleted
     async with db_manager.with_session() as session:
@@ -2118,8 +2115,7 @@ async def test_delete_flow_project_level_inheritance(
     # Delete the flow (permission inherited from Project-level)
     response = await client.delete(f"api/v1/flows/{test_flow_1.id}", headers=headers)
 
-    assert response.status_code == 200
-    assert response.json()["message"] == "Flow deleted successfully"
+    assert response.status_code == 204
 
     # Verify flow is actually deleted
     async with db_manager.with_session() as session:
@@ -2245,7 +2241,7 @@ async def test_delete_flow_cascades_role_assignments(
 
     # Delete the flow
     response = await client.delete(f"api/v1/flows/{test_flow_1.id}", headers=headers)
-    assert response.status_code == 200
+    assert response.status_code == 204
 
     # Verify flow and all associated role assignments are deleted
     async with db_manager.with_session() as session:
@@ -2326,8 +2322,7 @@ async def test_delete_flow_different_users_different_permissions(
     headers_owner = {"Authorization": f"Bearer {token}"}
 
     response = await client.delete(f"api/v1/flows/{test_flow_2.id}", headers=headers_owner)
-    assert response.status_code == 200
-    assert response.json()["message"] == "Flow deleted successfully"
+    assert response.status_code == 204
 
     # Verify flow 1 still exists, flow 2 is deleted
     async with db_manager.with_session() as session:
