@@ -17,7 +17,6 @@ from langbuilder.services.database.models.user.crud import get_user_by_id
 from langbuilder.services.database.models.user_role_assignment.crud import (
     get_user_role_assignment,
     get_user_role_assignment_by_id,
-    list_assignments_by_user,
 )
 from langbuilder.services.database.models.user_role_assignment.model import UserRoleAssignment
 from langbuilder.services.rbac.exceptions import (
@@ -312,19 +311,24 @@ class RBACService(Service):
         user_id: UUID | None,
         db: AsyncSession,
     ) -> list[UserRoleAssignment]:
-        """List all role assignments, optionally filtered by user.
+        """List all role assignments with role relationship loaded, optionally filtered by user.
 
         Args:
             user_id: Optional user ID to filter assignments
             db: Database session
 
         Returns:
-            list[UserRoleAssignment]: List of role assignments
+            list[UserRoleAssignment]: List of role assignments with role relationship loaded
         """
         if user_id:
-            return await list_assignments_by_user(db, user_id)
+            stmt = (
+                select(UserRoleAssignment)
+                .where(UserRoleAssignment.user_id == user_id)
+                .options(selectinload(UserRoleAssignment.role))
+            )
+        else:
+            stmt = select(UserRoleAssignment).options(selectinload(UserRoleAssignment.role))
 
-        stmt = select(UserRoleAssignment)
         result = await db.exec(stmt)
         return list(result.all())
 

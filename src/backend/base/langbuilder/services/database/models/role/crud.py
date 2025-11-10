@@ -45,6 +45,13 @@ async def list_roles(db: AsyncSession, skip: int = 0, limit: int = 100) -> list[
     return list(result.all())
 
 
+async def get_all_roles(db: AsyncSession) -> list[Role]:
+    """Get all roles without pagination."""
+    stmt = select(Role)
+    result = await db.exec(stmt)
+    return list(result.all())
+
+
 async def update_role(db: AsyncSession, role_id: UUID, role_update: RoleUpdate) -> Role:
     """Update a role."""
     db_role = await get_role_by_id(db, role_id)

@@ -36,7 +36,13 @@ class UserRoleAssignment(UserRoleAssignmentBase, table=True):  # type: ignore[ca
     )
 
 
-class UserRoleAssignmentCreate(UserRoleAssignmentBase):
+class UserRoleAssignmentCreate(SQLModel):
+    """Schema for creating a role assignment. Uses role_name instead of role_id for API convenience."""
+
+    user_id: UUID
+    role_name: str  # Role name instead of role_id for easier API usage
+    scope_type: str
+    scope_id: UUID | None = None
     created_by: UUID | None = None
 
 
@@ -46,10 +52,29 @@ class UserRoleAssignmentRead(UserRoleAssignmentBase):
     created_by: UUID | None
 
 
+class UserRoleAssignmentReadWithRole(SQLModel):
+    """UserRoleAssignment read schema with role relationship loaded."""
+
+    id: UUID
+    user_id: UUID
+    role_id: UUID
+    scope_type: str
+    scope_id: UUID | None
+    is_immutable: bool
+    created_at: datetime
+    created_by: UUID | None
+    role: "RoleRead"  # Include role details
+
+    class Config:
+        from_attributes = True
+
+
+# Import RoleRead for type checking
+if TYPE_CHECKING:
+    from langbuilder.services.database.models.role.model import RoleRead
+
+
 class UserRoleAssignmentUpdate(SQLModel):
-    user_id: UUID | None = None
-    role_id: UUID | None = None
-    scope_type: str | None = None
-    scope_id: UUID | None = None
-    is_immutable: bool | None = None
-    created_by: UUID | None = None
+    """Schema for updating a role assignment. Uses role_name for changing the role."""
+
+    role_name: str  # Only role can be updated via PATCH

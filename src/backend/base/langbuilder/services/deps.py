@@ -9,7 +9,9 @@ from langbuilder.services.schema import ServiceType
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
+    from typing import Annotated
 
+    from fastapi import Depends
     from sqlmodel.ext.asyncio.session import AsyncSession
 
     from langbuilder.services.cache.service import AsyncBaseCacheService, CacheService
@@ -259,3 +261,13 @@ def get_rbac_service() -> RBACService:
     from langbuilder.services.rbac.factory import RBACServiceFactory
 
     return get_service(ServiceType.RBAC_SERVICE, RBACServiceFactory())
+
+
+if TYPE_CHECKING:
+    RBACServiceDep = Annotated[RBACService, Depends(get_rbac_service)]
+else:
+    from typing import Annotated
+
+    from fastapi import Depends
+
+    RBACServiceDep = Annotated["RBACService", Depends(get_rbac_service)]
