@@ -476,6 +476,12 @@ async def update_flow(
     2. Superusers and Global Admins bypass permission checks
     3. Permission may be inherited from Project scope
 
+    Security Note:
+        Permission checks (403) are performed BEFORE flow existence checks (404)
+        to prevent information disclosure. Users without permission will receive
+        403 even for non-existent flows, preventing them from discovering which
+        flow IDs exist in the system.
+
     Args:
         session: Database session
         flow_id: UUID of the flow to update
@@ -487,8 +493,8 @@ async def update_flow(
         FlowRead: The updated flow
 
     Raises:
-        HTTPException: 404 if flow not found
         HTTPException: 403 if user lacks Update permission on the Flow
+        HTTPException: 404 if flow not found (only after permission check passes)
         HTTPException: 400 if unique constraint violated
         HTTPException: 500 for other errors
     """

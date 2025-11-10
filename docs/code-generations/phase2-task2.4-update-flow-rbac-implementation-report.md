@@ -162,6 +162,56 @@ test_update_flow_preserves_flow_data PASSED
 - Data preservation during updates
 - Multiple users with different permissions
 
+## PRD Alignment
+
+This implementation directly addresses the following PRD requirements:
+
+### FR-RBAC-005: Flow-Level CRUD Authorization
+**PRD Requirement:**
+> "Users must have Update permission to modify flows. Permission can be assigned at Flow or Project scope."
+
+**Implementation:**
+- ✅ Update Flow endpoint enforces Update permission via `rbac_service.can_access()`
+- ✅ Supports Flow-scoped permission assignments
+- ✅ Supports Project-scoped permission inheritance
+- ✅ Superuser and Global Admin bypass implemented
+
+**Test Coverage:** 10 comprehensive tests validating all permission scenarios
+
+### FR-RBAC-001: Role-Based Permission Model
+**PRD Requirement:**
+> "System shall support role-based permissions (Viewer, Editor, Owner, Admin) with specific capabilities per role."
+
+**Implementation:**
+- ✅ Viewer role: No Update permission (403 denial tested)
+- ✅ Editor role: Has Update permission (update success tested)
+- ✅ Owner role: Has Update permission (update success tested)
+- ✅ Admin role: Global scope bypass (update success tested)
+
+**Test Coverage:** Tests validate role-specific permissions
+
+### FR-RBAC-003: Permission Inheritance
+**PRD Requirement:**
+> "Flow-level permissions inherit from parent Project permissions."
+
+**Implementation:**
+- ✅ Project-level Update permission grants access to all flows in project
+- ✅ Flow-level assignments override Project-level assignments
+- ✅ RBACService `_get_user_role_for_scope()` handles inheritance logic
+
+**Test Coverage:** `test_update_flow_project_level_inheritance` validates inheritance
+
+### NFR-RBAC-001: Security
+**PRD Requirement:**
+> "Permission checks must prevent unauthorized access and information disclosure."
+
+**Implementation:**
+- ✅ Permission check (403) performed BEFORE flow existence check (404)
+- ✅ Prevents flow ID enumeration attacks
+- ✅ Clear security documentation in docstring
+
+**Test Coverage:** `test_update_flow_nonexistent_flow` validates security behavior
+
 ## Success Criteria Validation
 
 ### From Implementation Plan
