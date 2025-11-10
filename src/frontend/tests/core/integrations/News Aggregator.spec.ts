@@ -55,7 +55,9 @@ withEventDeliveryModes(
       timeout: 3000,
     });
 
-    await page.getByTestId("input-chat-playground").fill("what is langbuilder?");
+    await page
+      .getByTestId("input-chat-playground")
+      .fill("what is langbuilder?");
 
     await page.getByTestId("button-send").click();
 

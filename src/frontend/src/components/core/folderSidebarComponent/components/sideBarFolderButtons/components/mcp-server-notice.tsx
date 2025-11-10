@@ -22,7 +22,11 @@ export const MCPServerNotice: FC<{
           <div className="font-mono text-sm text-muted-foreground">New</div>
           <div className="">Projects as MCP Servers</div>
         </div>
-        <img src={MCPLangbuilder} alt="MCP Notice Modal" className="rounded-xl" />
+        <img
+          src={MCPLangbuilder}
+          alt="MCP Notice Modal"
+          className="rounded-xl"
+        />
         <p className="text-sm text-secondary-foreground">
           Expose flows as tools from clients like Cursor or Claude.
         </p>

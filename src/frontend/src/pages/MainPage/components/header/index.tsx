@@ -101,10 +101,7 @@ const HeaderComponent = ({
         <div className="h-7 w-10 transition-all group-data-[open=true]/sidebar-wrapper:md:w-0 lg:hidden">
           <div className="relative left-0 opacity-100 transition-all group-data-[open=true]/sidebar-wrapper:md:opacity-0">
             <SidebarTrigger>
-              <LangbuilderLogo
-                aria-hidden="true"
-                className="h-4 w-4"
-              />
+              <LangbuilderLogo aria-hidden="true" className="h-4 w-4" />
             </SidebarTrigger>
           </div>
         </div>

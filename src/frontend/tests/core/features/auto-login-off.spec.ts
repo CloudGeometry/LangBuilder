@@ -38,7 +38,9 @@ test(
 
     await page.goto("/");
 
-    await page.waitForSelector("text=sign in to langbuilder", { timeout: 30000 });
+    await page.waitForSelector("text=sign in to langbuilder", {
+      timeout: 30000,
+    });
 
     await page.getByPlaceholder("Username").fill("langbuilder");
     await page.getByPlaceholder("Password").fill("langbuilder");
@@ -181,7 +183,9 @@ test(
 
     await page.getByText("Logout", { exact: true }).click();
 
-    await page.waitForSelector("text=sign in to langbuilder", { timeout: 30000 });
+    await page.waitForSelector("text=sign in to langbuilder", {
+      timeout: 30000,
+    });
 
     await page.getByPlaceholder("Username").fill(secondRandomName);
     await page.getByPlaceholder("Password").fill(randomPassword);
@@ -253,7 +257,9 @@ test(
 
     await page.getByText("Logout", { exact: true }).click();
 
-    await page.waitForSelector("text=sign in to langbuilder", { timeout: 30000 });
+    await page.waitForSelector("text=sign in to langbuilder", {
+      timeout: 30000,
+    });
 
     await page.getByPlaceholder("Username").fill("langbuilder");
     await page.getByPlaceholder("Password").fill("langbuilder");

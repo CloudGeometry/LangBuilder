@@ -44,7 +44,9 @@ export default function CrashErrorComponent({
 
             <CardFooter>
               <div className="m-auto mt-4 flex justify-center">
-                <Button onClick={resetErrorBoundary}>Restart Langbuilder</Button>
+                <Button onClick={resetErrorBoundary}>
+                  Restart Langbuilder
+                </Button>
 
                 <a
                   href="https://github.com/cloudgeometry/langbuilder/issues/new"
