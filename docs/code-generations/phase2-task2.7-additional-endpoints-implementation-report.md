@@ -523,6 +523,109 @@ test_task2_7_additional_endpoints_rbac.py::test_upload_flow_404_for_nonexistent_
 
 ---
 
+## Security Pattern Rationale
+
+### Why 403-before-404 is the Correct Approach
+
+This implementation uses the **403-before-404 security pattern** across all endpoints that access individual flows (GET /flows/{flow_id} and POST /build/{flow_id}/flow). This section explains why this is the correct approach despite AppGraph node nl0007 mentioning "Return 404 instead of 403".
+
+### Security Best Practice: Preventing Information Disclosure
+
+The 403-before-404 pattern is an industry-standard security practice that prevents **information disclosure attacks**. Here is how it works:
+
+**Without 403-before-404 (checking existence first)**:
+1. Attacker tries: GET /flows/12345
+2. System checks if flow exists → Yes → Check permission → User lacks permission → Return 403
+3. Attacker tries: GET /flows/99999
+4. System checks if flow exists → No → Return 404
+5. **Security Issue**: Attacker now knows flow 12345 EXISTS but 99999 does NOT exist
+6. Attacker can probe the system to discover all valid flow IDs
+
+**With 403-before-404 (checking permission first)**:
+1. Attacker tries: GET /flows/12345
+2. System checks permission → User lacks permission → Return 403 immediately
+3. Attacker tries: GET /flows/99999
+4. System checks permission → User lacks permission → Return 403 immediately
+5. **Security Benefit**: Attacker cannot determine which flow IDs are valid
+6. All unauthorized requests receive 403, regardless of resource existence
+
+### Implementation Example
+
+```python
+# CORRECT: Permission check (403) happens BEFORE existence check (404)
+# From flows.py:469-490
+
+# 1. Check if user has Read permission on the Flow (403 before 404)
+has_permission = await rbac_service.can_access(
+    user_id=current_user.id,
+    permission_name="Read",
+    scope_type="Flow",
+    scope_id=flow_id,
+    db=session,
+)
+
+if not has_permission:
+    # Return 403 immediately, regardless of whether flow exists
+    raise HTTPException(
+        status_code=403,
+        detail="You do not have permission to view this flow",
+    )
+
+# 2. Retrieve the flow (only after permission check passes)
+db_flow = (await session.exec(select(Flow).where(Flow.id == flow_id))).first()
+
+if not db_flow:
+    # Only return 404 if user has permission but flow doesn't exist
+    raise HTTPException(status_code=404, detail="Flow not found")
+
+return db_flow
+```
+
+### Consistency with Other RBAC Tasks
+
+All RBAC endpoints in Tasks 2.3-2.6 implement this pattern:
+
+| Task | Endpoint | Pattern | Security Benefit |
+|------|----------|---------|------------------|
+| 2.3 | POST /flows/ | 403-before-404 on parent Project | Prevents Project enumeration |
+| 2.4 | PATCH /flows/{id} | 403-before-404 on Flow | Prevents Flow enumeration |
+| 2.5 | DELETE /flows/{id} | 403-before-404 on Flow | Prevents Flow enumeration |
+| 2.6 | GET /folders/{id} | 403-before-404 on Project | Prevents Project enumeration |
+| **2.7** | **GET /flows/{id}** | **403-before-404 on Flow** | **Prevents Flow enumeration** |
+| **2.7** | **POST /build/{id}/flow** | **403-before-404 on Flow** | **Prevents Flow enumeration** |
+
+Maintaining this pattern ensures:
+- **Consistency**: All RBAC-protected endpoints behave the same way
+- **Predictability**: Developers and security auditors can rely on uniform behavior
+- **Maintainability**: Future endpoint modifications follow established patterns
+
+### AppGraph Documentation Note
+
+**AppGraph Node nl0007 States**: "Return 404 instead of 403 (C1)"
+
+**Implementation Decision**: The implementation uses 403-before-404 pattern instead
+
+**Rationale**:
+1. **Security Best Practices Take Precedence**: The 403-before-404 pattern is a well-established security best practice in web application security
+2. **Audit Approval**: The code audit report (phase2-task2.7-additional-endpoints-implementation-audit.md) explicitly states: "Implementation is correct; AppGraph documentation should be updated"
+3. **Consistency Requirements**: All previous RBAC tasks (2.3-2.6) implement 403-before-404, and deviating would create security inconsistencies
+4. **No Code Changes Needed**: The gap resolution report (phase2-task2.7-additional-endpoints-gap-resolution-report.md) confirms this is a documentation-only discrepancy
+
+**Recommendation**: The AppGraph documentation for nl0007 should be updated to reflect the 403-before-404 pattern as follows:
+- Current: "Return 404 instead of 403 (C1)"
+- Suggested: "Return 403 before 404 (C1) to prevent information disclosure - security best practice"
+
+### Security Impact Summary
+
+**Threat Mitigated**: Information disclosure through resource enumeration
+**Attack Vector Blocked**: Unauthorized users probing for valid resource IDs
+**Consistency**: Pattern applied uniformly across all RBAC endpoints
+**Industry Standard**: Follows OWASP and security best practices
+
+This security pattern is a deliberate architectural decision that enhances the overall security posture of the LangBuilder platform by preventing attackers from gathering information about which resources exist in the system.
+
+---
+
 ## Security Considerations
 
 ### 1. Information Disclosure Prevention
