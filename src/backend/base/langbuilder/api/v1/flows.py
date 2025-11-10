@@ -575,17 +575,60 @@ async def delete_flow(
     session: DbSession,
     flow_id: UUID,
     current_user: CurrentActiveUser,
+    rbac_service: Annotated[RBACService, Depends(get_rbac_service)],
 ):
-    """Delete a flow."""
-    flow = await _read_flow(
-        session=session,
-        flow_id=flow_id,
+    """Delete a flow with RBAC permission enforcement.
+
+    This endpoint enforces Delete permission on the Flow:
+    1. User must have Delete permission on the specific Flow
+    2. Superusers and Global Admins bypass permission checks
+    3. Permission may be inherited from Project scope
+
+    Security Note:
+        Permission checks (403) are performed BEFORE flow existence checks (404)
+        to prevent information disclosure. Users without permission will receive
+        403 even for non-existent flows, preventing them from discovering which
+        flow IDs exist in the system.
+
+    Args:
+        session: Database session
+        flow_id: UUID of the flow to delete
+        current_user: The current authenticated user
+        rbac_service: RBAC service for permission checks
+
+    Returns:
+        dict: Success message
+
+    Raises:
+        HTTPException: 403 if user lacks Delete permission on the Flow
+        HTTPException: 404 if flow not found (only after permission check passes)
+        HTTPException: 500 for other errors
+    """
+    # 1. Check if user has Delete permission on the Flow
+    has_permission = await rbac_service.can_access(
         user_id=current_user.id,
+        permission_name="Delete",
+        scope_type="Flow",
+        scope_id=flow_id,
+        db=session,
     )
+
+    if not has_permission:
+        raise HTTPException(
+            status_code=403,
+            detail="You do not have permission to delete this flow",
+        )
+
+    # 2. Retrieve the flow (no longer filtering by user_id)
+    flow = (await session.exec(select(Flow).where(Flow.id == flow_id))).first()
+
     if not flow:
         raise HTTPException(status_code=404, detail="Flow not found")
+
+    # 3. Delete the flow
     await cascade_delete_flow(session, flow.id)
     await session.commit()
+
     return {"message": "Flow deleted successfully"}
 
 

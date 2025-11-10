@@ -18,6 +18,7 @@ from langbuilder.services.database.models.flow.model import Flow
 from langbuilder.services.database.models.message.model import MessageTable
 from langbuilder.services.database.models.transactions.model import TransactionTable
 from langbuilder.services.database.models.user.model import User
+from langbuilder.services.database.models.user_role_assignment.model import UserRoleAssignment
 from langbuilder.services.database.models.vertex_builds.model import VertexBuildTable
 from langbuilder.services.deps import get_session, session_scope
 from langbuilder.services.store.utils import get_lf_version_from_pypi
@@ -306,6 +307,12 @@ async def cascade_delete_flow(session: AsyncSession, flow_id: uuid.UUID) -> None
         await session.exec(delete(MessageTable).where(MessageTable.flow_id == flow_id))
         await session.exec(delete(TransactionTable).where(TransactionTable.flow_id == flow_id))
         await session.exec(delete(VertexBuildTable).where(VertexBuildTable.flow_id == flow_id))
+        # Delete RBAC role assignments for this flow
+        await session.exec(
+            delete(UserRoleAssignment).where(
+                UserRoleAssignment.scope_type == "Flow", UserRoleAssignment.scope_id == flow_id
+            )
+        )
         await session.exec(delete(Flow).where(Flow.id == flow_id))
     except Exception as e:
         msg = f"Unable to cascade delete flow: {flow_id}"

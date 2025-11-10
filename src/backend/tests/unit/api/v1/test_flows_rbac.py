@@ -1800,3 +1800,596 @@ async def test_update_flow_preserves_flow_data(
     # Other fields should remain unchanged
     assert updated_flow["data"] == original_flow["data"]
     assert updated_flow["folder_id"] == original_flow["folder_id"]
+
+
+# Test cases for Delete Flow endpoint RBAC (Task 2.5)
+
+
+@pytest.fixture
+async def setup_owner_role_delete_permission(
+    client,  # noqa: ARG001
+    owner_role,
+    flow_delete_permission,
+):
+    """Set up Owner role with Delete permission for Flow scope."""
+    db_manager = get_db_service()
+    async with db_manager.with_session() as session:
+        stmt = select(RolePermission).where(
+            RolePermission.role_id == owner_role.id,
+            RolePermission.permission_id == flow_delete_permission.id,
+        )
+        if not (await session.exec(stmt)).first():
+            role_perm = RolePermission(
+                role_id=owner_role.id,
+                permission_id=flow_delete_permission.id,
+            )
+            session.add(role_perm)
+            await session.commit()
+        return owner_role
+
+
+@pytest.fixture
+async def setup_admin_role_delete_permission(
+    client,  # noqa: ARG001
+    admin_role,
+    flow_delete_permission,
+):
+    """Set up Admin role with Delete permission for Flow scope."""
+    db_manager = get_db_service()
+    async with db_manager.with_session() as session:
+        stmt = select(RolePermission).where(
+            RolePermission.role_id == admin_role.id,
+            RolePermission.permission_id == flow_delete_permission.id,
+        )
+        if not (await session.exec(stmt)).first():
+            role_perm = RolePermission(
+                role_id=admin_role.id,
+                permission_id=flow_delete_permission.id,
+            )
+            session.add(role_perm)
+            await session.commit()
+        return admin_role
+
+
+@pytest.mark.asyncio
+async def test_delete_flow_with_delete_permission_owner(
+    client: AsyncClient,
+    viewer_user,
+    owner_role,
+    setup_owner_role_permissions,  # noqa: ARG001
+    setup_owner_role_delete_permission,  # noqa: ARG001
+    test_flow_1,
+):
+    """Test that users with Owner role (Delete permission) can delete flows."""
+    # Assign Owner role to user for flow 1
+    db_manager = get_db_service()
+    async with db_manager.with_session() as session:
+        assignment_data = UserRoleAssignmentCreate(
+            user_id=viewer_user.id,
+            role_id=owner_role.id,
+            scope_type="Flow",
+            scope_id=test_flow_1.id,
+            created_by=viewer_user.id,
+        )
+        await create_user_role_assignment(session, assignment_data)
+
+    # Login as viewer (who has Owner role on this flow)
+    response = await client.post(
+        "api/v1/login",
+        data={"username": "viewer_user", "password": "password"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Delete the flow
+    response = await client.delete(f"api/v1/flows/{test_flow_1.id}", headers=headers)
+
+    assert response.status_code == 200
+    assert response.json()["message"] == "Flow deleted successfully"
+
+    # Verify flow is actually deleted
+    async with db_manager.with_session() as session:
+        stmt = select(Flow).where(Flow.id == test_flow_1.id)
+        result = await session.exec(stmt)
+        deleted_flow = result.first()
+        assert deleted_flow is None, "Flow should be deleted from database"
+
+
+@pytest.mark.asyncio
+async def test_delete_flow_without_delete_permission_viewer(
+    client: AsyncClient,
+    viewer_user,
+    viewer_role,
+    setup_viewer_role_permissions,  # noqa: ARG001
+    test_flow_1,
+):
+    """Test that users with Viewer role (no Delete permission) cannot delete flows."""
+    # Assign Viewer role (no Delete permission) to user for flow 1
+    db_manager = get_db_service()
+    async with db_manager.with_session() as session:
+        assignment_data = UserRoleAssignmentCreate(
+            user_id=viewer_user.id,
+            role_id=viewer_role.id,
+            scope_type="Flow",
+            scope_id=test_flow_1.id,
+            created_by=viewer_user.id,
+        )
+        await create_user_role_assignment(session, assignment_data)
+
+    # Login as viewer
+    response = await client.post(
+        "api/v1/login",
+        data={"username": "viewer_user", "password": "password"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Attempt to delete the flow
+    response = await client.delete(f"api/v1/flows/{test_flow_1.id}", headers=headers)
+
+    # Should receive 403 Forbidden
+    assert response.status_code == 403
+    assert "permission" in response.json()["detail"].lower()
+
+    # Verify flow still exists
+    async with db_manager.with_session() as session:
+        stmt = select(Flow).where(Flow.id == test_flow_1.id)
+        result = await session.exec(stmt)
+        flow = result.first()
+        assert flow is not None, "Flow should still exist in database"
+
+
+@pytest.mark.asyncio
+async def test_delete_flow_without_delete_permission_editor(
+    client: AsyncClient,
+    editor_user,
+    editor_role,
+    setup_editor_role_permissions,  # noqa: ARG001
+    test_flow_3,
+):
+    """Test that users with Editor role (no Delete permission) cannot delete flows."""
+    # Assign Editor role (has Read and Update, but no Delete) to user for flow 3
+    db_manager = get_db_service()
+    async with db_manager.with_session() as session:
+        assignment_data = UserRoleAssignmentCreate(
+            user_id=editor_user.id,
+            role_id=editor_role.id,
+            scope_type="Flow",
+            scope_id=test_flow_3.id,
+            created_by=editor_user.id,
+        )
+        await create_user_role_assignment(session, assignment_data)
+
+    # Login as editor
+    response = await client.post(
+        "api/v1/login",
+        data={"username": "editor_user", "password": "password"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Attempt to delete the flow
+    response = await client.delete(f"api/v1/flows/{test_flow_3.id}", headers=headers)
+
+    # Should receive 403 Forbidden
+    assert response.status_code == 403
+    assert "permission" in response.json()["detail"].lower()
+
+    # Verify flow still exists
+    async with db_manager.with_session() as session:
+        stmt = select(Flow).where(Flow.id == test_flow_3.id)
+        result = await session.exec(stmt)
+        flow = result.first()
+        assert flow is not None, "Flow should still exist in database"
+
+
+@pytest.mark.asyncio
+async def test_delete_flow_superuser_bypasses_permission_check(
+    client: AsyncClient,
+    superuser,  # noqa: ARG001
+    test_flow_1,
+):
+    """Test that superusers can delete flows without explicit permission assignments."""
+    # Login as superuser (no role assignments needed)
+    response = await client.post(
+        "api/v1/login",
+        data={"username": "superuser", "password": "password"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Delete the flow
+    response = await client.delete(f"api/v1/flows/{test_flow_1.id}", headers=headers)
+
+    assert response.status_code == 200
+    assert response.json()["message"] == "Flow deleted successfully"
+
+    # Verify flow is actually deleted
+    db_manager = get_db_service()
+    async with db_manager.with_session() as session:
+        stmt = select(Flow).where(Flow.id == test_flow_1.id)
+        result = await session.exec(stmt)
+        deleted_flow = result.first()
+        assert deleted_flow is None, "Flow should be deleted from database"
+
+
+@pytest.mark.asyncio
+async def test_delete_flow_global_admin_bypasses_permission_check(
+    client: AsyncClient,
+    admin_user,
+    admin_role,
+    setup_admin_role_permissions,  # noqa: ARG001
+    setup_admin_role_delete_permission,  # noqa: ARG001
+    test_flow_1,
+):
+    """Test that Global Admin users can delete any flow."""
+    # Assign Global Admin role
+    db_manager = get_db_service()
+    async with db_manager.with_session() as session:
+        assignment_data = UserRoleAssignmentCreate(
+            user_id=admin_user.id,
+            role_id=admin_role.id,
+            scope_type="Global",
+            scope_id=None,
+            created_by=admin_user.id,
+        )
+        await create_user_role_assignment(session, assignment_data)
+
+    # Login as admin
+    response = await client.post(
+        "api/v1/login",
+        data={"username": "admin_user", "password": "password"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Delete the flow
+    response = await client.delete(f"api/v1/flows/{test_flow_1.id}", headers=headers)
+
+    assert response.status_code == 200
+    assert response.json()["message"] == "Flow deleted successfully"
+
+    # Verify flow is actually deleted
+    async with db_manager.with_session() as session:
+        stmt = select(Flow).where(Flow.id == test_flow_1.id)
+        result = await session.exec(stmt)
+        deleted_flow = result.first()
+        assert deleted_flow is None, "Flow should be deleted from database"
+
+
+@pytest.mark.asyncio
+async def test_delete_flow_project_level_inheritance(
+    client: AsyncClient,
+    viewer_user,
+    owner_role,
+    setup_owner_role_permissions,  # noqa: ARG001
+    setup_owner_role_delete_permission,  # noqa: ARG001
+    test_folder,
+    test_flow_1,
+):
+    """Test that Project-level Delete permission grants access to delete flows in the project."""
+    # Add Delete permission for Project scope to owner_role
+    db_manager = get_db_service()
+    async with db_manager.with_session() as session:
+        # Get or create Project Delete permission
+        stmt = select(Permission).where(Permission.name == "Delete", Permission.scope == "Project")
+        project_delete_perm = (await session.exec(stmt)).first()
+        if not project_delete_perm:
+            perm_data = PermissionCreate(name="Delete", scope="Project", description="Delete project flows")
+            project_delete_perm = await create_permission(session, perm_data)
+
+        # Check if association already exists
+        stmt = select(RolePermission).where(
+            RolePermission.role_id == owner_role.id,
+            RolePermission.permission_id == project_delete_perm.id,
+        )
+        if not (await session.exec(stmt)).first():
+            role_perm_project = RolePermission(
+                role_id=owner_role.id,
+                permission_id=project_delete_perm.id,
+            )
+            session.add(role_perm_project)
+            await session.commit()
+
+        # Assign Owner role to project (not individual flow)
+        assignment_data = UserRoleAssignmentCreate(
+            user_id=viewer_user.id,
+            role_id=owner_role.id,
+            scope_type="Project",
+            scope_id=test_folder.id,
+            created_by=viewer_user.id,
+        )
+        await create_user_role_assignment(session, assignment_data)
+
+    # Login as viewer
+    response = await client.post(
+        "api/v1/login",
+        data={"username": "viewer_user", "password": "password"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Delete the flow (permission inherited from Project-level)
+    response = await client.delete(f"api/v1/flows/{test_flow_1.id}", headers=headers)
+
+    assert response.status_code == 200
+    assert response.json()["message"] == "Flow deleted successfully"
+
+    # Verify flow is actually deleted
+    async with db_manager.with_session() as session:
+        stmt = select(Flow).where(Flow.id == test_flow_1.id)
+        result = await session.exec(stmt)
+        deleted_flow = result.first()
+        assert deleted_flow is None, "Flow should be deleted from database"
+
+
+@pytest.mark.asyncio
+async def test_delete_flow_without_any_permission(
+    client: AsyncClient,
+    viewer_user,  # noqa: ARG001
+    test_flow_1,
+):
+    """Test that users without any permissions cannot delete flows."""
+    # Login as viewer (no role assignments)
+    response = await client.post(
+        "api/v1/login",
+        data={"username": "viewer_user", "password": "password"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Attempt to delete the flow
+    response = await client.delete(f"api/v1/flows/{test_flow_1.id}", headers=headers)
+
+    # Should receive 403 Forbidden
+    assert response.status_code == 403
+    assert "permission" in response.json()["detail"].lower()
+
+    # Verify flow still exists
+    db_manager = get_db_service()
+    async with db_manager.with_session() as session:
+        stmt = select(Flow).where(Flow.id == test_flow_1.id)
+        result = await session.exec(stmt)
+        flow = result.first()
+        assert flow is not None, "Flow should still exist in database"
+
+
+@pytest.mark.asyncio
+async def test_delete_flow_nonexistent_flow(
+    client: AsyncClient,
+    viewer_user,  # noqa: ARG001
+):
+    """Test that deleting a non-existent flow returns 403 (permission check happens first)."""
+    # Login as viewer
+    response = await client.post(
+        "api/v1/login",
+        data={"username": "viewer_user", "password": "password"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Attempt to delete non-existent flow
+    import uuid
+
+    fake_flow_id = str(uuid.uuid4())
+    response = await client.delete(f"api/v1/flows/{fake_flow_id}", headers=headers)
+
+    # Should receive 403 (permission check happens first, user has no permission on non-existent flow)
+    # This prevents users from discovering which flow IDs exist
+    assert response.status_code == 403
+    assert "permission" in response.json()["detail"].lower()
+
+
+@pytest.mark.asyncio
+async def test_delete_flow_cascades_role_assignments(
+    client: AsyncClient,
+    viewer_user,
+    editor_user,
+    owner_role,
+    editor_role,
+    setup_owner_role_permissions,  # noqa: ARG001
+    setup_owner_role_delete_permission,  # noqa: ARG001
+    setup_editor_role_permissions,  # noqa: ARG001
+    test_flow_1,
+):
+    """Test that deleting a flow cascades to delete related UserRoleAssignments."""
+    # Assign Owner role to viewer_user for flow 1
+    # Assign Editor role to editor_user for flow 1
+    db_manager = get_db_service()
+    async with db_manager.with_session() as session:
+        assignment_data_owner = UserRoleAssignmentCreate(
+            user_id=viewer_user.id,
+            role_id=owner_role.id,
+            scope_type="Flow",
+            scope_id=test_flow_1.id,
+            created_by=viewer_user.id,
+        )
+        await create_user_role_assignment(session, assignment_data_owner)
+
+        assignment_data_editor = UserRoleAssignmentCreate(
+            user_id=editor_user.id,
+            role_id=editor_role.id,
+            scope_type="Flow",
+            scope_id=test_flow_1.id,
+            created_by=viewer_user.id,
+        )
+        await create_user_role_assignment(session, assignment_data_editor)
+
+    # Verify assignments exist before deletion
+    async with db_manager.with_session() as session:
+        from langbuilder.services.database.models.user_role_assignment.model import UserRoleAssignment
+
+        stmt = select(UserRoleAssignment).where(
+            UserRoleAssignment.scope_type == "Flow",
+            UserRoleAssignment.scope_id == test_flow_1.id,
+        )
+        assignments = (await session.exec(stmt)).all()
+        assert len(assignments) == 2, "Should have 2 role assignments before deletion"
+
+    # Login as viewer (who has Owner role with Delete permission)
+    response = await client.post(
+        "api/v1/login",
+        data={"username": "viewer_user", "password": "password"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Delete the flow
+    response = await client.delete(f"api/v1/flows/{test_flow_1.id}", headers=headers)
+    assert response.status_code == 200
+
+    # Verify flow and all associated role assignments are deleted
+    async with db_manager.with_session() as session:
+        # Check flow is deleted
+        stmt_flow = select(Flow).where(Flow.id == test_flow_1.id)
+        result_flow = await session.exec(stmt_flow)
+        deleted_flow = result_flow.first()
+        assert deleted_flow is None, "Flow should be deleted from database"
+
+        # Check role assignments are cascaded and deleted
+        from langbuilder.services.database.models.user_role_assignment.model import UserRoleAssignment
+
+        stmt_assignments = select(UserRoleAssignment).where(
+            UserRoleAssignment.scope_type == "Flow",
+            UserRoleAssignment.scope_id == test_flow_1.id,
+        )
+        assignments = (await session.exec(stmt_assignments)).all()
+        assert len(assignments) == 0, "All role assignments for the flow should be deleted (cascaded)"
+
+
+@pytest.mark.asyncio
+async def test_delete_flow_different_users_different_permissions(
+    client: AsyncClient,
+    viewer_user,
+    editor_user,
+    viewer_role,
+    owner_role,
+    setup_viewer_role_permissions,  # noqa: ARG001
+    setup_owner_role_permissions,  # noqa: ARG001
+    setup_owner_role_delete_permission,  # noqa: ARG001
+    test_flow_1,
+    test_flow_2,
+):
+    """Test that different users have different delete permissions based on their roles."""
+    # Assign roles to users for different flows
+    db_manager = get_db_service()
+    async with db_manager.with_session() as session:
+        # Assign Viewer role (no Delete) to viewer_user for flow 1
+        assignment_data_viewer = UserRoleAssignmentCreate(
+            user_id=viewer_user.id,
+            role_id=viewer_role.id,
+            scope_type="Flow",
+            scope_id=test_flow_1.id,
+            created_by=viewer_user.id,
+        )
+        await create_user_role_assignment(session, assignment_data_viewer)
+
+        # Assign Owner role (has Delete) to editor_user for flow 2
+        assignment_data_owner = UserRoleAssignmentCreate(
+            user_id=editor_user.id,
+            role_id=owner_role.id,
+            scope_type="Flow",
+            scope_id=test_flow_2.id,
+            created_by=editor_user.id,
+        )
+        await create_user_role_assignment(session, assignment_data_owner)
+
+    # Test viewer_user cannot delete flow 1
+    response = await client.post(
+        "api/v1/login",
+        data={"username": "viewer_user", "password": "password"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+    headers_viewer = {"Authorization": f"Bearer {token}"}
+
+    response = await client.delete(f"api/v1/flows/{test_flow_1.id}", headers=headers_viewer)
+    assert response.status_code == 403
+    assert "permission" in response.json()["detail"].lower()
+
+    # Test editor_user can delete flow 2
+    response = await client.post(
+        "api/v1/login",
+        data={"username": "editor_user", "password": "password"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+    headers_owner = {"Authorization": f"Bearer {token}"}
+
+    response = await client.delete(f"api/v1/flows/{test_flow_2.id}", headers=headers_owner)
+    assert response.status_code == 200
+    assert response.json()["message"] == "Flow deleted successfully"
+
+    # Verify flow 1 still exists, flow 2 is deleted
+    async with db_manager.with_session() as session:
+        stmt_flow1 = select(Flow).where(Flow.id == test_flow_1.id)
+        result_flow1 = await session.exec(stmt_flow1)
+        flow1 = result_flow1.first()
+        assert flow1 is not None, "Flow 1 should still exist"
+
+        stmt_flow2 = select(Flow).where(Flow.id == test_flow_2.id)
+        result_flow2 = await session.exec(stmt_flow2)
+        flow2 = result_flow2.first()
+        assert flow2 is None, "Flow 2 should be deleted"
+
+
+@pytest.mark.asyncio
+async def test_delete_flow_permission_check_before_existence_check(
+    client: AsyncClient,
+    viewer_user,
+    owner_role,
+    setup_owner_role_permissions,  # noqa: ARG001
+    setup_owner_role_delete_permission,  # noqa: ARG001
+    test_flow_1,
+):
+    """Test that permission check occurs before flow existence check (security best practice)."""
+    # This test verifies that even for flows that exist, users without permission get 403
+    # AND for flows that don't exist, users without permission also get 403 (not 404)
+    # This prevents information disclosure about which flow IDs exist
+
+    # Login as viewer (no role assignments, no permissions)
+    response = await client.post(
+        "api/v1/login",
+        data={"username": "viewer_user", "password": "password"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Try to delete existing flow (should get 403, not 404)
+    response = await client.delete(f"api/v1/flows/{test_flow_1.id}", headers=headers)
+    assert response.status_code == 403
+    assert "permission" in response.json()["detail"].lower()
+
+    # Try to delete non-existent flow (should also get 403, not 404)
+    import uuid
+
+    fake_flow_id = str(uuid.uuid4())
+    response = await client.delete(f"api/v1/flows/{fake_flow_id}", headers=headers)
+    assert response.status_code == 403
+    assert "permission" in response.json()["detail"].lower()
+
+    # Now give user Owner role for test_flow_1 and verify they get 404 for non-existent flow
+    db_manager = get_db_service()
+    async with db_manager.with_session() as session:
+        assignment_data = UserRoleAssignmentCreate(
+            user_id=viewer_user.id,
+            role_id=owner_role.id,
+            scope_type="Flow",
+            scope_id=test_flow_1.id,
+            created_by=viewer_user.id,
+        )
+        await create_user_role_assignment(session, assignment_data)
+
+    # Try to delete non-existent flow again (now should get 403 because no permission on non-existent flow)
+    response = await client.delete(f"api/v1/flows/{fake_flow_id}", headers=headers)
+    assert response.status_code == 403  # Still 403 because user has no role on the fake flow
