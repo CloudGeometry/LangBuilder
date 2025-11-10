@@ -12,9 +12,10 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import StreamingResponse
 from fastapi_pagination import Params
 from fastapi_pagination.ext.sqlmodel import apaginate
-from sqlalchemy import or_, update
+from sqlalchemy import update
 from sqlalchemy.orm import selectinload
 from sqlmodel import select
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 from langbuilder.api.utils import CurrentActiveUser, DbSession, cascade_delete_flow, custom_params, remove_api_keys
 from langbuilder.api.v1.flows import create_flows
@@ -22,6 +23,7 @@ from langbuilder.api.v1.schemas import FlowListCreate
 from langbuilder.helpers.flow import generate_unique_flow_name
 from langbuilder.helpers.folders import generate_unique_folder_name
 from langbuilder.initial_setup.constants import STARTER_FOLDER_NAME
+from langbuilder.logging import logger
 from langbuilder.services.database.models.flow.model import Flow, FlowCreate, FlowRead
 from langbuilder.services.database.models.folder.constants import DEFAULT_FOLDER_NAME
 from langbuilder.services.database.models.folder.model import (
@@ -32,8 +34,56 @@ from langbuilder.services.database.models.folder.model import (
     FolderUpdate,
 )
 from langbuilder.services.database.models.folder.pagination_model import FolderWithPaginatedFlows
+from langbuilder.services.deps import get_rbac_service
+from langbuilder.services.rbac.service import RBACService
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
+
+
+async def _filter_projects_by_read_permission(
+    projects: list[Folder],
+    user_id: UUID,
+    rbac_service: RBACService,
+    session: AsyncSession,
+) -> list[Folder]:
+    """Filter projects to return only those the user has Read permission for.
+
+    This function implements fine-grained RBAC filtering:
+    1. Superusers and Global Admins bypass all checks (return all projects)
+    2. For each project, check if user has Read permission at Project scope
+
+    Args:
+        projects: List of projects to filter
+        user_id: The user's ID
+        rbac_service: RBAC service for permission checks
+        session: Database session
+
+    Returns:
+        List of projects the user has Read permission for
+    """
+    # Check if user is superuser or Global Admin (bypass filtering)
+    from langbuilder.services.database.models.user.crud import get_user_by_id
+
+    user = await get_user_by_id(session, user_id)
+    if user and user.is_superuser:
+        return projects
+
+    if await rbac_service._has_global_admin_role(user_id, session):
+        return projects
+
+    # Filter projects by Read permission
+    accessible_projects = []
+    for project in projects:
+        if await rbac_service.can_access(
+            user_id=user_id,
+            permission_name="Read",
+            scope_type="Project",
+            scope_id=project.id,
+            db=session,
+        ):
+            accessible_projects.append(project)  # noqa: PERF401
+
+    return accessible_projects
 
 
 @router.post("/", response_model=FolderRead, status_code=201)
@@ -42,7 +92,28 @@ async def create_project(
     session: DbSession,
     project: FolderCreate,
     current_user: CurrentActiveUser,
+    rbac_service: Annotated[RBACService, Depends(get_rbac_service)],
 ):
+    """Create a new project with RBAC permission enforcement.
+
+    This endpoint allows all authenticated users to create projects (Global permission per Story 1.5):
+    1. User creates the project
+    2. User is automatically assigned Owner role on the new Project
+    3. Owner role assignment is mutable for new projects (unlike Starter Projects)
+
+    Args:
+        session: Database session
+        project: Project creation data
+        current_user: The current authenticated user
+        rbac_service: RBAC service for permission checks
+
+    Returns:
+        FolderRead: The created project
+
+    Raises:
+        HTTPException: 400 if unique constraint violated
+        HTTPException: 500 for other errors (including role assignment failures)
+    """
     try:
         new_project = Folder.model_validate(project, from_attributes=True)
         new_project.user_id = current_user.id
@@ -71,6 +142,29 @@ async def create_project(
                     new_project.name = f"{new_project.name} (1)"
 
         session.add(new_project)
+
+        # Assign Owner role to creating user for this Project (before commit for atomicity)
+        # Note: Starter Projects have immutable Owner assignments, but new projects do not
+        try:
+            await rbac_service.assign_role(
+                user_id=current_user.id,
+                role_name="Owner",
+                scope_type="Project",
+                scope_id=new_project.id,
+                created_by=current_user.id,
+                db=session,
+                is_immutable=False,  # New projects have mutable Owner assignments
+            )
+        except Exception as role_error:
+            # Log the specific error for debugging
+            logger.error(f"Failed to assign Owner role for new project: {role_error}")
+            # Re-raise to trigger rollback
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to assign owner role: {role_error!s}",
+            ) from role_error
+
+        # Commit both project and role assignment atomically
         await session.commit()
         await session.refresh(new_project)
 
@@ -88,6 +182,9 @@ async def create_project(
             await session.exec(update_statement_flows)
             await session.commit()
 
+    except HTTPException:
+        # Re-raise HTTP exceptions (including role assignment failures)
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
 
@@ -99,17 +196,42 @@ async def read_projects(
     *,
     session: DbSession,
     current_user: CurrentActiveUser,
+    rbac_service: Annotated[RBACService, Depends(get_rbac_service)],
 ):
+    """List all projects with RBAC permission filtering.
+
+    This endpoint filters projects based on Read permission:
+    1. Superusers and Global Admins see all projects
+    2. Regular users see only projects they have Read permission on
+    3. Starter Projects folder is excluded from the list
+
+    Args:
+        session: Database session
+        current_user: The current authenticated user
+        rbac_service: RBAC service for permission checks
+
+    Returns:
+        list[FolderRead]: List of projects the user has access to
+
+    Raises:
+        HTTPException: 500 for errors
+    """
     try:
-        projects = (
-            await session.exec(
-                select(Folder).where(
-                    or_(Folder.user_id == current_user.id, Folder.user_id == None)  # noqa: E711
-                )
-            )
-        ).all()
-        projects = [project for project in projects if project.name != STARTER_FOLDER_NAME]
-        return sorted(projects, key=lambda x: x.name != DEFAULT_FOLDER_NAME)
+        # Query ALL projects (not just owned by current user) for RBAC filtering
+        projects = (await session.exec(select(Folder))).all()
+
+        # Filter by RBAC Read permission
+        accessible_projects = await _filter_projects_by_read_permission(
+            list(projects),
+            current_user.id,
+            rbac_service,
+            session,
+        )
+
+        # Exclude Starter Projects folder
+        accessible_projects = [project for project in accessible_projects if project.name != STARTER_FOLDER_NAME]
+
+        return sorted(accessible_projects, key=lambda x: x.name != DEFAULT_FOLDER_NAME)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
 
@@ -121,17 +243,55 @@ async def read_project(
     project_id: UUID,
     current_user: CurrentActiveUser,
     params: Annotated[Params | None, Depends(custom_params)],
+    rbac_service: Annotated[RBACService, Depends(get_rbac_service)],
     is_component: bool = False,
     is_flow: bool = False,
     search: str = "",
 ):
+    """Get a project by ID with RBAC permission enforcement.
+
+    This endpoint requires Read permission on the Project:
+    1. Check if user has Read permission on the Project
+    2. If permission denied, return 403 (prevents ID enumeration)
+    3. Superusers and Global Admins bypass permission checks
+
+    Args:
+        session: Database session
+        project_id: Project ID
+        current_user: The current authenticated user
+        params: Pagination parameters
+        rbac_service: RBAC service for permission checks
+        is_component: Filter for components
+        is_flow: Filter for flows
+        search: Search query
+
+    Returns:
+        FolderWithPaginatedFlows | FolderReadWithFlows: The project
+
+    Raises:
+        HTTPException: 403 if user lacks Read permission
+        HTTPException: 404 if project not found (after permission check passes)
+        HTTPException: 500 for other errors
+    """
+    # Check Read permission first (before checking if project exists - security best practice)
+    has_permission = await rbac_service.can_access(
+        user_id=current_user.id,
+        permission_name="Read",
+        scope_type="Project",
+        scope_id=project_id,
+        db=session,
+    )
+
+    if not has_permission:
+        raise HTTPException(
+            status_code=403,
+            detail="You do not have permission to view this project",
+        )
+
     try:
+        # Don't filter by user_id here - RBAC permission check already verified access
         project = (
-            await session.exec(
-                select(Folder)
-                .options(selectinload(Folder.flows))
-                .where(Folder.id == project_id, Folder.user_id == current_user.id)
-            )
+            await session.exec(select(Folder).options(selectinload(Folder.flows)).where(Folder.id == project_id))
         ).first()
     except Exception as e:
         if "No result found" in str(e):
@@ -166,8 +326,8 @@ async def read_project(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
 
-    flows_from_current_user_in_project = [flow for flow in project.flows if flow.user_id == current_user.id]
-    project.flows = flows_from_current_user_in_project
+    # Don't filter flows by user_id - if user has Read permission on Project, they can see all flows
+    # RBAC permission was already checked above
     return project
 
 
@@ -178,11 +338,48 @@ async def update_project(
     project_id: UUID,
     project: FolderUpdate,  # Assuming FolderUpdate is a Pydantic model defining updatable fields
     current_user: CurrentActiveUser,
+    rbac_service: Annotated[RBACService, Depends(get_rbac_service)],
 ):
+    """Update a project with RBAC permission enforcement.
+
+    This endpoint requires Update permission on the Project:
+    1. Check if user has Update permission on the Project
+    2. If permission denied, return 403
+    3. Superusers and Global Admins bypass permission checks
+
+    Args:
+        session: Database session
+        project_id: Project ID to update
+        project: Project update data
+        current_user: The current authenticated user
+        rbac_service: RBAC service for permission checks
+
+    Returns:
+        FolderRead: The updated project
+
+    Raises:
+        HTTPException: 403 if user lacks Update permission
+        HTTPException: 404 if project not found (after permission check passes)
+        HTTPException: 500 for other errors
+    """
+    # Check Update permission first (before checking if project exists - security best practice)
+    has_permission = await rbac_service.can_access(
+        user_id=current_user.id,
+        permission_name="Update",
+        scope_type="Project",
+        scope_id=project_id,
+        db=session,
+    )
+
+    if not has_permission:
+        raise HTTPException(
+            status_code=403,
+            detail="You do not have permission to update this project",
+        )
+
     try:
-        existing_project = (
-            await session.exec(select(Folder).where(Folder.id == project_id, Folder.user_id == current_user.id))
-        ).first()
+        # Don't filter by user_id here - RBAC permission check already verified access
+        existing_project = (await session.exec(select(Folder).where(Folder.id == project_id))).first()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
 
@@ -190,17 +387,12 @@ async def update_project(
         raise HTTPException(status_code=404, detail="Project not found")
 
     try:
-        if project.name and project.name != existing_project.name:
-            existing_project.name = project.name
-            session.add(existing_project)
-            await session.commit()
-            await session.refresh(existing_project)
-            return existing_project
-
-        project_data = existing_project.model_dump(exclude_unset=True)
-        for key, value in project_data.items():
-            if key not in {"components", "flows"}:
+        # Apply updates from the input project to existing project
+        update_data = project.model_dump(exclude_unset=True)
+        for key, value in update_data.items():
+            if key not in {"components", "flows"} and value is not None:
                 setattr(existing_project, key, value)
+
         session.add(existing_project)
         await session.commit()
         await session.refresh(existing_project)
@@ -238,25 +430,70 @@ async def delete_project(
     session: DbSession,
     project_id: UUID,
     current_user: CurrentActiveUser,
+    rbac_service: Annotated[RBACService, Depends(get_rbac_service)],
 ):
-    try:
-        flows = (
-            await session.exec(select(Flow).where(Flow.folder_id == project_id, Flow.user_id == current_user.id))
-        ).all()
-        if len(flows) > 0:
-            for flow in flows:
-                await cascade_delete_flow(session, flow.id)
+    """Delete a project with RBAC permission enforcement and Starter Project protection.
 
-        project = (
-            await session.exec(select(Folder).where(Folder.id == project_id, Folder.user_id == current_user.id))
-        ).first()
+    This endpoint requires Delete permission on the Project:
+    1. Check if user has Delete permission on the Project
+    2. If permission denied, return 403
+    3. Check if this is a Starter Project - cannot be deleted (Story 1.4)
+    4. Superusers and Global Admins bypass permission checks (but cannot delete Starter Projects)
+
+    Args:
+        session: Database session
+        project_id: Project ID to delete
+        current_user: The current authenticated user
+        rbac_service: RBAC service for permission checks
+
+    Returns:
+        Response: 204 No Content on success
+
+    Raises:
+        HTTPException: 403 if user lacks Delete permission
+        HTTPException: 400 if attempting to delete Starter Project
+        HTTPException: 404 if project not found (after permission check passes)
+        HTTPException: 500 for other errors
+    """
+    # Check Delete permission first (before checking if project exists - security best practice)
+    has_permission = await rbac_service.can_access(
+        user_id=current_user.id,
+        permission_name="Delete",
+        scope_type="Project",
+        scope_id=project_id,
+        db=session,
+    )
+
+    if not has_permission:
+        raise HTTPException(
+            status_code=403,
+            detail="You do not have permission to delete this project",
+        )
+
+    try:
+        # Don't filter by user_id here - RBAC permission check already verified access
+        project = (await session.exec(select(Folder).where(Folder.id == project_id))).first()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
 
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
+    # Check if this is a Starter Project (Story 1.4 - immutable)
+    if project.is_starter_project:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot delete Starter Project. Starter Projects are protected and cannot be deleted.",
+        )
+
     try:
+        # Delete all flows in the project first (all flows, not just owned by current_user)
+        flows = (await session.exec(select(Flow).where(Flow.folder_id == project_id))).all()
+        if len(flows) > 0:
+            for flow in flows:
+                await cascade_delete_flow(session, flow.id)
+
+        # Delete the project
         await session.delete(project)
         await session.commit()
         return Response(status_code=status.HTTP_204_NO_CONTENT)
