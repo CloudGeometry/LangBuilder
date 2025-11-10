@@ -467,15 +467,50 @@ async def update_flow(
     flow_id: UUID,
     flow: FlowUpdate,
     current_user: CurrentActiveUser,
+    rbac_service: Annotated[RBACService, Depends(get_rbac_service)],
 ):
-    """Update a flow."""
+    """Update a flow with RBAC permission enforcement.
+
+    This endpoint enforces Update permission on the Flow:
+    1. User must have Update permission on the specific Flow
+    2. Superusers and Global Admins bypass permission checks
+    3. Permission may be inherited from Project scope
+
+    Args:
+        session: Database session
+        flow_id: UUID of the flow to update
+        flow: Flow update data
+        current_user: The current authenticated user
+        rbac_service: RBAC service for permission checks
+
+    Returns:
+        FlowRead: The updated flow
+
+    Raises:
+        HTTPException: 404 if flow not found
+        HTTPException: 403 if user lacks Update permission on the Flow
+        HTTPException: 400 if unique constraint violated
+        HTTPException: 500 for other errors
+    """
     settings_service = get_settings_service()
     try:
-        db_flow = await _read_flow(
-            session=session,
-            flow_id=flow_id,
+        # 1. Check if user has Update permission on the Flow
+        has_permission = await rbac_service.can_access(
             user_id=current_user.id,
+            permission_name="Update",
+            scope_type="Flow",
+            scope_id=flow_id,
+            db=session,
         )
+
+        if not has_permission:
+            raise HTTPException(
+                status_code=403,
+                detail="You do not have permission to update this flow",
+            )
+
+        # 2. Retrieve the flow (no longer filtering by user_id)
+        db_flow = (await session.exec(select(Flow).where(Flow.id == flow_id))).first()
 
         if not db_flow:
             raise HTTPException(status_code=404, detail="Flow not found")

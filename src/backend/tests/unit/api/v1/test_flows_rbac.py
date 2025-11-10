@@ -1353,3 +1353,450 @@ async def test_create_flow_with_invalid_folder_id(
     # Error message should indicate project not found
     assert "not found" in response.json()["detail"].lower()
     assert fake_folder_id in response.json()["detail"]
+
+
+# Test cases for Update Flow endpoint RBAC (Task 2.4)
+
+
+@pytest.fixture
+async def flow_delete_permission(client):  # noqa: ARG001
+    """Create Delete permission for Flow scope."""
+    db_manager = get_db_service()
+    async with db_manager.with_session() as session:
+        # Check if permission already exists
+        stmt = select(Permission).where(Permission.name == "Delete", Permission.scope == "Flow")
+        if existing_perm := (await session.exec(stmt)).first():
+            return existing_perm
+        perm_data = PermissionCreate(name="Delete", scope="Flow", description="Delete flow")
+        return await create_permission(session, perm_data)
+
+
+@pytest.mark.asyncio
+async def test_update_flow_with_update_permission(
+    client: AsyncClient,
+    editor_user,
+    editor_role,
+    setup_editor_role_permissions,  # noqa: ARG001
+    test_flow_3,
+):
+    """Test that users with Update permission can update flows."""
+    # Assign Editor role (has Update permission) to user for flow 3
+    db_manager = get_db_service()
+    async with db_manager.with_session() as session:
+        assignment_data = UserRoleAssignmentCreate(
+            user_id=editor_user.id,
+            role_id=editor_role.id,
+            scope_type="Flow",
+            scope_id=test_flow_3.id,
+            created_by=editor_user.id,
+        )
+        await create_user_role_assignment(session, assignment_data)
+
+    # Login as editor
+    response = await client.post(
+        "api/v1/login",
+        data={"username": "editor_user", "password": "password"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Update the flow
+    update_data = {
+        "name": "Updated Flow Name",
+        "description": "Updated description",
+    }
+    response = await client.patch(f"api/v1/flows/{test_flow_3.id}", json=update_data, headers=headers)
+
+    assert response.status_code == 200
+    updated_flow = response.json()
+    assert updated_flow["name"] == "Updated Flow Name"
+    assert updated_flow["description"] == "Updated description"
+
+
+@pytest.mark.asyncio
+async def test_update_flow_without_update_permission(
+    client: AsyncClient,
+    viewer_user,
+    viewer_role,
+    setup_viewer_role_permissions,  # noqa: ARG001
+    test_flow_3,
+):
+    """Test that users without Update permission cannot update flows."""
+    # Assign Viewer role (no Update permission) to user for flow 3
+    db_manager = get_db_service()
+    async with db_manager.with_session() as session:
+        assignment_data = UserRoleAssignmentCreate(
+            user_id=viewer_user.id,
+            role_id=viewer_role.id,
+            scope_type="Flow",
+            scope_id=test_flow_3.id,
+            created_by=viewer_user.id,
+        )
+        await create_user_role_assignment(session, assignment_data)
+
+    # Login as viewer
+    response = await client.post(
+        "api/v1/login",
+        data={"username": "viewer_user", "password": "password"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Attempt to update the flow
+    update_data = {
+        "name": "Unauthorized Update",
+    }
+    response = await client.patch(f"api/v1/flows/{test_flow_3.id}", json=update_data, headers=headers)
+
+    # Should receive 403 Forbidden
+    assert response.status_code == 403
+    assert "permission" in response.json()["detail"].lower()
+
+
+@pytest.mark.asyncio
+async def test_update_flow_superuser_bypasses_permission_check(
+    client: AsyncClient,
+    superuser,  # noqa: ARG001
+    test_flow_1,
+):
+    """Test that superusers can update flows without explicit permission assignments."""
+    # Login as superuser (no role assignments needed)
+    response = await client.post(
+        "api/v1/login",
+        data={"username": "superuser", "password": "password"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Update the flow
+    update_data = {
+        "name": "Superuser Updated Flow",
+        "description": "Updated by superuser",
+    }
+    response = await client.patch(f"api/v1/flows/{test_flow_1.id}", json=update_data, headers=headers)
+
+    assert response.status_code == 200
+    updated_flow = response.json()
+    assert updated_flow["name"] == "Superuser Updated Flow"
+    assert updated_flow["description"] == "Updated by superuser"
+
+
+@pytest.mark.asyncio
+async def test_update_flow_global_admin_bypasses_permission_check(
+    client: AsyncClient,
+    admin_user,
+    admin_role,
+    setup_admin_role_permissions,  # noqa: ARG001
+    test_flow_1,
+):
+    """Test that Global Admin users can update any flow."""
+    # Assign Global Admin role
+    db_manager = get_db_service()
+    async with db_manager.with_session() as session:
+        assignment_data = UserRoleAssignmentCreate(
+            user_id=admin_user.id,
+            role_id=admin_role.id,
+            scope_type="Global",
+            scope_id=None,
+            created_by=admin_user.id,
+        )
+        await create_user_role_assignment(session, assignment_data)
+
+    # Login as admin
+    response = await client.post(
+        "api/v1/login",
+        data={"username": "admin_user", "password": "password"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Update the flow
+    update_data = {
+        "name": "Admin Updated Flow",
+        "description": "Updated by global admin",
+    }
+    response = await client.patch(f"api/v1/flows/{test_flow_1.id}", json=update_data, headers=headers)
+
+    assert response.status_code == 200
+    updated_flow = response.json()
+    assert updated_flow["name"] == "Admin Updated Flow"
+    assert updated_flow["description"] == "Updated by global admin"
+
+
+@pytest.mark.asyncio
+async def test_update_flow_owner_has_update_permission(
+    client: AsyncClient,
+    editor_user,
+    owner_role,
+    setup_owner_role_permissions,  # noqa: ARG001
+    test_flow_3,
+):
+    """Test that users with Owner role can update flows."""
+    # Assign Owner role to user for flow 3
+    db_manager = get_db_service()
+    async with db_manager.with_session() as session:
+        assignment_data = UserRoleAssignmentCreate(
+            user_id=editor_user.id,
+            role_id=owner_role.id,
+            scope_type="Flow",
+            scope_id=test_flow_3.id,
+            created_by=editor_user.id,
+        )
+        await create_user_role_assignment(session, assignment_data)
+
+    # Login as editor (who has Owner role on this flow)
+    response = await client.post(
+        "api/v1/login",
+        data={"username": "editor_user", "password": "password"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Update the flow
+    update_data = {
+        "name": "Owner Updated Flow",
+        "description": "Updated by owner",
+    }
+    response = await client.patch(f"api/v1/flows/{test_flow_3.id}", json=update_data, headers=headers)
+
+    assert response.status_code == 200
+    updated_flow = response.json()
+    assert updated_flow["name"] == "Owner Updated Flow"
+    assert updated_flow["description"] == "Updated by owner"
+
+
+@pytest.mark.asyncio
+async def test_update_flow_project_level_inheritance(
+    client: AsyncClient,
+    editor_user,
+    editor_role,
+    setup_editor_role_permissions,  # noqa: ARG001
+    test_folder,
+    test_flow_1,
+):
+    """Test that Project-level Update permission grants access to update flows in the project."""
+    # Add Update permission for Project scope to editor_role
+    db_manager = get_db_service()
+    async with db_manager.with_session() as session:
+        # Get or create Project Update permission
+        stmt = select(Permission).where(Permission.name == "Update", Permission.scope == "Project")
+        project_update_perm = (await session.exec(stmt)).first()
+        if not project_update_perm:
+            perm_data = PermissionCreate(name="Update", scope="Project", description="Update project flows")
+            project_update_perm = await create_permission(session, perm_data)
+
+        # Check if association already exists
+        stmt = select(RolePermission).where(
+            RolePermission.role_id == editor_role.id,
+            RolePermission.permission_id == project_update_perm.id,
+        )
+        if not (await session.exec(stmt)).first():
+            role_perm_project = RolePermission(
+                role_id=editor_role.id,
+                permission_id=project_update_perm.id,
+            )
+            session.add(role_perm_project)
+            await session.commit()
+
+        # Assign Editor role to project (not individual flow)
+        assignment_data = UserRoleAssignmentCreate(
+            user_id=editor_user.id,
+            role_id=editor_role.id,
+            scope_type="Project",
+            scope_id=test_folder.id,
+            created_by=editor_user.id,
+        )
+        await create_user_role_assignment(session, assignment_data)
+
+    # Login as editor
+    response = await client.post(
+        "api/v1/login",
+        data={"username": "editor_user", "password": "password"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Update the flow (permission inherited from Project-level)
+    update_data = {
+        "name": "Updated via Project Permission",
+        "description": "Updated with inherited permission",
+    }
+    response = await client.patch(f"api/v1/flows/{test_flow_1.id}", json=update_data, headers=headers)
+
+    assert response.status_code == 200
+    updated_flow = response.json()
+    assert updated_flow["name"] == "Updated via Project Permission"
+
+
+@pytest.mark.asyncio
+async def test_update_flow_without_any_permission(
+    client: AsyncClient,
+    viewer_user,  # noqa: ARG001
+    test_flow_1,
+):
+    """Test that users without any permissions cannot update flows."""
+    # Login as viewer (no role assignments)
+    response = await client.post(
+        "api/v1/login",
+        data={"username": "viewer_user", "password": "password"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Attempt to update the flow
+    update_data = {
+        "name": "Unauthorized Update Attempt",
+    }
+    response = await client.patch(f"api/v1/flows/{test_flow_1.id}", json=update_data, headers=headers)
+
+    # Should receive 403 Forbidden
+    assert response.status_code == 403
+    assert "permission" in response.json()["detail"].lower()
+
+
+@pytest.mark.asyncio
+async def test_update_flow_nonexistent_flow(
+    client: AsyncClient,
+    editor_user,  # noqa: ARG001
+):
+    """Test that updating a non-existent flow returns 404."""
+    # Login as editor
+    response = await client.post(
+        "api/v1/login",
+        data={"username": "editor_user", "password": "password"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Attempt to update non-existent flow
+    import uuid
+
+    fake_flow_id = str(uuid.uuid4())
+    update_data = {
+        "name": "Update Non-Existent Flow",
+    }
+    response = await client.patch(f"api/v1/flows/{fake_flow_id}", json=update_data, headers=headers)
+
+    # Should receive 403 (permission check happens first, user has no permission on non-existent flow)
+    # or 404 if permission check passes but flow not found
+    assert response.status_code in [403, 404]
+
+
+@pytest.mark.asyncio
+async def test_update_flow_multiple_users_different_permissions(
+    client: AsyncClient,
+    viewer_user,
+    editor_user,
+    viewer_role,
+    editor_role,
+    setup_viewer_role_permissions,  # noqa: ARG001
+    setup_editor_role_permissions,  # noqa: ARG001
+    test_flow_1,
+    test_flow_2,
+):
+    """Test that different users have different update permissions based on their roles."""
+    # Assign roles to users for different flows
+    db_manager = get_db_service()
+    async with db_manager.with_session() as session:
+        # Assign Viewer role (no Update) to viewer_user for flow 1
+        assignment_data_viewer = UserRoleAssignmentCreate(
+            user_id=viewer_user.id,
+            role_id=viewer_role.id,
+            scope_type="Flow",
+            scope_id=test_flow_1.id,
+            created_by=viewer_user.id,
+        )
+        await create_user_role_assignment(session, assignment_data_viewer)
+
+        # Assign Editor role (has Update) to editor_user for flow 2
+        assignment_data_editor = UserRoleAssignmentCreate(
+            user_id=editor_user.id,
+            role_id=editor_role.id,
+            scope_type="Flow",
+            scope_id=test_flow_2.id,
+            created_by=editor_user.id,
+        )
+        await create_user_role_assignment(session, assignment_data_editor)
+
+    # Test viewer_user cannot update flow 1
+    response = await client.post(
+        "api/v1/login",
+        data={"username": "viewer_user", "password": "password"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+    headers_viewer = {"Authorization": f"Bearer {token}"}
+
+    update_data = {"name": "Viewer Attempted Update"}
+    response = await client.patch(f"api/v1/flows/{test_flow_1.id}", json=update_data, headers=headers_viewer)
+    assert response.status_code == 403
+
+    # Test editor_user can update flow 2
+    response = await client.post(
+        "api/v1/login",
+        data={"username": "editor_user", "password": "password"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+    headers_editor = {"Authorization": f"Bearer {token}"}
+
+    update_data = {"name": "Editor Updated Flow 2"}
+    response = await client.patch(f"api/v1/flows/{test_flow_2.id}", json=update_data, headers=headers_editor)
+    assert response.status_code == 200
+    updated_flow = response.json()
+    assert updated_flow["name"] == "Editor Updated Flow 2"
+
+
+@pytest.mark.asyncio
+async def test_update_flow_preserves_flow_data(
+    client: AsyncClient,
+    editor_user,
+    editor_role,
+    setup_editor_role_permissions,  # noqa: ARG001
+    test_flow_3,
+):
+    """Test that updating a flow preserves existing flow data correctly."""
+    # Assign Editor role to user for flow 3
+    db_manager = get_db_service()
+    async with db_manager.with_session() as session:
+        assignment_data = UserRoleAssignmentCreate(
+            user_id=editor_user.id,
+            role_id=editor_role.id,
+            scope_type="Flow",
+            scope_id=test_flow_3.id,
+            created_by=editor_user.id,
+        )
+        await create_user_role_assignment(session, assignment_data)
+
+    # Login as editor
+    response = await client.post(
+        "api/v1/login",
+        data={"username": "editor_user", "password": "password"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Get original flow data
+    response = await client.get(f"api/v1/flows/{test_flow_3.id}", headers=headers)
+    original_flow = response.json()
+
+    # Update only the name
+    update_data = {"name": "Updated Name Only"}
+    response = await client.patch(f"api/v1/flows/{test_flow_3.id}", json=update_data, headers=headers)
+
+    assert response.status_code == 200
+    updated_flow = response.json()
+    # Name should be updated
+    assert updated_flow["name"] == "Updated Name Only"
+    # Other fields should remain unchanged
+    assert updated_flow["data"] == original_flow["data"]
+    assert updated_flow["folder_id"] == original_flow["folder_id"]
