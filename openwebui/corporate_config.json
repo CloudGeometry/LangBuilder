@@ -1,0 +1,25 @@
+{
+  "company_name": "CloudGeometry",
+  "google_workspace": {
+    "domain": "cloudgeometry.com",
+    "admin_email": "admin@cloudgeometry.com",
+    "service_account_key_file": "/app/secrets/google-service-account.json",
+    "customer_id": "",
+    "api_scopes": [
+      "https://www.googleapis.com/auth/admin.directory.user.readonly",
+      "https://www.googleapis.com/auth/admin.directory.group.readonly"
+    ],
+    "cache_duration_minutes": 30
+  },
+  "require_workspace_verification": false,
+  "auto_approve_verified_users": true,
+  "default_role_for_verified_users": "user",
+  "oauth_client_id": "",
+  "oauth_client_secret": "",
+  "group_to_role_mapping": {
+    "admin@cloudgeometry.com": "admin",
+    "users@cloudgeometry.com": "user",
+    "engineering@cloudgeometry.com": "user",
+    "management@cloudgeometry.com": "admin"
+  }
+}

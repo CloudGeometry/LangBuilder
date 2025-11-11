@@ -1,7 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 import * as dotenv from "dotenv";
 import path from "path";
-import { addFlowToTestOnEmptyLangflow } from "../../utils/add-flow-to-test-on-empty-langflow";
+import { addFlowToTestOnEmptyLangBuilder } from "../../utils/add-flow-to-test-on-empty-langbuilder";
 import { awaitBootstrapTest } from "../../utils/await-bootstrap-test";
 import { initialGPTsetup } from "../../utils/initialGPTsetup";
 
@@ -21,12 +21,12 @@ test(
 
     await awaitBootstrapTest(page);
 
-    const firstRunLangflow = await page
+    const firstRunLangBuilder = await page
       .getByTestId("empty-project-description")
       .count();
 
-    if (firstRunLangflow > 0) {
-      await addFlowToTestOnEmptyLangflow(page);
+    if (firstRunLangBuilder > 0) {
+      await addFlowToTestOnEmptyLangBuilder(page);
     }
 
     await page.getByTestId("side_nav_options_all-templates").click();

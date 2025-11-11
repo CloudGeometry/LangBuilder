@@ -1,5 +1,5 @@
-from langflow.io.schema import create_input_schema_from_dict
-from langflow.schema.dotdict import dotdict
+from langbuilder.io.schema import create_input_schema_from_dict
+from langbuilder.schema.dotdict import dotdict
 
 
 def test_create_schema():

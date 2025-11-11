@@ -32,21 +32,21 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run Langflow container and get OpenAPI spec
+      - name: Run LangBuilder container and get OpenAPI spec
         if: steps.check_pull_request.outputs.pr_exists != 'true'
         run: |
           # Start the container in the background
-          docker run -d --name langflow -p 7860:7860 langflowai/langflow:latest
+          docker run -d --name langbuilder -p 7860:7860 cloudgeometry/langbuilder:latest
 
           # Wait for the service to be ready (adjust timeout as needed)
-          echo "Waiting for Langflow to start..."
+          echo "Waiting for LangBuilder to start..."
           timeout=60
           elapsed=0
           while ! curl -s http://localhost:7860/health > /dev/null; do
             sleep 2
             elapsed=$((elapsed+2))
             if [ "$elapsed" -ge "$timeout" ]; then
-              echo "Timed out waiting for Langflow to start"
+              echo "Timed out waiting for LangBuilder to start"
               exit 1
             fi
             echo "Still waiting... ($elapsed seconds)"
@@ -60,7 +60,7 @@ jobs:
           ls -la new_openapi.json
 
           # stop the container when done
-          docker stop langflow
+          docker stop langbuilder
 
       - name: Compare OpenAPI files
         if: steps.check_pull_request.outputs.pr_exists != 'true'

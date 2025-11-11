@@ -1,5 +1,5 @@
 import pytest
-from langflow.inputs.inputs import (
+from langbuilder.inputs.inputs import (
     BoolInput,
     CodeInput,
     DataInput,
@@ -22,8 +22,8 @@ from langflow.inputs.inputs import (
     TabInput,
     TableInput,
 )
-from langflow.inputs.utils import instantiate_input
-from langflow.schema.message import Message
+from langbuilder.inputs.utils import instantiate_input
+from langbuilder.schema.message import Message
 from pydantic import ValidationError
 
 

@@ -1,4 +1,4 @@
-import { ENABLE_DATASTAX_LANGFLOW } from "@/customization/feature-flags";
+import { ENABLE_DATASTAX_LANGBUILDER } from "@/customization/feature-flags";
 import { customGetHostProtocol } from "@/customization/utils/custom-get-host-protocol";
 import { GetCodeType } from "@/types/tweaks";
 import {
@@ -38,7 +38,7 @@ export function getCurlWebhookCode({
   -H 'Content-Type: application/json' \\${
     isAuth ? `\n  -H 'x-api-key: <your api key>' \\` : ""
   }${
-    ENABLE_DATASTAX_LANGFLOW
+    ENABLE_DATASTAX_LANGBUILDER
       ? `\n  -H 'Authorization: Bearer <YOUR_APPLICATION_TOKEN>' \\`
       : ""
   }

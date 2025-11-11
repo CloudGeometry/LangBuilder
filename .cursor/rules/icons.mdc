@@ -1,5 +1,5 @@
 ---
-description: "Rules for creating and implementing component icons in Langflow, covering both backend Python component icon attributes and frontend React icon implementation."
+description: "Rules for creating and implementing component icons in LangBuilder, covering both backend Python component icon attributes and frontend React icon implementation."
 globs:
   - "src/frontend/src/icons/**/*"
   - "src/frontend/src/icons/lazyIconImports.ts"
@@ -18,7 +18,7 @@ To ensure consistent, clear, and functional icon usage for components, covering 
 
 ## 1. Backend (Python) — Setting the Icon Name
 
-- **Where:** In your component class (e.g., in `src/backend/base/langflow/components/vectorstores/astradb.py`)
+- **Where:** In your component class (e.g., in `src/backend/base/langbuilder/components/vectorstores/astradb.py`)
 - **How:**
   Set the `icon` attribute to a string matching the icon you want to use.
   ```python

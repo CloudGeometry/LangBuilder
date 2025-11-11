@@ -22,7 +22,7 @@ export class Rds extends Construct {
 
     // RDSのパスワードを自動生成してSecrets Managerに格納
     const rdsCredentials = rds.Credentials.fromGeneratedSecret("db_user", {
-      secretName: "langflow-DbSecret",
+      secretName: "langbuilder-DbSecret",
     });
 
     // DB クラスターのパラメータグループ作成
@@ -36,7 +36,7 @@ export class Rds extends Construct {
             "8.0",
           ),
         }),
-        description: "for-langflow",
+        description: "for-langbuilder",
       },
     );
     clusterParameterGroup.bindToCluster({});
@@ -52,12 +52,12 @@ export class Rds extends Construct {
             "8.0",
           ),
         }),
-        description: "for-langflow",
+        description: "for-langbuilder",
       },
     );
     instanceParameterGroup.bindToInstance({});
 
-    this.rdsCluster = new rds.DatabaseCluster(scope, "LangflowDbCluster", {
+    this.rdsCluster = new rds.DatabaseCluster(scope, "LangBuilderDbCluster", {
       engine: rds.DatabaseClusterEngine.auroraMysql({
         version: rds.AuroraMysqlEngineVersion.of(
           "8.0.mysql_aurora.3.05.2",
@@ -66,10 +66,10 @@ export class Rds extends Construct {
       }),
       storageEncrypted: true,
       credentials: rdsCredentials,
-      instanceIdentifierBase: "langflow-instance",
+      instanceIdentifierBase: "langbuilder-instance",
       vpc: vpc,
       vpcSubnets: vpc.selectSubnets({
-        subnetGroupName: "langflow-Isolated",
+        subnetGroupName: "langbuilder-Isolated",
       }),
       securityGroups: [dbSG],
       writer: rds.ClusterInstance.provisioned("WriterInstance", {
@@ -79,7 +79,7 @@ export class Rds extends Construct {
       }),
       // 2台目以降はreaders:で設定
       parameterGroup: clusterParameterGroup,
-      defaultDatabaseName: "langflow",
+      defaultDatabaseName: "langbuilder",
     });
   }
 }

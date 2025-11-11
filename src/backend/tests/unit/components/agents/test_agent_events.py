@@ -4,8 +4,8 @@ from unittest.mock import AsyncMock
 
 from langchain_core.agents import AgentFinish
 from langchain_core.messages import AIMessageChunk
-from langflow.base.agents.agent import process_agent_events
-from langflow.base.agents.events import (
+from langbuilder.base.agents.agent import process_agent_events
+from langbuilder.base.agents.events import (
     handle_on_chain_end,
     handle_on_chain_start,
     handle_on_chain_stream,
@@ -13,10 +13,10 @@ from langflow.base.agents.events import (
     handle_on_tool_error,
     handle_on_tool_start,
 )
-from langflow.schema.content_block import ContentBlock
-from langflow.schema.content_types import ToolContent
-from langflow.schema.message import Message
-from langflow.utils.constants import MESSAGE_SENDER_AI
+from langbuilder.schema.content_block import ContentBlock
+from langbuilder.schema.content_types import ToolContent
+from langbuilder.schema.message import Message
+from langbuilder.utils.constants import MESSAGE_SENDER_AI
 
 
 async def create_event_iterator(events: list[dict[str, Any]]) -> AsyncIterator[dict[str, Any]]:

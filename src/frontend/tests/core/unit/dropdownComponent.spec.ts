@@ -133,12 +133,12 @@ test(
     await page.locator("textarea").press("Control+a");
     const emptyOptionsCode = `from langchain_community.chat_models.bedrock import BedrockChat
 
-from langflow.base.constants import STREAM_INFO_TEXT
-from langflow.base.models.model import LCModelComponent
-from langflow.field_typing import BaseLanguageModel, Text
-from langflow.io import BoolInput, DictInput, DropdownInput, StrInput
-from langflow.io import MessageInput
-from langflow.io import Output
+from langbuilder.base.constants import STREAM_INFO_TEXT
+from langbuilder.base.models.model import LCModelComponent
+from langbuilder.field_typing import BaseLanguageModel, Text
+from langbuilder.io import BoolInput, DictInput, DropdownInput, StrInput
+from langbuilder.io import MessageInput
+from langbuilder.io import Output
 
 
 class AmazonBedrockComponent(LCModelComponent):

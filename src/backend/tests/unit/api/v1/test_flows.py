@@ -4,7 +4,7 @@ import uuid
 from anyio import Path
 from fastapi import status
 from httpx import AsyncClient
-from langflow.services.database.models import Flow
+from langbuilder.services.database.models import Flow
 
 
 async def test_create_flow(client: AsyncClient, logged_in_headers):
@@ -194,9 +194,9 @@ async def test_read_flows_user_isolation(client: AsyncClient, logged_in_headers,
     """Test that read_flows returns only flows from the current user."""
     from uuid import uuid4
 
-    from langflow.services.auth.utils import get_password_hash
-    from langflow.services.database.models.user.model import User
-    from langflow.services.deps import session_scope
+    from langbuilder.services.auth.utils import get_password_hash
+    from langbuilder.services.database.models.user.model import User
+    from langbuilder.services.deps import session_scope
 
     # Create a second user
     other_user_id = uuid4()

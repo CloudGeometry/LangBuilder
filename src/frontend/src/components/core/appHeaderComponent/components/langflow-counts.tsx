@@ -4,7 +4,7 @@ import { DISCORD_URL, GITHUB_URL } from "@/constants/constants";
 import { useDarkStore } from "@/stores/darkStore";
 import { formatNumber } from "@/utils/utils";
 
-export const LangflowCounts = () => {
+export const LangBuilderCounts = () => {
   const stars: number | undefined = useDarkStore((state) => state.stars);
   const discordCount: number = useDarkStore((state) => state.discordCount);
 
@@ -43,4 +43,4 @@ export const LangflowCounts = () => {
   );
 };
 
-export default LangflowCounts;
+export default LangBuilderCounts;

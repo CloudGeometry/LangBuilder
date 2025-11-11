@@ -1,6 +1,6 @@
-from langflow.graph import Graph
-from langflow.initial_setup.setup import load_starter_projects
-from langflow.load import aload_flow_from_json
+from langbuilder.graph import Graph
+from langbuilder.initial_setup.setup import load_starter_projects
+from langbuilder.load import aload_flow_from_json
 
 # TODO: UPDATE BASIC EXAMPLE
 # def test_load_flow_from_json():

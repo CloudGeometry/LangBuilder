@@ -1,5 +1,5 @@
 ---
-title:  Use Langflow as an MCP client
+title:  Use LangBuilder as an MCP client
 slug: /mcp-client
 ---
 
@@ -7,22 +7,22 @@ import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import Icon from "@site/src/components/icon";
 
-Langflow integrates with the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/introduction) as both an MCP server and an MCP client.
+LangBuilder integrates with the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/introduction) as both an MCP server and an MCP client.
 
-This page describes how to use Langflow as an MCP client with the [**MCP Tools** component](#use-the-mcp-tools-component) and connected [MCP servers](#manage-connected-mcp-servers).
+This page describes how to use LangBuilder as an MCP client with the [**MCP Tools** component](#use-the-mcp-tools-component) and connected [MCP servers](#manage-connected-mcp-servers).
 
-For information about using Langflow as an MCP server, see [Use Langflow as an MCP server](/mcp-server).
+For information about using LangBuilder as an MCP server, see [Use LangBuilder as an MCP server](/mcp-server).
 
 ## Use the MCP tools component
 
-The **MCP Tools** component connects to an MCP server so that a [Langflow agent](/agents) can use the server's tools when responding to user queries.
+The **MCP Tools** component connects to an MCP server so that a [LangBuilder agent](/agents) can use the server's tools when responding to user queries.
 
 This component has two modes, depending on the type of server you want to access:
 
-* [Connect to a non-Langflow MCP server](#mcp-stdio-mode) with a JSON configuration file, server start command, or SSE URL to access tools provided by external, non-Langflow MCP servers.
-* [Connect to a Langflow MCP server](#mcp-sse-mode) to use flows from your [Langflow projects](/concepts-flows#projects) as MCP tools.
+* [Connect to a non-LangBuilder MCP server](#mcp-stdio-mode) with a JSON configuration file, server start command, or SSE URL to access tools provided by external, non-LangBuilder MCP servers.
+* [Connect to a LangBuilder MCP server](#mcp-sse-mode) to use flows from your [LangBuilder projects](/concepts-flows#projects) as MCP tools.
 
-### Connect to a non-Langflow MCP server {#mcp-stdio-mode}
+### Connect to a non-LangBuilder MCP server {#mcp-stdio-mode}
 
 1. Add an **MCP Tools** component to your flow.
 
@@ -33,18 +33,18 @@ This component has two modes, depending on the type of server you want to access
     * In the **JSON** pane, paste the MCP server's JSON configuration file, and then click **Add Server**.
     * In the **STDIO** pane, enter the MCP server's **Name**, **Command**, and any **Arguments** or **Environment Variables** the server uses, and then click **Add Server**.
     For example, to start a [Fetch](https://github.com/modelcontextprotocol/servers/tree/main/src/fetch) server, the **Command** is `uvx mcp-server-fetch`.
-    * In the **SSE** pane, enter your Langflow MCP server's **Name**, **SSE URL**, and any **Headers** or **Environment Variables** the server uses, and then click **Add Server**.
+    * In the **SSE** pane, enter your LangBuilder MCP server's **Name**, **SSE URL**, and any **Headers** or **Environment Variables** the server uses, and then click **Add Server**.
     The default **SSE URL** is `http://localhost:7860/api/v1/mcp/sse`. For more information, see [Use SSE mode](#mcp-sse-mode).
 
-    `uvx` is included with `uv` in the Langflow package.
+    `uvx` is included with `uv` in the LangBuilder package.
     To use `npx` server commands, you must first install an LTS release of [Node.js](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm).
-    For an example of an `npx` MCP server in Langflow, see [Connect an Astra DB MCP server to Langflow](/mcp-component-astra).
+    For an example of an `npx` MCP server in LangBuilder, see [Connect an Astra DB MCP server to LangBuilder](/mcp-component-astra).
 
 3. To use environment variables in your server command, enter each variable in the **Env** fields as you would define them in a script, such as `VARIABLE=value`.
 
     :::important
-    Langflow passes environment variables from the `.env` file to MCP, but it doesn't pass global variables declared in your Langflow **Settings**.
-    To define an MCP server environment variable as a global variable, add it to Langflow's `.env` file at startup.
+    LangBuilder passes environment variables from the `.env` file to MCP, but it doesn't pass global variables declared in your LangBuilder **Settings**.
+    To define an MCP server environment variable as a global variable, add it to LangBuilder's `.env` file at startup.
     For more information, see [global variables](/configuration-global-variables).
     :::
 
@@ -68,15 +68,15 @@ This component has two modes, depending on the type of server you want to access
 
 8. If you want the agent to be able to use more tools, repeat these steps to add more tools components with different servers or tools.
 
-### Connect a Langflow MCP server {#mcp-sse-mode}
+### Connect a LangBuilder MCP server {#mcp-sse-mode}
 
-Every Langflow project runs a separate MCP server that exposes the project's flows as MCP tools.
-For more information about your projects' MCP servers, including how to manage exposed flows, see [Use Langflow as an MCP server](/mcp-server).
+Every LangBuilder project runs a separate MCP server that exposes the project's flows as MCP tools.
+For more information about your projects' MCP servers, including how to manage exposed flows, see [Use LangBuilder as an MCP server](/mcp-server).
 
 To leverage flows-as-tools, use the **MCP Tools** component in **Server-Sent Events (SSE)** mode to connect to a project's `/api/v1/mcp/sse` endpoint:
 
 1. Add an **MCP Tools** component to your flow, click <Icon name="Plus" aria-hidden="true"/> **Add MCP Server**, and then select **SSE** mode.
-2. In the **MCP SSE URL** field, modify the default address to point at your Langflow server's SSE endpoint. The default value for other Langflow installations is `http://localhost:7860/api/v1/mcp/sse`.
+2. In the **MCP SSE URL** field, modify the default address to point at your LangBuilder server's SSE endpoint. The default value for other LangBuilder installations is `http://localhost:7860/api/v1/mcp/sse`.
 In SSE mode, all flows available from the targeted server are treated as tools.
 3. In the [component's header menu](/concepts-components#component-menus), enable **Tool Mode** so you can use the component with an agent.
 4. Connect the **MCP Tools** component's **Toolset** port to an **Agent** component's **Tools** port.
@@ -93,12 +93,12 @@ In SSE mode, all flows available from the targeted server are treated as tools.
 | Name | Type | Description |
 |------|------|-------------|
 | command | String | Input parameter. Stdio mode only. The MCP server startup command. Default: `uvx mcp-sse-shim@latest`. |
-| sse_url | String | Input parameter. SSE mode only. The SSE URL for a Langflow project's MCP server. Default for Langflow Desktop: `http://localhost:7868/`. Default for other installations: `http://localhost:7860/api/v1/mcp/sse` |
+| sse_url | String | Input parameter. SSE mode only. The SSE URL for a LangBuilder project's MCP server. Default for LangBuilder Desktop: `http://localhost:7868/`. Default for other installations: `http://localhost:7860/api/v1/mcp/sse` |
 | tools | List[Tool] | Output parameter. [`Tool`](/data-types#tool) object containing a list of tools exposed by the MCP server. |
 
 ## Manage connected MCP servers
 
-To manage MCP servers connected to your Langflow client, go to **Settings**, and then click **MCP Servers**.
+To manage MCP servers connected to your LangBuilder client, go to **Settings**, and then click **MCP Servers**.
 
 To add a new MCP server, click <Icon name="Plus" aria-hidden="true"/> **Add MCP Server**, and then follow the steps in [Use the MCP Tools component](#use-the-mcp-tools-component) to configure the connection.
 
@@ -106,5 +106,5 @@ Click <Icon name="Ellipsis" aria-hidden="true"/> **More** to edit or delete an M
 
 ## See also
 
-- [Use Langflow as an MCP server](/mcp-server)
+- [Use LangBuilder as an MCP server](/mcp-server)
 - [Use a DataStax Astra DB MCP server with the MCP Tools component](/mcp-component-astra)

@@ -1,9 +1,9 @@
 from pathlib import Path
 
-from langflow.components import helpers, processing
-from langflow.custom.utils import build_custom_component_template
-from langflow.schema import Data
-from langflow.schema.message import Message
+from langbuilder.components import helpers, processing
+from langbuilder.custom.utils import build_custom_component_template
+from langbuilder.schema import Data
+from langbuilder.schema.message import Message
 
 # def test_update_data_component():
 #     # Arrange

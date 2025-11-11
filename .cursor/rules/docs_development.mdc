@@ -1,5 +1,5 @@
 ---
-description: "Guidelines for developing and maintaining Langflow documentation using Docusaurus, including content structure, style, and deployment processes."
+description: "Guidelines for developing and maintaining LangBuilder documentation using Docusaurus, including content structure, style, and deployment processes."
 globs:
   - "docs/**/*.{md,mdx}"
   - "docs/**/*.{js,jsx,ts,tsx}"
@@ -14,7 +14,7 @@ alwaysApply: false
 # Documentation Development Guidelines
 
 ## Purpose
-Guidelines for developing and maintaining Langflow documentation using Docusaurus, including content structure, style, and deployment processes.
+Guidelines for developing and maintaining LangBuilder documentation using Docusaurus, including content structure, style, and deployment processes.
 
 ---
 
@@ -61,7 +61,7 @@ docs/
 - **Guides:** Step-by-step tutorials (`docs/getting-started/`)
 - **Reference:** API and component reference (`docs/api-reference/`)
 - **How-to:** Problem-solving articles (`docs/components/`)
-- **Concepts:** Explanatory articles about Langflow concepts
+- **Concepts:** Explanatory articles about LangBuilder concepts
 - **Blog:** Release notes, announcements (`blog/`)
 
 ---
@@ -104,7 +104,7 @@ Use danger for critical warnings.
 ### Code Blocks
 ````markdown
 ```python title="component_example.py"
-from langflow.components.base import Component
+from langbuilder.components.base import Component
 
 class MyComponent(Component):
     display_name = "My Component"
@@ -121,7 +121,7 @@ class MyComponent(Component):
 ![Component Overview](/img/components/overview.png)
 
 <!-- Use descriptive alt text -->
-![Langflow interface showing the flow editor with nodes and connections](/img/flow-editor.png)
+![LangBuilder interface showing the flow editor with nodes and connections](/img/flow-editor.png)
 ```
 
 ---
@@ -249,14 +249,14 @@ curl -X POST http://localhost:7860/api/v1/endpoint \
 ### Blog Post Template
 ```markdown
 ---
-title: "Release: Langflow v1.1.0"
-description: "New features and improvements in Langflow v1.1.0"
+title: "Release: LangBuilder v1.1.0"
+description: "New features and improvements in LangBuilder v1.1.0"
 authors: [author-name]
 date: 2024-01-15
 tags: [release, features]
 ---
 
-# Release: Langflow v1.1.0
+# Release: LangBuilder v1.1.0
 
 Brief introduction to the release.
 
@@ -289,7 +289,7 @@ Steps to migrate from previous versions.
 ```markdown
 ---
 title: "Announcement: New Integration"
-description: "Langflow now supports integration with XYZ service"
+description: "LangBuilder now supports integration with XYZ service"
 authors: [author-name]
 date: 2024-01-15
 tags: [announcement, integration]
@@ -333,16 +333,16 @@ module.exports = {
 ### Site Configuration (`docusaurus.config.js`)
 ```javascript
 module.exports = {
-  title: 'Langflow Documentation',
+  title: 'LangBuilder Documentation',
   tagline: 'Build AI flows visually',
-  url: 'https://docs.langflow.org',
+  url: 'https://docs.langbuilder.org',
   baseUrl: '/',
 
   themeConfig: {
     navbar: {
-      title: 'Langflow',
+      title: 'LangBuilder',
       logo: {
-        alt: 'Langflow Logo',
+        alt: 'LangBuilder Logo',
         src: 'img/logo.svg',
       },
       items: [
@@ -404,9 +404,9 @@ yarn serve
 - **Lists:** Use parallel structure
 
 ### Terminology
-- **Langflow:** Always capitalize
-- **Component:** Capitalize when referring to Langflow components
-- **Flow:** Capitalize when referring to Langflow flows
+- **LangBuilder:** Always capitalize
+- **Component:** Capitalize when referring to LangBuilder components
+- **Flow:** Capitalize when referring to LangBuilder flows
 - **API:** Always uppercase
 - **JSON:** Always uppercase
 

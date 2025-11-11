@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 from cryptography.fernet import Fernet
-from langflow.services.auth.mcp_encryption import (
+from langbuilder.services.auth.mcp_encryption import (
     decrypt_auth_settings,
     encrypt_auth_settings,
     is_encrypted,
@@ -49,7 +49,7 @@ def sample_auth_settings():
 class TestMCPEncryption:
     """Test MCP encryption functionality."""
 
-    @patch("langflow.services.auth.mcp_encryption.get_settings_service")
+    @patch("langbuilder.services.auth.mcp_encryption.get_settings_service")
     def test_encrypt_auth_settings(self, mock_get_settings, mock_settings_service, sample_auth_settings):
         """Test that sensitive fields are encrypted."""
         mock_get_settings.return_value = mock_settings_service
@@ -66,7 +66,7 @@ class TestMCPEncryption:
         assert encrypted["oauth_host"] == sample_auth_settings["oauth_host"]
         assert encrypted["oauth_client_id"] == sample_auth_settings["oauth_client_id"]
 
-    @patch("langflow.services.auth.mcp_encryption.get_settings_service")
+    @patch("langbuilder.services.auth.mcp_encryption.get_settings_service")
     def test_decrypt_auth_settings(self, mock_get_settings, mock_settings_service, sample_auth_settings):
         """Test that encrypted fields can be decrypted."""
         mock_get_settings.return_value = mock_settings_service
@@ -80,25 +80,25 @@ class TestMCPEncryption:
         # Verify all fields match the original
         assert decrypted == sample_auth_settings
 
-    @patch("langflow.services.auth.mcp_encryption.get_settings_service")
+    @patch("langbuilder.services.auth.mcp_encryption.get_settings_service")
     def test_encrypt_none_returns_none(self, mock_get_settings):  # noqa: ARG002
         """Test that encrypting None returns None."""
         result = encrypt_auth_settings(None)
         assert result is None
 
-    @patch("langflow.services.auth.mcp_encryption.get_settings_service")
+    @patch("langbuilder.services.auth.mcp_encryption.get_settings_service")
     def test_decrypt_none_returns_none(self, mock_get_settings):  # noqa: ARG002
         """Test that decrypting None returns None."""
         result = decrypt_auth_settings(None)
         assert result is None
 
-    @patch("langflow.services.auth.mcp_encryption.get_settings_service")
+    @patch("langbuilder.services.auth.mcp_encryption.get_settings_service")
     def test_encrypt_empty_dict(self, mock_get_settings):  # noqa: ARG002
         """Test that encrypting empty dict returns empty dict."""
         result = encrypt_auth_settings({})
         assert result == {}
 
-    @patch("langflow.services.auth.mcp_encryption.get_settings_service")
+    @patch("langbuilder.services.auth.mcp_encryption.get_settings_service")
     def test_idempotent_encryption(self, mock_get_settings, mock_settings_service, sample_auth_settings):
         """Test that encrypting already encrypted data doesn't double-encrypt."""
         mock_get_settings.return_value = mock_settings_service
@@ -112,7 +112,7 @@ class TestMCPEncryption:
         # Should be the same
         assert encrypted_once == encrypted_twice
 
-    @patch("langflow.services.auth.mcp_encryption.get_settings_service")
+    @patch("langbuilder.services.auth.mcp_encryption.get_settings_service")
     def test_partial_auth_settings(self, mock_get_settings, mock_settings_service):
         """Test encryption with only some sensitive fields present."""
         mock_get_settings.return_value = mock_settings_service
@@ -132,7 +132,7 @@ class TestMCPEncryption:
         assert encrypted["auth_type"] == partial_settings["auth_type"]
         assert encrypted["username"] == partial_settings["username"]
 
-    @patch("langflow.services.auth.mcp_encryption.get_settings_service")
+    @patch("langbuilder.services.auth.mcp_encryption.get_settings_service")
     def test_backward_compatibility(self, mock_get_settings, mock_settings_service):
         """Test that plaintext data is handled gracefully during decryption."""
         mock_get_settings.return_value = mock_settings_service
@@ -150,7 +150,7 @@ class TestMCPEncryption:
         # Should return the same data
         assert decrypted == plaintext_settings
 
-    @patch("langflow.services.auth.mcp_encryption.get_settings_service")
+    @patch("langbuilder.services.auth.mcp_encryption.get_settings_service")
     def test_is_encrypted(self, mock_get_settings, mock_settings_service):
         """Test the is_encrypted helper function."""
         mock_get_settings.return_value = mock_settings_service
@@ -161,7 +161,7 @@ class TestMCPEncryption:
         assert not is_encrypted(None)
 
         # Test with encrypted value
-        from langflow.services.auth import utils as auth_utils
+        from langbuilder.services.auth import utils as auth_utils
 
         encrypted_value = auth_utils.encrypt_api_key("secret-value", mock_settings_service)
         assert is_encrypted(encrypted_value)

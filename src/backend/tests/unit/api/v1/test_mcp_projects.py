@@ -5,18 +5,18 @@ from uuid import uuid4
 import pytest
 from fastapi import HTTPException, status
 from httpx import AsyncClient
-from langflow.api.v1.mcp_projects import (
+from langbuilder.api.v1.mcp_projects import (
     get_project_mcp_server,
     get_project_sse,
     init_mcp_servers,
     project_mcp_servers,
     project_sse_transports,
 )
-from langflow.services.auth.utils import create_user_longterm_token, get_password_hash
-from langflow.services.database.models.flow import Flow
-from langflow.services.database.models.folder import Folder
-from langflow.services.database.models.user.model import User
-from langflow.services.deps import get_db_service, get_settings_service, session_scope
+from langbuilder.services.auth.utils import create_user_longterm_token, get_password_hash
+from langbuilder.services.database.models.flow import Flow
+from langbuilder.services.database.models.folder import Folder
+from langbuilder.services.database.models.user.model import User
+from langbuilder.services.deps import get_db_service, get_settings_service, session_scope
 from mcp.server.sse import SseServerTransport
 from sqlmodel import select
 
@@ -47,7 +47,7 @@ def mock_flow(active_user, mock_project):
 
 @pytest.fixture
 def mock_project_mcp_server():
-    with patch("langflow.api.v1.mcp_projects.ProjectMCPServer") as mock:
+    with patch("langbuilder.api.v1.mcp_projects.ProjectMCPServer") as mock:
         server_instance = MagicMock()
         server_instance.server = MagicMock()
         server_instance.server.name = "test-server"
@@ -70,7 +70,7 @@ class AsyncContextManagerMock:
 
 @pytest.fixture
 def mock_sse_transport():
-    with patch("langflow.api.v1.mcp_projects.SseServerTransport") as mock:
+    with patch("langbuilder.api.v1.mcp_projects.SseServerTransport") as mock:
         transport_instance = MagicMock()
         # Create an async context manager for connect_sse
         connect_sse_mock = AsyncContextManagerMock()
@@ -82,7 +82,7 @@ def mock_sse_transport():
 
 @pytest.fixture(autouse=True)
 def mock_current_user_ctx(active_user):
-    with patch("langflow.api.v1.mcp_projects.current_user_ctx") as mock:
+    with patch("langbuilder.api.v1.mcp_projects.current_user_ctx") as mock:
         mock.get.return_value = active_user
         mock.set = MagicMock(return_value="dummy_token")
         mock.reset = MagicMock()
@@ -91,7 +91,7 @@ def mock_current_user_ctx(active_user):
 
 @pytest.fixture(autouse=True)
 def mock_current_project_ctx(mock_project):
-    with patch("langflow.api.v1.mcp_projects.current_project_ctx") as mock:
+    with patch("langbuilder.api.v1.mcp_projects.current_project_ctx") as mock:
         mock.get.return_value = mock_project.id
         mock.set = MagicMock(return_value="dummy_token")
         mock.reset = MagicMock()
@@ -143,8 +143,8 @@ async def other_test_project(other_test_user):
 @pytest.fixture(autouse=True)
 def disable_mcp_composer_by_default():
     """Auto-fixture to disable MCP Composer for all tests by default."""
-    with patch("langflow.api.v1.mcp_projects.get_settings_service") as mock_get_settings:
-        from langflow.services.deps import get_settings_service
+    with patch("langbuilder.api.v1.mcp_projects.get_settings_service") as mock_get_settings:
+        from langbuilder.services.deps import get_settings_service
 
         real_service = get_settings_service()
 
@@ -163,8 +163,8 @@ def disable_mcp_composer_by_default():
 @pytest.fixture
 def enable_mcp_composer():
     """Fixture to explicitly enable MCP Composer for specific tests."""
-    with patch("langflow.api.v1.mcp_projects.get_settings_service") as mock_get_settings:
-        from langflow.services.deps import get_settings_service
+    with patch("langbuilder.api.v1.mcp_projects.get_settings_service") as mock_get_settings:
+        from langbuilder.services.deps import get_settings_service
 
         real_service = get_settings_service()
 
@@ -559,7 +559,7 @@ async def test_update_project_auth_settings_encryption(
     assert data["auth_settings"]["auth_type"] == "oauth"
 
     # Verify that decryption is working by checking the actual decrypted value in the backend
-    from langflow.services.auth.mcp_encryption import decrypt_auth_settings
+    from langbuilder.services.auth.mcp_encryption import decrypt_auth_settings
 
     async with session_scope() as session:
         project = await session.get(Folder, user_test_project.id)
@@ -596,7 +596,7 @@ async def test_project_sse_creation(user_test_project):
     assert project_id_str in project_mcp_servers
     assert mcp_server is project_mcp_servers[project_id_str]
     assert mcp_server.project_id == project_id
-    assert mcp_server.server.name == f"langflow-mcp-project-{project_id}"
+    assert mcp_server.server.name == f"langbuilder-mcp-project-{project_id}"
 
     # Test that getting the same SSE transport and MCP server again returns the cached instances
     sse_transport2 = get_project_sse(project_id)
@@ -654,7 +654,7 @@ async def test_init_mcp_servers_error_handling():
         return original_get_project_sse(project_id)
 
     # Apply the patch
-    with patch("langflow.api.v1.mcp_projects.get_project_sse", side_effect=mock_get_project_sse):
+    with patch("langbuilder.api.v1.mcp_projects.get_project_sse", side_effect=mock_get_project_sse):
         # This should not raise any exception, as the error should be caught
         await init_mcp_servers()
 

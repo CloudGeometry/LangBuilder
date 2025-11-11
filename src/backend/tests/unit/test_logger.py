@@ -1,4 +1,4 @@
-"""Comprehensive tests for langflow.logging.logger module.
+"""Comprehensive tests for langbuilder.logging.logger module.
 
 This test suite covers all aspects of the logger module including:
 - configure() function with all parameters and edge cases
@@ -20,7 +20,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 import structlog
-from langflow.logging.logger import (
+from langbuilder.logging.logger import (
     LOG_LEVEL_MAP,
     VALID_LOG_LEVELS,
     InterceptHandler,
@@ -215,42 +215,42 @@ class TestConfigure:
                 if isinstance(handler, logging.handlers.RotatingFileHandler):
                     logging.root.removeHandler(handler)
 
-    @patch.dict(os.environ, {"LANGFLOW_LOG_LEVEL": "WARNING"})
+    @patch.dict(os.environ, {"LANGBUILDER_LOG_LEVEL": "WARNING"})
     def test_configure_env_variable_override(self):
-        """Test configure() respects LANGFLOW_LOG_LEVEL environment variable."""
+        """Test configure() respects LANGBUILDER_LOG_LEVEL environment variable."""
         configure()  # Should use WARNING from env var
 
         config = structlog._config
         assert config is not None
         # The wrapper_class should be configured for WARNING level
 
-    @patch.dict(os.environ, {"LANGFLOW_LOG_FILE": "/tmp/test.log"})  # noqa: S108
+    @patch.dict(os.environ, {"LANGBUILDER_LOG_FILE": "/tmp/test.log"})  # noqa: S108
     def test_configure_env_log_file_override(self):
-        """Test configure() respects LANGFLOW_LOG_FILE environment variable."""
+        """Test configure() respects LANGBUILDER_LOG_FILE environment variable."""
         configure()
 
         config = structlog._config
         assert config is not None
 
-    @patch.dict(os.environ, {"LANGFLOW_LOG_ENV": "container"})
+    @patch.dict(os.environ, {"LANGBUILDER_LOG_ENV": "container"})
     def test_configure_env_log_env_override(self):
-        """Test configure() respects LANGFLOW_LOG_ENV environment variable."""
+        """Test configure() respects LANGBUILDER_LOG_ENV environment variable."""
         configure()
 
         config = structlog._config
         assert config is not None
 
-    @patch.dict(os.environ, {"LANGFLOW_LOG_FORMAT": "custom"})
+    @patch.dict(os.environ, {"LANGBUILDER_LOG_FORMAT": "custom"})
     def test_configure_env_log_format_override(self):
-        """Test configure() respects LANGFLOW_LOG_FORMAT environment variable."""
+        """Test configure() respects LANGBUILDER_LOG_FORMAT environment variable."""
         configure()
 
         config = structlog._config
         assert config is not None
 
-    @patch.dict(os.environ, {"LANGFLOW_PRETTY_LOGS": "false"})
+    @patch.dict(os.environ, {"LANGBUILDER_PRETTY_LOGS": "false"})
     def test_configure_env_pretty_logs_disabled(self):
-        """Test configure() respects LANGFLOW_PRETTY_LOGS=false."""
+        """Test configure() respects LANGBUILDER_PRETTY_LOGS=false."""
         configure()
 
         config = structlog._config
@@ -506,7 +506,7 @@ class TestLogProcessors:
         # Import the actual module to access DEV
         import sys
 
-        logger_module = sys.modules["langflow.logging.logger"]
+        logger_module = sys.modules["langbuilder.logging.logger"]
         with patch.object(logger_module, "DEV", False):  # noqa: FBT003
             result = remove_exception_in_production(None, "error", event_dict)
 
@@ -522,7 +522,7 @@ class TestLogProcessors:
         # Import the actual module to access DEV
         import sys
 
-        logger_module = sys.modules["langflow.logging.logger"]
+        logger_module = sys.modules["langbuilder.logging.logger"]
         with patch.object(logger_module, "DEV", True):  # noqa: FBT003
             result = remove_exception_in_production(None, "error", event_dict)
 
@@ -868,7 +868,7 @@ def test_init_default():
 
 
 def test_init_with_env_variable():
-    with patch.dict(os.environ, {"LANGFLOW_LOG_RETRIEVER_BUFFER_SIZE": "100"}):
+    with patch.dict(os.environ, {"LANGBUILDER_LOG_RETRIEVER_BUFFER_SIZE": "100"}):
         buffer = SizedLogBuffer()
         assert buffer.max == 100
 

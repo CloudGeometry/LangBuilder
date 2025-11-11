@@ -52,7 +52,7 @@ WORKDIR /tmp/src/frontend
 RUN --mount=type=cache,target=/root/.npm \
     npm ci \
     && npm run build \
-    && cp -r build /app/src/backend/langflow/frontend \
+    && cp -r build /app/src/backend/langbuilder/frontend \
     && rm -rf /tmp/src/frontend
 
 WORKDIR /app
@@ -86,23 +86,23 @@ RUN apt-get update \
 
 COPY --from=builder --chown=1000 /app/.venv /app/.venv
 
-# curl is required for langflow health checks
+# curl is required for langbuilder health checks
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 # Place executables in the environment at the front of the path
 ENV PATH="/app/.venv/bin:$PATH"
 
-LABEL org.opencontainers.image.title=langflow
-LABEL org.opencontainers.image.authors=['Langflow']
+LABEL org.opencontainers.image.title=langbuilder
+LABEL org.opencontainers.image.authors=['LangBuilder']
 LABEL org.opencontainers.image.licenses=MIT
-LABEL org.opencontainers.image.url=https://github.com/langflow-ai/langflow
-LABEL org.opencontainers.image.source=https://github.com/langflow-ai/langflow
+LABEL org.opencontainers.image.url=https://github.com/CloudGeometry/langbuilder
+LABEL org.opencontainers.image.source=https://github.com/CloudGeometry/langbuilder
 
 WORKDIR /app
 
-ENV LANGFLOW_HOST=0.0.0.0
-ENV LANGFLOW_PORT=7860
-ENV LANGFLOW_EVENT_DELIVERY=polling
+ENV LANGBUILDER_HOST=0.0.0.0
+ENV LANGBUILDER_PORT=7860
+ENV LANGBUILDER_EVENT_DELIVERY=polling
 
 USER 1000
-CMD ["python", "-m", "langflow", "run", "--host", "0.0.0.0", "--backend-only"]
+CMD ["python", "-m", "langbuilder", "run", "--host", "0.0.0.0", "--backend-only"]

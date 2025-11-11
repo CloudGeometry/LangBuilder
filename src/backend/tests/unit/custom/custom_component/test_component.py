@@ -2,14 +2,14 @@ from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
-from langflow.components.crewai import CrewAIAgentComponent, SequentialTaskComponent
-from langflow.components.custom_component import CustomComponent
-from langflow.components.input_output import ChatInput, ChatOutput
-from langflow.custom.custom_component.component import Component
-from langflow.custom.utils import update_component_build_config
-from langflow.schema import dotdict
-from langflow.schema.message import Message
-from langflow.template import Output
+from langbuilder.components.crewai import CrewAIAgentComponent, SequentialTaskComponent
+from langbuilder.components.custom_component import CustomComponent
+from langbuilder.components.input_output import ChatInput, ChatOutput
+from langbuilder.custom.custom_component.component import Component
+from langbuilder.custom.utils import update_component_build_config
+from langbuilder.schema import dotdict
+from langbuilder.schema.message import Message
+from langbuilder.template import Output
 
 crewai_available = False
 try:
@@ -131,7 +131,7 @@ async def test_send_message_without_database(monkeypatch):  # noqa: ARG001
 async def test_agent_component_send_message_events():
     from unittest.mock import AsyncMock
 
-    from langflow.components.agents.agent import AgentComponent
+    from langbuilder.components.agents.agent import AgentComponent
 
     event_manager = MagicMock()
     agent = AgentComponent(

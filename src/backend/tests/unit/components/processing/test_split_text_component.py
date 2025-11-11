@@ -1,7 +1,7 @@
 import pytest
-from langflow.components.data import URLComponent
-from langflow.components.processing import SplitTextComponent
-from langflow.schema import Data, DataFrame
+from langbuilder.components.data import URLComponent
+from langbuilder.components.processing import SplitTextComponent
+from langbuilder.schema import Data, DataFrame
 
 from tests.base import ComponentTestBaseWithoutClient
 

@@ -1,6 +1,6 @@
 import pytest
-from langflow.custom import Component
-from langflow.inputs.inputs import MessageTextInput, StrInput
+from langbuilder.custom import Component
+from langbuilder.inputs.inputs import MessageTextInput, StrInput
 
 
 @pytest.fixture

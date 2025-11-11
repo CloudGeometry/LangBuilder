@@ -1,5 +1,5 @@
 ---
-description: "Guidelines for testing Langflow components and backend code, with emphasis on async patterns and robust, well-documented testing practices."
+description: "Guidelines for testing LangBuilder components and backend code, with emphasis on async patterns and robust, well-documented testing practices."
 globs:
   - "src/backend/tests/**/*.py"
   - "src/frontend/**/*.test.{ts,tsx,js,jsx}"
@@ -10,10 +10,10 @@ globs:
 alwaysApply: false
 ---
 
-# Testing Guidelines for Langflow
+# Testing Guidelines for LangBuilder
 
 ## Purpose
-Guidelines for testing Langflow components and backend code, with emphasis on async patterns and robust, well-documented testing practices.
+Guidelines for testing LangBuilder components and backend code, with emphasis on async patterns and robust, well-documented testing practices.
 
 ---
 
@@ -56,12 +56,12 @@ Located in `src/backend/tests/base.py`.
 Required fixtures for subclasses:
 1. `component_class` → the component **class** under test.
 2. `default_kwargs` → dict of kwargs to instantiate the component (can be empty).
-3. `file_names_mapping` → list of `VersionComponentMapping` dicts mapping historical **Langflow versions** to module/file names.
+3. `file_names_mapping` → list of `VersionComponentMapping` dicts mapping historical **LangBuilder versions** to module/file names.
 
 Example skeleton:
 ```python
 from tests.base import ComponentTestBaseWithClient, VersionComponentMapping, DID_NOT_EXIST
-from langflow.components.my_namespace import MyComponent
+from langbuilder.components.my_namespace import MyComponent
 
 class TestMyComponent(ComponentTestBaseWithClient):
     @pytest.fixture
@@ -299,14 +299,14 @@ async def test_component_background_processing():
 
 ---
 
-## 9. Langflow-Specific Testing Patterns
+## 9. LangBuilder-Specific Testing Patterns
 
 ### Message Testing
-Test Langflow's `Message` objects and chat functionality:
+Test LangBuilder's `Message` objects and chat functionality:
 
 ```python
-from langflow.schema.message import Message
-from langflow.utils.constants import MESSAGE_SENDER_AI, MESSAGE_SENDER_USER
+from langbuilder.schema.message import Message
+from langbuilder.utils.constants import MESSAGE_SENDER_AI, MESSAGE_SENDER_USER
 
 async def test_message_response(self, component_class, default_kwargs):
     """Test Message object creation and properties."""
@@ -411,7 +411,7 @@ async def test_file_operations(self, component_class, tmp_path):
 ```
 
 ### API Endpoint Testing
-Test Langflow's REST API endpoints:
+Test LangBuilder's REST API endpoints:
 
 ```python
 async def test_flows_endpoint(client, logged_in_headers):
@@ -490,12 +490,12 @@ async def consume_and_validate_events(response, expected_job_id):
 ```
 
 ### Testing Component Versioning
-Test backward compatibility across Langflow versions:
+Test backward compatibility across LangBuilder versions:
 
 ```python
 @pytest.fixture
 def file_names_mapping(self):
-    """Map component files across Langflow versions."""
+    """Map component files across LangBuilder versions."""
     return [
         VersionComponentMapping(
             version="1.1.1",
@@ -539,13 +539,13 @@ Test error handling by mocking internal functions:
 ```python
 async def test_cancellation_error(client, flow_id, logged_in_headers, monkeypatch):
     """Test error handling during flow cancellation."""
-    import langflow.api.v1.chat
+    import langbuilder.api.v1.chat
 
     async def mock_cancel_with_error(*args, **kwargs):
         raise RuntimeError("Cancellation failed")
 
     monkeypatch.setattr(
-        langflow.api.v1.chat,
+        langbuilder.api.v1.chat,
         "cancel_flow_build",
         mock_cancel_with_error
     )

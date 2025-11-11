@@ -4,12 +4,12 @@ from uuid import UUID
 
 import pytest
 from httpx import AsyncClient
-from langflow.memory import aadd_messagetables
+from langbuilder.memory import aadd_messagetables
 
 # Assuming you have these imports available
-from langflow.services.database.models.message import MessageCreate, MessageRead, MessageUpdate
-from langflow.services.database.models.message.model import MessageTable
-from langflow.services.deps import session_scope
+from langbuilder.services.database.models.message import MessageCreate, MessageRead, MessageUpdate
+from langbuilder.services.database.models.message.model import MessageTable
+from langbuilder.services.deps import session_scope
 
 
 @pytest.fixture

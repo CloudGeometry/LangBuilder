@@ -11,7 +11,7 @@ import { create } from "zustand";
 import { checkCodeValidity } from "@/CustomNodes/helpers/check-code-validity";
 import { MISSED_ERROR_ALERT } from "@/constants/alerts_constants";
 import { BROKEN_EDGES_WARNING } from "@/constants/constants";
-import { ENABLE_DATASTAX_LANGFLOW } from "@/customization/feature-flags";
+import { ENABLE_DATASTAX_LANGBUILDER } from "@/customization/feature-flags";
 import {
   track,
   trackDataLoaded,
@@ -781,7 +781,7 @@ const useFlowStore = create<FlowStoreType>((set, get) => ({
           ...next_vertices_ids,
         ];
         if (
-          ENABLE_DATASTAX_LANGFLOW &&
+          ENABLE_DATASTAX_LANGBUILDER &&
           vertexBuildData?.id?.includes("AstraDB")
         ) {
           const search_results: LogsLogType[] = Object.values(

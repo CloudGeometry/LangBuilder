@@ -85,15 +85,15 @@ An agent can use [custom components](/components-custom-components) as tools.
     This code creates a text analyzer component.
 
     ```python
-    from langflow.custom import Component
-    from langflow.io import MessageTextInput, Output
-    from langflow.schema import Data
+    from langbuilder.custom import Component
+    from langbuilder.io import MessageTextInput, Output
+    from langbuilder.schema import Data
     import re
 
     class TextAnalyzerComponent(Component):
         display_name = "Text Analyzer"
         description = "Analyzes and transforms input text."
-        documentation: str = "http://docs.langflow.org/components/custom"
+        documentation: str = "http://docs.langbuilder.org/components/custom"
         icon = "chart-bar"
         name = "TextAnalyzerComponent"
 
@@ -162,7 +162,7 @@ An agent can use [custom components](/components-custom-components) as tools.
 
 If the component you want to use as a tool doesn't have a **Tool Mode** button, add `tool_mode=True` to one of the component's inputs, and connect the new **Toolset** output to the agent's **Tools** input.
 
-Langflow supports **Tool Mode** for the following data types:
+LangBuilder supports **Tool Mode** for the following data types:
 
 * `DataInput`
 * `DataFrameInput`
@@ -204,6 +204,6 @@ The connected flow returns an answer based on your question.
 ## See also
 
 * [**Agent** and **MCP Tools** components](/components-agents)
-* [Use Langflow agents](/agents)
-* [Use Langflow as an MCP client](/mcp-client)
-* [Use Langflow as an MCP server](/mcp-server)
+* [Use LangBuilder agents](/agents)
+* [Use LangBuilder as an MCP client](/mcp-client)
+* [Use LangBuilder as an MCP server](/mcp-server)

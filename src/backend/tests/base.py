@@ -5,9 +5,9 @@ from unittest.mock import Mock
 from uuid import uuid4
 
 import pytest
-from langflow.custom.custom_component.component import Component
-from langflow.graph.graph.base import Graph
-from langflow.graph.vertex.base import Vertex
+from langbuilder.custom.custom_component.component import Component
+from langbuilder.graph.graph.base import Graph
+from langbuilder.graph.vertex.base import Vertex
 from typing_extensions import TypedDict
 
 from tests.constants import SUPPORTED_VERSIONS

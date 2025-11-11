@@ -81,7 +81,7 @@ export default function EditShortcutButton({
         setUniqueShortcut(shortcutName, fixCombination.join("").toLowerCase());
         setShortcuts(newCombination);
         localStorage.setItem(
-          "langflow-shortcuts",
+          "langbuilder-shortcuts",
           JSON.stringify(newCombination),
         );
         setKey(null);

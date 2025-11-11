@@ -1,16 +1,16 @@
 ---
-description: "Guide for creating a basic Langflow component, including requirements gathering, component structure, and implementation best practices."
+description: "Guide for creating a basic LangBuilder component, including requirements gathering, component structure, and implementation best practices."
 globs:
   - "src/backend/**/components/**/*.py"
-  - "src/backend/base/langflow/components/**/*.py"
+  - "src/backend/base/langbuilder/components/**/*.py"
 alwaysApply: false
 ---
 
 
-# Rule: How to Create a Basic Langflow Component
+# Rule: How to Create a Basic LangBuilder Component
 
 ## Purpose
-Guide for Creating a Langflow Component
+Guide for Creating a LangBuilder Component
 
 ---
 
@@ -21,7 +21,7 @@ Ask the user for:
 - **Description:** What does the component do?
 - **Inputs:** What are the required inputs? (e.g., text, dropdown, boolean, etc.)
 - **Outputs:** What should the component output? (e.g., a message, a value, etc.)
-- **Category:** Which component category should this component be stored under in `langflow/src/backend/base/langflow/components`
+- **Category:** Which component category should this component be stored under in `langbuilder/src/backend/base/langbuilder/components`
 
 ### 2. Define the Component
 

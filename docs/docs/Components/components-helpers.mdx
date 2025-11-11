@@ -25,7 +25,7 @@ For an example of using this component in a flow, see the [**Python Interpreter*
 
 ## Current Date
 
-The **Current Date** component returns the current date and time in a selected timezone. This component provides a flexible way to obtain timezone-specific date and time information within a Langflow pipeline.
+The **Current Date** component returns the current date and time in a selected timezone. This component provides a flexible way to obtain timezone-specific date and time information within a LangBuilder pipeline.
 
 ### Current Date parameters
 
@@ -37,16 +37,16 @@ The **Current Date** component returns the current date and time in a selected t
 ## Message History
 
 The **Message History** component provides combined chat history and message storage functionality.
-It can store and retrieve chat messages from either [Langflow storage](/memory) _or_ a dedicated chat memory database like Mem0 or Redis.
+It can store and retrieve chat messages from either [LangBuilder storage](/memory) _or_ a dedicated chat memory database like Mem0 or Redis.
 
 It replaces the legacy **Chat History** and **Message Store** components.
 
 :::important
-The **Language Model** and **Agent** components have built-in chat memory that is enabled by default and uses Langflow storage.
+The **Language Model** and **Agent** components have built-in chat memory that is enabled by default and uses LangBuilder storage.
 
 This built-in chat memory functionality is sufficient for most use cases.
 
-Use the **Message History** component only if you need to access chat memories outside the chat context, such as sentiment analysis flow that retrieves and analyzes recently stored memories, or you want to store memories in a specific database, separate from Langflow storage.
+Use the **Message History** component only if you need to access chat memories outside the chat context, such as sentiment analysis flow that retrieves and analyzes recently stored memories, or you want to store memories in a specific database, separate from LangBuilder storage.
 
 For more information, see [Store chat memory](/memory#store-chat-memory).
 :::
@@ -55,15 +55,15 @@ For more information, see [Store chat memory](/memory#store-chat-memory).
 
 The **Message History** component has two modes, depending on where you want to use it in your flow:
 
-* **Retrieve mode**: The component retrieves chat messages from your Langflow database or external memory.
-* **Store mode**: The component stores chat messages in your Langflow database or external memory.
+* **Retrieve mode**: The component retrieves chat messages from your LangBuilder database or external memory.
+* **Store mode**: The component stores chat messages in your LangBuilder database or external memory.
 
 This means that you need multiple **Message History** components in your flow if you want to both store and retrieve chat messages.
 
 <Tabs>
-<TabItem value="langflow" label="Use Langflow storage" default>
+<TabItem value="langbuilder" label="Use LangBuilder storage" default>
 
-The following steps explain how to create a chat-based flow that uses **Message History** components to store and retrieve chat memory from your Langflow installation's database:
+The following steps explain how to create a chat-based flow that uses **Message History** components to store and retrieve chat memory from your LangBuilder installation's database:
 
 1. Create or edit a flow where you want to use chat memory.
 
@@ -86,7 +86,7 @@ The following steps explain how to create a chat-based flow that uses **Message 
     {memory}
     ```
 
-    Variables (`{variable}`) in the template dynamically add fields to the **Prompt Template** component so that your flow can receive definitions for those values from elsewhere, such as other components, Langflow global variables, or runtime input.
+    Variables (`{variable}`) in the template dynamically add fields to the **Prompt Template** component so that your flow can receive definitions for those values from elsewhere, such as other components, LangBuilder global variables, or runtime input.
 
     In this example, the `{memory}` variable is populated by the retrieved chat memories, which are then passed to a **Language Model** or **Agent** component to provide additional context to the LLM.
 
@@ -143,7 +143,7 @@ The following steps explain how to create a flow that stores and retrieves chat 
     {memory}
     ```
 
-    Variables (`{variable}`) in the template dynamically add fields to the **Prompt Template** component so that your flow can receive definitions for those values from elsewhere, such as other components, Langflow global variables, or runtime input.
+    Variables (`{variable}`) in the template dynamically add fields to the **Prompt Template** component so that your flow can receive definitions for those values from elsewhere, such as other components, LangBuilder global variables, or runtime input.
 
     In this example, the `{memory}` variable is populated by the retrieved chat memories, which are then passed to a **Language Model** or **Agent** component to provide additional context to the LLM.
 
@@ -181,7 +181,7 @@ You can toggle parameters through the <Icon name="SlidersHorizontal" aria-hidden
 
 | Name | Type | Description |
 |------|------|-------------|
-| memory | Memory | Input parameter. Retrieve messages from an external memory. If empty, the Langflow tables are used. |
+| memory | Memory | Input parameter. Retrieve messages from an external memory. If empty, the LangBuilder tables are used. |
 | sender | String | Input parameter. Filter by sender type. |
 | sender_name | String | Input parameter. Filter by sender name. |
 | n_messages | Integer | Input parameter. The number of messages to retrieve. |
@@ -256,7 +256,7 @@ For example:
     {format_instructions}
     ```
 
-    Variables in the template dynamically add fields to the **Prompt Template** component so that your flow can receive definitions for those values from other components, Langflow global variables, or fixed input.
+    Variables in the template dynamically add fields to the **Prompt Template** component so that your flow can receive definitions for those values from other components, LangBuilder global variables, or fixed input.
 
 4. Connect the **Output Parser** component's output to the **Prompt Template** component's **format instructions** input.
 

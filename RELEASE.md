@@ -1,6 +1,6 @@
-# Releasing Langflow
+# Releasing LangBuilder
 
-Langflow follows a **release-when-ready** cadence, with each cycle typically lasting 4–6 weeks depending on QA and stabilization needs.
+LangBuilder follows a **release-when-ready** cadence, with each cycle typically lasting 4–6 weeks depending on QA and stabilization needs.
 
 ## Goals
 
@@ -14,7 +14,7 @@ Langflow follows a **release-when-ready** cadence, with each cycle typically las
 
 ### 1. OSS QA
 
-Create an OSS release candidate (RC) branch containing `langflow` and any associated PyPI packages (e.g. `lfx`).
+Create an OSS release candidate (RC) branch containing `langbuilder` and any associated PyPI packages (e.g. `lfx`).
 During this period:
 
 * QA is performed manually.
@@ -39,7 +39,7 @@ This step also usually lasts about a week.
 After QA and bugfixing are complete for both OSS and Desktop:
 
 * Final releases are cut from their respective RC branches.
-* Release timing is coordinated with Langflow’s DevRel team.
+* Release timing is coordinated with LangBuilder’s DevRel team.
 * For at least 24 hours after release, Discord, GitHub, and other support channels should be monitored for critical bug reports.
 
 ## Branch Model

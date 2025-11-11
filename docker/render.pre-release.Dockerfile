@@ -1,1 +1,1 @@
-FROM langflowai/langflow:1.0-alpha
+FROM cloudgeometry/langbuilder:1.0-alpha

@@ -1,3 +1,3 @@
-export const LangflowButtonRedirectTarget = () => {
-  return "https://langflow.org";
+export const LangBuilderButtonRedirectTarget = () => {
+  return "https://langbuilder.org";
 };

@@ -7,9 +7,9 @@ import Icon from "@site/src/components/icon";
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-Custom components extend Langflow's functionality through Python classes that inherit from `Component`. This enables integration of new features, data manipulation, external services, and specialized tools.
+Custom components extend LangBuilder's functionality through Python classes that inherit from `Component`. This enables integration of new features, data manipulation, external services, and specialized tools.
 
-In Langflow's node-based environment, each node is a "component" that performs discrete functions. Custom components are Python classes which define:
+In LangBuilder's node-based environment, each node is a "component" that performs discrete functions. Custom components are Python classes which define:
 
 * **Inputs** — Data or parameters your component requires.
 * **Outputs** — Data your component provides to downstream nodes.
@@ -19,7 +19,7 @@ The benefits of creating custom components include unlimited extensibility, reus
 
 Create custom components for performing specialized tasks, calling APIs, or adding advanced logic.
 
-Custom components in Langflow are built upon:
+Custom components in LangBuilder are built upon:
 
 * The Python class that inherits from `Component`.
 * Class-level attributes that identify and describe the component.
@@ -41,20 +41,20 @@ class MyCsvReader(Component):
 
 * `display_name`: A user-friendly label shown in the **Components** menu and on the component itself when you add it to a flow.
 * `description`: A brief summary shown in tooltips and printed below the component name when added to a flow.
-* `icon`: A decorative icon from Langflow's icon library, printed next to the name.
+* `icon`: A decorative icon from LangBuilder's icon library, printed next to the name.
 
-    Langflow uses [Lucide](https://lucide.dev/icons) for icons. To assign an icon to your component, set the icon attribute to the name of a Lucide icon as a string, such as `icon = "file-text"`. Langflow renders icons from the Lucide library automatically.
+    LangBuilder uses [Lucide](https://lucide.dev/icons) for icons. To assign an icon to your component, set the icon attribute to the name of a Lucide icon as a string, such as `icon = "file-text"`. LangBuilder renders icons from the Lucide library automatically.
 
 * `name`: A unique internal identifier.
 * `documentation`: An optional link to external documentation, such as API or product documentation.
 
 ### Structure of a custom component
 
-A Langflow custom component is more than a class with inputs and outputs. It includes an internal structure with optional lifecycle steps, output generation, front-end interaction, and logic organization.
+A LangBuilder custom component is more than a class with inputs and outputs. It includes an internal structure with optional lifecycle steps, output generation, front-end interaction, and logic organization.
 
 A basic component:
 
-* Inherits from `langflow.custom.Component`.
+* Inherits from `langbuilder.custom.Component`.
 * Declares metadata like `display_name`, `description`, `icon`, and more.
 * Defines `inputs` and `outputs` lists.
 * Implements methods matching output specifications.
@@ -62,8 +62,8 @@ A basic component:
 A minimal custom component skeleton contains the following:
 
 ```python
-from langflow.custom import Component
-from langflow.template import Output
+from langbuilder.custom import Component
+from langbuilder.template import Output
 
 class MyComponent(Component):
     display_name = "My Component"
@@ -79,7 +79,7 @@ class MyComponent(Component):
 ```
 ### Internal Lifecycle and Execution Flow
 
-Langflow's engine manages:
+LangBuilder's engine manages:
 
 * **Instantiation**:  A component is created and internal structures are initialized.
 * **Assigning Inputs**: Values from the visual editor or connections are assigned to component fields.
@@ -151,7 +151,7 @@ outputs = [
 
 #### Output Grouping Behavior with `group_outputs`
 
-By default, components in Langflow that produce multiple outputs only allow one output selection in the visual editor.
+By default, components in LangBuilder that produce multiple outputs only allow one output selection in the visual editor.
 The component will have only one output port where the user can select the preferred output type.
 
 This behavior is controlled by the `group_outputs` parameter:
@@ -239,15 +239,15 @@ def some_method(self):
 
 ## Directory structure requirements
 
-By default, Langflow looks for custom components in the `/components` directory.
+By default, LangBuilder looks for custom components in the `/components` directory.
 
-If you're creating custom components in a different location using the `LANGFLOW_COMPONENTS_PATH` [environment variable](/environment-variables), components must be organized in a specific directory structure to be properly loaded and displayed in the visual editor:
+If you're creating custom components in a different location using the `LANGBUILDER_COMPONENTS_PATH` [environment variable](/environment-variables), components must be organized in a specific directory structure to be properly loaded and displayed in the visual editor:
 
-Each category directory **must** contain an `__init__.py` file for Langflow to properly recognize and load the components.
+Each category directory **must** contain an `__init__.py` file for LangBuilder to properly recognize and load the components.
 This is a Python package requirement that ensures the directory is treated as a module.
 
 ```
-/your/custom/components/path/    # Base directory set by LANGFLOW_COMPONENTS_PATH
+/your/custom/components/path/    # Base directory set by LANGBUILDER_COMPONENTS_PATH
     └── category_name/          # Required category subfolder that determines menu name
         ├── __init__.py         # Required
         └── custom_component.py # Component file
@@ -255,11 +255,11 @@ This is a Python package requirement that ensures the directory is treated as a 
 
 Components must be placed inside category folders, not directly in the base directory.
 
-The category folder name determines where the component appears in the Langflow **Components** menu.
+The category folder name determines where the component appears in the LangBuilder **Components** menu.
 For example, to add a component to the **Helpers** category, place it in the `helpers` subfolder:
 
 ```
-/app/custom_components/          # LANGFLOW_COMPONENTS_PATH
+/app/custom_components/          # LANGBUILDER_COMPONENTS_PATH
     └── helpers/                 # Displayed within the "Helpers" category
         ├── __init__.py          # Required
         └── custom_component.py  # Your component
@@ -276,10 +276,10 @@ You can have multiple category folders to organize components into different cat
         └── tool_component.py
 ```
 
-This folder structure is required for Langflow to properly discover and load your custom components. Components placed directly in the base directory aren't loaded.
+This folder structure is required for LangBuilder to properly discover and load your custom components. Components placed directly in the base directory aren't loaded.
 
 ```
-/app/custom_components/          # LANGFLOW_COMPONENTS_PATH
+/app/custom_components/          # LANGBUILDER_COMPONENTS_PATH
     └── custom_component.py      # Won't be loaded - missing category folder!
 ```
 
@@ -289,9 +289,9 @@ Inputs and outputs define how data flows through the component, how it appears i
 
 ### Inputs
 
-Inputs are defined in a class-level `inputs` list. When Langflow loads the component, it uses this list to render component fields and [ports](/concepts-components#component-ports) in the visual editor. Users or other components provide values or connections to fill these inputs.
+Inputs are defined in a class-level `inputs` list. When LangBuilder loads the component, it uses this list to render component fields and [ports](/concepts-components#component-ports) in the visual editor. Users or other components provide values or connections to fill these inputs.
 
-An input is usually an instance of a class from `langflow.io` (such as `StrInput`, `DataInput`, or `MessageTextInput`). The most common constructor parameters are:
+An input is usually an instance of a class from `langbuilder.io` (such as `StrInput`, `DataInput`, or `MessageTextInput`). The most common constructor parameters are:
 
 * **`name`**: The internal variable name, accessed with `self.<name>`.
 * **`display_name`**: The label shown to users in the visual editor.
@@ -333,7 +333,7 @@ Here are the most commonly used input classes and their typical usage.
 This example defines three inputs: a text field (`StrInput`), a Boolean toggle (`BoolInput`), and a dropdown selection (`DropdownInput`).
 
 ```python
-from langflow.io import StrInput, BoolInput, DropdownInput
+from langbuilder.io import StrInput, BoolInput, DropdownInput
 
 inputs = [
     StrInput(name="title", display_name="Title"),
@@ -344,9 +344,9 @@ inputs = [
 
 ### Outputs
 
-Outputs are defined in a class-level `outputs` list. When Langflow renders a component, each output becomes a connector point in the visual editor. When you connect something to an output, Langflow automatically calls the corresponding method and passes the returned object to the next component.
+Outputs are defined in a class-level `outputs` list. When LangBuilder renders a component, each output becomes a connector point in the visual editor. When you connect something to an output, LangBuilder automatically calls the corresponding method and passes the returned object to the next component.
 
-An output is usually an instance of `Output` from `langflow.io`, with common parameters:
+An output is usually an instance of `Output` from `langbuilder.io`, with common parameters:
 
 * **`name`**: The internal variable name.
 * **`display_name`**: The label shown in the visual editor.
@@ -359,15 +359,15 @@ You can also set a `self.status` message inside the method to show progress or l
 **Common Return Types**:
 - **`Message`**: Structured chat messages.
 - **`Data`**: Flexible object with `.data` and optional `.text`.
-- **`DataFrame`**: Pandas-based tables (`langflow.schema.DataFrame`).
+- **`DataFrame`**: Pandas-based tables (`langbuilder.schema.DataFrame`).
 - **Primitive types**: `str`, `int`, `bool` (not recommended if you need type/color consistency).
 
-In this example, the `DataToDataFrame` component defines its output using the outputs list. The `df_out` output is linked to the `build_df` method, so when connected to another component (node), Langflow calls this method and passes its returned `DataFrame` to the next node. This demonstrates how each output maps to a method that generates the actual output data.
+In this example, the `DataToDataFrame` component defines its output using the outputs list. The `df_out` output is linked to the `build_df` method, so when connected to another component (node), LangBuilder calls this method and passes its returned `DataFrame` to the next node. This demonstrates how each output maps to a method that generates the actual output data.
 
 ```python
-from langflow.custom import Component
-from langflow.io import DataInput, Output
-from langflow.schema import Data, DataFrame
+from langbuilder.custom import Component
+from langbuilder.io import DataInput, Output
+from langbuilder.schema import Data, DataFrame
 
 class DataToDataFrame(Component):
     display_name = "Data to DataFrame"
@@ -422,7 +422,7 @@ inputs = [
 ]
 ```
 
-Langflow currently supports the following input types for **Tool Mode**:
+LangBuilder currently supports the following input types for **Tool Mode**:
 
 * `DataInput`
 * `DataFrameInput`
@@ -433,12 +433,12 @@ Langflow currently supports the following input types for **Tool Mode**:
 
 ## Typed annotations
 
-In Langflow, **typed annotations** allow Langflow to visually guide users and maintain flow consistency.
+In LangBuilder, **typed annotations** allow LangBuilder to visually guide users and maintain flow consistency.
 
 Typed annotations provide:
 
 * **Color-coding**: Outputs like `-> Data` or `-> Message` get distinct colors.
-* **Validation**: Langflow blocks incompatible connections automatically.
+* **Validation**: LangBuilder blocks incompatible connections automatically.
 * **Readability**: Developers can quickly understand data flow.
 * **Development tools**: Better code suggestions and error checking in your code editor.
 
@@ -487,14 +487,14 @@ When using typed annotations, consider the following best practices:
 
 ## Enable dynamic fields
 
-In **Langflow**, dynamic fields allow inputs to change or appear based on user interactions. You can make an input dynamic by setting `dynamic=True`.
+In **LangBuilder**, dynamic fields allow inputs to change or appear based on user interactions. You can make an input dynamic by setting `dynamic=True`.
 Optionally, setting `real_time_refresh=True` triggers the `update_build_config` method to adjust the input's visibility or properties in real time, creating a contextual visual editor experience that only exposes relevant fields based on the user's choices.
 
 In this example, the operator field triggers updates with `real_time_refresh=True`.
 The `regex_pattern` field is initially hidden and controlled with `dynamic=True`.
 
 ```python
-from langflow.io import DropdownInput, StrInput
+from langbuilder.io import DropdownInput, StrInput
 
 class RegexRouter(Component):
     display_name = "Regex Router"
@@ -520,7 +520,7 @@ class RegexRouter(Component):
 
 ### Implement `update_build_config`
 
-When a field with `real_time_refresh=True` is modified, Langflow calls the `update_build_config` method, passing the updated field name, value, and the component's configuration to dynamically adjust the visibility or properties of other fields based on user input.
+When a field with `real_time_refresh=True` is modified, LangBuilder calls the `update_build_config` method, passing the updated field name, value, and the component's configuration to dynamically adjust the visibility or properties of other fields based on user input.
 
 This example will show or hide the `regex_pattern` field when the user selects a different operator.
 
@@ -556,11 +556,11 @@ When working with dynamic fields, consider the following best practices to ensur
 
 ## Error handling and logging
 
-In Langflow, robust error handling ensures that your components behave predictably, even when unexpected situations occur, such as invalid inputs, external API failures, or internal logic errors.
+In LangBuilder, robust error handling ensures that your components behave predictably, even when unexpected situations occur, such as invalid inputs, external API failures, or internal logic errors.
 
 ### Error handling techniques
 
-* **Raise Exceptions**: If a critical error occurs, you can raise standard Python exceptions such as `ValueError`, or specialized exceptions like `ToolException`. Langflow will automatically catch these and display appropriate error messages in the visual editor, helping users quickly identify what went wrong.
+* **Raise Exceptions**: If a critical error occurs, you can raise standard Python exceptions such as `ValueError`, or specialized exceptions like `ToolException`. LangBuilder will automatically catch these and display appropriate error messages in the visual editor, helping users quickly identify what went wrong.
 
     ```python
     def compute_result(self) -> str:
@@ -595,7 +595,7 @@ In Langflow, robust error handling ensures that your components behave predictab
     ```python
     def some_output(self) -> Data:
     if <some condition>:
-        self.stop("some_output")  # Tells Langflow no data flows
+        self.stop("some_output")  # Tells LangBuilder no data flows
         return Data(data={"error": "Condition not met"})
     ```
 
@@ -617,6 +617,6 @@ To build more reliable components, consider the following best practices:
 * **Return structured errors**: When appropriate, return `Data(data={"error": ...})` instead of raising exceptions to allow downstream handling.
 * **Stop outputs selectively**: Only halt specific outputs with `self.stop(...)` if necessary, to preserve correct flow behavior elsewhere.
 
-## Contribute custom components to Langflow
+## Contribute custom components to LangBuilder
 
-See [How to Contribute](/contributing-components) to contribute your custom component to Langflow.
+See [How to Contribute](/contributing-components) to contribute your custom component to LangBuilder.

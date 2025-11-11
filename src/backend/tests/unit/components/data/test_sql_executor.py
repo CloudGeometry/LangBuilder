@@ -2,8 +2,8 @@ import sqlite3
 from pathlib import Path
 
 import pytest
-from langflow.components.data.sql_executor import SQLComponent
-from langflow.schema import DataFrame, Message
+from langbuilder.components.data.sql_executor import SQLComponent
+from langbuilder.schema import DataFrame, Message
 
 from tests.base import ComponentTestBaseWithoutClient
 

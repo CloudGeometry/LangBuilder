@@ -1,3 +1,3 @@
-FROM langflowai/langflow:latest
+FROM cloudgeometry/langbuilder:latest
 
-ENTRYPOINT ["python", "-m", "langflow", "run"]
+ENTRYPOINT ["python", "-m", "langbuilder", "run"]

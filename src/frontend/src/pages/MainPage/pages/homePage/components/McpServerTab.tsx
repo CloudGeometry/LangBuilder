@@ -354,10 +354,10 @@ const McpServerTab = ({ folderName }: { folderName: string }) => {
 }`;
 
   const MCP_SERVER_TUTORIAL_LINK =
-    "https://docs.langflow.org/mcp-server#connect-clients-to-use-the-servers-actions";
+    "https://docs.langbuilder.org/mcp-server#connect-clients-to-use-the-servers-actions";
 
   const MCP_SERVER_DEPLOY_TUTORIAL_LINK =
-    "https://docs.langflow.org/mcp-server";
+    "https://docs.langbuilder.org/mcp-server";
 
   const copyToClipboard = useCallback(() => {
     navigator.clipboard
@@ -618,7 +618,7 @@ const McpServerTab = ({ folderName }: { folderName: string }) => {
                       className="h-4 w-4 shrink-0"
                     />
                     <span>
-                      One-click install is disabled because the Langflow server
+                      One-click install is disabled because the LangBuilder server
                       is not running on your local machine. Use the JSON tab to
                       configure your client manually.
                     </span>

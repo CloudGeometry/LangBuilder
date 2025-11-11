@@ -4,8 +4,8 @@ from typing import Any
 
 import pytest
 from langchain_community.embeddings.fake import DeterministicFakeEmbedding
-from langflow.components.mongodb import MongoVectorStoreComponent
-from langflow.schema.data import Data
+from langbuilder.components.mongodb import MongoVectorStoreComponent
+from langbuilder.schema.data import Data
 from pymongo.collection import Collection
 
 from tests.base import ComponentTestBaseWithoutClient, VersionComponentMapping

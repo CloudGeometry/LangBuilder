@@ -3,18 +3,18 @@ import operator
 from textwrap import dedent
 
 import pytest
-from langflow.components.data import FileComponent
-from langflow.components.datastax import AstraDBVectorStoreComponent
-from langflow.components.input_output import ChatInput, ChatOutput
-from langflow.components.openai.openai import OpenAIEmbeddingsComponent
-from langflow.components.openai.openai_chat_model import OpenAIModelComponent
-from langflow.components.processing import ParseDataComponent, PromptComponent
-from langflow.components.processing.split_text import SplitTextComponent
-from langflow.graph.graph.base import Graph
-from langflow.graph.graph.constants import Finish
-from langflow.schema import Data
-from langflow.schema.dataframe import DataFrame
-from langflow.schema.message import Message
+from langbuilder.components.data import FileComponent
+from langbuilder.components.datastax import AstraDBVectorStoreComponent
+from langbuilder.components.input_output import ChatInput, ChatOutput
+from langbuilder.components.openai.openai import OpenAIEmbeddingsComponent
+from langbuilder.components.openai.openai_chat_model import OpenAIModelComponent
+from langbuilder.components.processing import ParseDataComponent, PromptComponent
+from langbuilder.components.processing.split_text import SplitTextComponent
+from langbuilder.graph.graph.base import Graph
+from langbuilder.graph.graph.constants import Finish
+from langbuilder.schema import Data
+from langbuilder.schema.dataframe import DataFrame
+from langbuilder.schema.message import Message
 
 
 @pytest.fixture

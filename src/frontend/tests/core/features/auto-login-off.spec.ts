@@ -19,7 +19,7 @@ test(
     await page.addInitScript(() => {
       window.process = window.process || {};
 
-      const newEnv = { ...window.process.env, LANGFLOW_AUTO_LOGIN: "false" };
+      const newEnv = { ...window.process.env, LANGBUILDER_AUTO_LOGIN: "false" };
 
       Object.defineProperty(window.process, "env", {
         value: newEnv,
@@ -38,10 +38,10 @@ test(
 
     await page.goto("/");
 
-    await page.waitForSelector("text=sign in to langflow", { timeout: 30000 });
+    await page.waitForSelector("text=sign in to langbuilder", { timeout: 30000 });
 
-    await page.getByPlaceholder("Username").fill("langflow");
-    await page.getByPlaceholder("Password").fill("langflow");
+    await page.getByPlaceholder("Username").fill("langbuilder");
+    await page.getByPlaceholder("Password").fill("langbuilder");
 
     await page.evaluate(() => {
       sessionStorage.removeItem("testMockAutoLogin");
@@ -185,7 +185,7 @@ test(
 
     await page.getByText("Logout", { exact: true }).click();
 
-    await page.waitForSelector("text=sign in to langflow", { timeout: 30000 });
+    await page.waitForSelector("text=sign in to langbuilder", { timeout: 30000 });
 
     await page.getByPlaceholder("Username").fill(secondRandomName);
     await page.getByPlaceholder("Password").fill(randomPassword);
@@ -206,7 +206,7 @@ test(
 
     expect(
       (
-        await page.waitForSelector("text=Welcome to LangFlow", {
+        await page.waitForSelector("text=Welcome to LangBuilder", {
           timeout: 30000,
         })
       ).isVisible(),
@@ -261,10 +261,10 @@ test(
 
     await page.getByText("Logout", { exact: true }).click();
 
-    await page.waitForSelector("text=sign in to langflow", { timeout: 30000 });
+    await page.waitForSelector("text=sign in to langbuilder", { timeout: 30000 });
 
-    await page.getByPlaceholder("Username").fill("langflow");
-    await page.getByPlaceholder("Password").fill("langflow");
+    await page.getByPlaceholder("Username").fill("langbuilder");
+    await page.getByPlaceholder("Password").fill("langbuilder");
 
     await page.evaluate(() => {
       sessionStorage.removeItem("testMockAutoLogin");

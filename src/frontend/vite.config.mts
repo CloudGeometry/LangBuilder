@@ -14,11 +14,11 @@ import {
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
 
-  const envLangflowResult = dotenv.config({
+  const envLangbuilderResult = dotenv.config({
     path: path.resolve(__dirname, "../../.env"),
   });
 
-  const envLangflow = envLangflowResult.parsed || {};
+  const envLangbuilder = envLangbuilderResult.parsed || {};
 
   const apiRoutes = API_ROUTES || ["^/api/v1/", "^/api/v2/", "/health"];
 
@@ -44,17 +44,17 @@ export default defineConfig(({ mode }) => {
     },
     define: {
       "process.env.BACKEND_URL": JSON.stringify(
-        envLangflow.BACKEND_URL ?? "http://localhost:7860",
+        envLangbuilder.BACKEND_URL ?? "http://localhost:7860",
       ),
       "process.env.ACCESS_TOKEN_EXPIRE_SECONDS": JSON.stringify(
-        envLangflow.ACCESS_TOKEN_EXPIRE_SECONDS ?? 60,
+        envLangbuilder.ACCESS_TOKEN_EXPIRE_SECONDS ?? 60,
       ),
-      "process.env.CI": JSON.stringify(envLangflow.CI ?? false),
-      "process.env.LANGFLOW_AUTO_LOGIN": JSON.stringify(
-        envLangflow.LANGFLOW_AUTO_LOGIN ?? true,
+      "process.env.CI": JSON.stringify(envLangbuilder.CI ?? false),
+      "process.env.LANGBUILDER_AUTO_LOGIN": JSON.stringify(
+        envLangbuilder.LANGBUILDER_AUTO_LOGIN ?? true,
       ),
-      "process.env.LANGFLOW_MCP_COMPOSER_ENABLED": JSON.stringify(
-        envLangflow.LANGFLOW_MCP_COMPOSER_ENABLED ?? "true",
+      "process.env.LANGBUILDER_MCP_COMPOSER_ENABLED": JSON.stringify(
+        envLangbuilder.LANGBUILDER_MCP_COMPOSER_ENABLED ?? "true",
       ),
     },
     plugins: [react(), svgr(), tsconfigPaths()],

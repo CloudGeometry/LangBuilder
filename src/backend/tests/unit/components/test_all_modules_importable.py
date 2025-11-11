@@ -7,7 +7,7 @@ and that all components listed in __all__ can be accessed.
 import importlib
 
 import pytest
-from langflow import components
+from langbuilder import components
 
 
 class TestAllModulesImportable:
@@ -100,11 +100,11 @@ class TestAllModulesImportable:
         """Test that traditional import patterns still work."""
         # Test some key imports that should always work
         traditional_imports = [
-            ("langflow.components.openai", "OpenAIModelComponent"),
-            ("langflow.components.anthropic", "AnthropicModelComponent"),
-            ("langflow.components.data", "APIRequestComponent"),
-            ("langflow.components.agents", "AgentComponent"),
-            ("langflow.components.helpers", "CalculatorComponent"),
+            ("langbuilder.components.openai", "OpenAIModelComponent"),
+            ("langbuilder.components.anthropic", "AnthropicModelComponent"),
+            ("langbuilder.components.data", "APIRequestComponent"),
+            ("langbuilder.components.agents", "AgentComponent"),
+            ("langbuilder.components.helpers", "CalculatorComponent"),
         ]
 
         failed_imports = []

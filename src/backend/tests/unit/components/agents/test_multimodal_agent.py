@@ -3,8 +3,8 @@
 from unittest.mock import MagicMock
 
 import pytest
-from langflow.base.agents.agent import LCAgentComponent
-from langflow.schema.message import Message
+from langbuilder.base.agents.agent import LCAgentComponent
+from langbuilder.schema.message import Message
 
 
 class MockAgentComponent(LCAgentComponent):

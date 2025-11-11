@@ -1,5 +1,5 @@
-from langflow.components.data import FileComponent
-from langflow.io import Output
+from langbuilder.components.data import FileComponent
+from langbuilder.io import Output
 
 
 class TestFileComponentDynamicOutputs:

@@ -3,8 +3,8 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from langflow.components.chroma import ChromaVectorStoreComponent
-from langflow.schema.data import Data
+from langbuilder.components.chroma import ChromaVectorStoreComponent
+from langbuilder.schema.data import Data
 
 from tests.base import ComponentTestBaseWithoutClient, VersionComponentMapping
 
@@ -19,7 +19,7 @@ class TestChromaVectorStoreComponent(ComponentTestBaseWithoutClient):
     @pytest.fixture
     def default_kwargs(self, tmp_path: Path) -> dict[str, Any]:
         """Return the default kwargs for the component."""
-        from langflow.components.openai.openai import OpenAIEmbeddingsComponent
+        from langbuilder.components.openai.openai import OpenAIEmbeddingsComponent
 
         if os.getenv("OPENAI_API_KEY") is None:
             pytest.skip("OPENAI_API_KEY is not set")
@@ -250,7 +250,7 @@ class TestChromaVectorStoreComponent(ComponentTestBaseWithoutClient):
         self, component_class: type[ChromaVectorStoreComponent], default_kwargs: dict[str, Any]
     ) -> None:
         """Test the chroma_collection_to_data function."""
-        from langflow.base.vectorstores.utils import chroma_collection_to_data
+        from langbuilder.base.vectorstores.utils import chroma_collection_to_data
 
         # Create a collection with documents and metadata
         test_data = [
@@ -279,7 +279,7 @@ class TestChromaVectorStoreComponent(ComponentTestBaseWithoutClient):
         self, component_class: type[ChromaVectorStoreComponent], default_kwargs: dict[str, Any]
     ) -> None:
         """Test the chroma_collection_to_data function with documents that have no metadata."""
-        from langflow.base.vectorstores.utils import chroma_collection_to_data
+        from langbuilder.base.vectorstores.utils import chroma_collection_to_data
 
         # Create a collection with documents but no metadata
         test_data = [
@@ -306,7 +306,7 @@ class TestChromaVectorStoreComponent(ComponentTestBaseWithoutClient):
         self, component_class: type[ChromaVectorStoreComponent], default_kwargs: dict[str, Any]
     ) -> None:
         """Test the chroma_collection_to_data function with an empty collection."""
-        from langflow.base.vectorstores.utils import chroma_collection_to_data
+        from langbuilder.base.vectorstores.utils import chroma_collection_to_data
 
         # Create an empty collection
         component: ChromaVectorStoreComponent = component_class().set(**default_kwargs)
@@ -323,7 +323,7 @@ class TestChromaVectorStoreComponent(ComponentTestBaseWithoutClient):
         self, component_class: type[ChromaVectorStoreComponent], default_kwargs: dict[str, Any]
     ) -> None:
         """Test that complex metadata is properly filtered and simple types are preserved."""
-        from langflow.base.vectorstores.utils import chroma_collection_to_data
+        from langbuilder.base.vectorstores.utils import chroma_collection_to_data
 
         # Create test data that covers the original error scenario and validation
         test_data = [

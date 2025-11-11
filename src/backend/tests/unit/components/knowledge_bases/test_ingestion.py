@@ -3,10 +3,10 @@ import uuid
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from langflow.base.knowledge_bases.knowledge_base_utils import get_knowledge_bases
-from langflow.components.knowledge_bases.ingestion import KnowledgeIngestionComponent
-from langflow.schema.data import Data
-from langflow.schema.dataframe import DataFrame
+from langbuilder.base.knowledge_bases.knowledge_base_utils import get_knowledge_bases
+from langbuilder.components.knowledge_bases.ingestion import KnowledgeIngestionComponent
+from langbuilder.schema.data import Data
+from langbuilder.schema.dataframe import DataFrame
 
 from tests.base import ComponentTestBaseWithoutClient
 
@@ -20,13 +20,13 @@ class TestKnowledgeIngestionComponent(ComponentTestBaseWithoutClient):
     @pytest.fixture(autouse=True)
     def mock_knowledge_base_path(self, tmp_path):
         """Mock the knowledge base root path directly."""
-        with patch("langflow.components.knowledge_bases.ingestion._KNOWLEDGE_BASES_ROOT_PATH", tmp_path):
+        with patch("langbuilder.components.knowledge_bases.ingestion._KNOWLEDGE_BASES_ROOT_PATH", tmp_path):
             yield
 
     class MockUser:
         def __init__(self, user_id):
             self.id = user_id
-            self.username = "langflow"
+            self.username = "langbuilder"
 
     @pytest.fixture
     def mock_user_data(self):
@@ -41,12 +41,12 @@ class TestKnowledgeIngestionComponent(ComponentTestBaseWithoutClient):
         with (
             patch.object(KnowledgeIngestionComponent, "user_id", mock_user_data["user_id"]),
             patch(
-                "langflow.components.knowledge_bases.ingestion.get_user_by_id",
+                "langbuilder.components.knowledge_bases.ingestion.get_user_by_id",
                 new_callable=AsyncMock,
                 return_value=mock_user_data["user_obj"],
             ),
             patch(
-                "langflow.base.knowledge_bases.knowledge_base_utils.get_user_by_id",
+                "langbuilder.base.knowledge_bases.knowledge_base_utils.get_user_by_id",
                 new_callable=AsyncMock,
                 return_value=mock_user_data["user_obj"],
             ),
@@ -209,8 +209,8 @@ class TestKnowledgeIngestionComponent(ComponentTestBaseWithoutClient):
         with pytest.raises(NotImplementedError, match="Custom embedding models not yet supported"):
             component._build_embeddings("custom-model", "test-key")
 
-    @patch("langflow.components.knowledge_bases.ingestion.get_settings_service")
-    @patch("langflow.components.knowledge_bases.ingestion.encrypt_api_key")
+    @patch("langbuilder.components.knowledge_bases.ingestion.get_settings_service")
+    @patch("langbuilder.components.knowledge_bases.ingestion.encrypt_api_key")
     def test_build_embedding_metadata(self, mock_encrypt, mock_get_settings, component_class, default_kwargs):
         """Test building embedding metadata."""
         component = component_class(**default_kwargs)
@@ -250,7 +250,7 @@ class TestKnowledgeIngestionComponent(ComponentTestBaseWithoutClient):
         config_list = default_kwargs["column_config"]
 
         # Mock Chroma to avoid actual vector store operations
-        with patch("langflow.components.knowledge_bases.ingestion.Chroma") as mock_chroma:
+        with patch("langbuilder.components.knowledge_bases.ingestion.Chroma") as mock_chroma:
             mock_chroma_instance = MagicMock()
             mock_chroma_instance.get.return_value = {"metadatas": []}
             mock_chroma.return_value = mock_chroma_instance
@@ -275,7 +275,7 @@ class TestKnowledgeIngestionComponent(ComponentTestBaseWithoutClient):
         config_list = default_kwargs["column_config"]
 
         # Mock Chroma with existing hash
-        with patch("langflow.components.knowledge_bases.ingestion.Chroma") as mock_chroma:
+        with patch("langbuilder.components.knowledge_bases.ingestion.Chroma") as mock_chroma:
             # Simulate existing document with same hash
             existing_hash = "some_existing_hash"
             mock_chroma_instance = MagicMock()
@@ -283,7 +283,7 @@ class TestKnowledgeIngestionComponent(ComponentTestBaseWithoutClient):
             mock_chroma.return_value = mock_chroma_instance
 
             # Mock hashlib to return the existing hash for first row
-            with patch("langflow.components.knowledge_bases.ingestion.hashlib.sha256") as mock_hash:
+            with patch("langbuilder.components.knowledge_bases.ingestion.hashlib.sha256") as mock_hash:
                 mock_hash_obj = MagicMock()
                 mock_hash_obj.hexdigest.side_effect = [existing_hash, "different_hash"]
                 mock_hash.return_value = mock_hash_obj
@@ -309,8 +309,8 @@ class TestKnowledgeIngestionComponent(ComponentTestBaseWithoutClient):
         assert component.is_valid_collection_name("invalid_") is False  # Ends with underscore
         assert component.is_valid_collection_name("invalid@name") is False  # Invalid character
 
-    @patch("langflow.components.knowledge_bases.ingestion.json.loads")
-    @patch("langflow.components.knowledge_bases.ingestion.decrypt_api_key")
+    @patch("langbuilder.components.knowledge_bases.ingestion.json.loads")
+    @patch("langbuilder.components.knowledge_bases.ingestion.decrypt_api_key")
     async def test_build_kb_info_success(self, mock_decrypt, mock_json_loads, component_class, default_kwargs):
         """Test successful KB info building."""
         component = component_class(**default_kwargs)

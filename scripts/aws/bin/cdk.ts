@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
-import { LangflowAppStack } from '../lib/cdk-stack';
+import { LangBuilderAppStack } from '../lib/cdk-stack';
 
 const app = new cdk.App();
 
-new LangflowAppStack(app, 'LangflowAppStack', {
+new LangBuilderAppStack(app, 'LangBuilderAppStack', {
   /* If you don't specify 'env', this stack will be environment-agnostic.
    * Account/Region-dependent features and context lookups will not work,
    * but a single synthesized template can be deployed anywhere. */

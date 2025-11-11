@@ -16,7 +16,7 @@ host ?= 0.0.0.0
 port ?= 7860
 env ?= .env
 open_browser ?= true
-path = src/backend/base/langflow/frontend
+path = src/backend/base/langbuilder/frontend
 workers ?= 1
 async ?= true
 lf ?= false
@@ -83,7 +83,7 @@ clean_python_cache:
 clean_npm_cache:
 	@echo "Cleaning npm cache..."
 	cd src/frontend && npm cache clean --force
-	$(call CLEAR_DIRS,src/frontend/node_modules src/frontend/build src/backend/base/langflow/frontend)
+	$(call CLEAR_DIRS,src/frontend/node_modules src/frontend/build src/backend/base/langbuilder/frontend)
 	rm -f src/frontend/package-lock.json
 	@echo "$(GREEN)NPM cache and frontend directories cleaned.$(NC)"
 
@@ -195,13 +195,13 @@ unsafe_fix:
 	@uv run ruff check . --fix --unsafe-fixes
 
 lint: install_backend ## run linters
-	@uv run mypy --namespace-packages -p "langflow"
+	@uv run mypy --namespace-packages -p "langbuilder"
 
 
 
 run_cli: install_frontend install_backend build_frontend ## run the CLI
 	@echo 'Running the CLI'
-	@uv run langflow run \
+	@uv run langbuilder run \
 		--frontend-path $(path) \
 		--log-level $(log_level) \
 		--host $(host) \
@@ -227,7 +227,7 @@ setup_devcontainer: ## set up the development container
 	make install_backend
 	make install_frontend
 	make build_frontend
-	uv run langflow --frontend-path src/frontend/build
+	uv run langbuilder --frontend-path src/frontend/build
 
 setup_env: ## set up the environment
 	@sh ./scripts/setup/setup_env.sh
@@ -239,8 +239,8 @@ backend: setup_env install_backend ## run the backend in development mode
 	@-kill -9 $$(lsof -t -i:7860) || true
 ifdef login
 	@echo "Running backend autologin is $(login)";
-	LANGFLOW_AUTO_LOGIN=$(login) uv run uvicorn \
-		--factory langflow.main:create_app \
+	LANGBUILDER_AUTO_LOGIN=$(login) uv run uvicorn \
+		--factory langbuilder.main:create_app \
 		--host 0.0.0.0 \
 		--port $(port) \
 		$(if $(filter-out 1,$(workers)),, --reload) \
@@ -250,7 +250,7 @@ ifdef login
 else
 	@echo "Running backend respecting the $(env) file";
 	uv run uvicorn \
-		--factory langflow.main:create_app \
+		--factory langbuilder.main:create_app \
 		--host 0.0.0.0 \
 		--port $(port) \
 		$(if $(filter-out 1,$(workers)),, --reload) \
@@ -263,7 +263,7 @@ build_and_run: setup_env ## build the project and run it
 	$(call CLEAR_DIRS,dist src/backend/base/dist)
 	make build
 	uv run pip install dist/*.tar.gz
-	uv run langflow run
+	uv run langbuilder run
 
 build_and_install: ## build the project and install it
 	@echo 'Removing dist folder'
@@ -274,23 +274,23 @@ build: setup_env ## build the frontend static files and package the project
 ifdef base
 	make install_frontendci
 	make build_frontend
-	make build_langflow_base args="$(args)"
+	make build_langbuilder_base args="$(args)"
 endif
 
 ifdef main
 	make install_frontendci
 	make build_frontend
-	make build_langflow_base args="$(args)"
-	make build_langflow args="$(args)"
+	make build_langbuilder_base args="$(args)"
+	make build_langbuilder args="$(args)"
 endif
 
-build_langflow_base:
+build_langbuilder_base:
 	cd src/backend/base && uv build $(args)
 
-build_langflow_backup:
+build_langbuilder_backup:
 	uv lock && uv build
 
-build_langflow:
+build_langbuilder:
 	uv lock --no-upgrade
 	uv build $(args)
 ifdef restore
@@ -309,21 +309,21 @@ dockerfile_build:
 	@echo 'BUILDING DOCKER IMAGE: ${DOCKERFILE}'
 	@docker build --rm \
 		-f ${DOCKERFILE} \
-		-t langflow:${VERSION} .
+		-t langbuilder:${VERSION} .
 
 dockerfile_build_be: dockerfile_build
 	@echo 'BUILDING DOCKER IMAGE BACKEND: ${DOCKERFILE_BACKEND}'
 	@docker build --rm \
-		--build-arg LANGFLOW_IMAGE=langflow:${VERSION} \
+		--build-arg LANGBUILDER_IMAGE=langbuilder:${VERSION} \
 		-f ${DOCKERFILE_BACKEND} \
-		-t langflow_backend:${VERSION} .
+		-t langbuilder_backend:${VERSION} .
 
 dockerfile_build_fe: dockerfile_build
 	@echo 'BUILDING DOCKER IMAGE FRONTEND: ${DOCKERFILE_FRONTEND}'
 	@docker build --rm \
-		--build-arg LANGFLOW_IMAGE=langflow:${VERSION} \
+		--build-arg LANGBUILDER_IMAGE=langbuilder:${VERSION} \
 		-f ${DOCKERFILE_FRONTEND} \
-		-t langflow_frontend:${VERSION} .
+		-t langbuilder_frontend:${VERSION} .
 
 clear_dockerimage:
 	@echo 'Clearing the docker build'
@@ -347,7 +347,7 @@ dcdev_up:
 lock_base:
 	cd src/backend/base && uv lock
 
-lock_langflow:
+lock_langbuilder:
 	uv lock
 
 lock: ## lock dependencies
@@ -363,14 +363,14 @@ update: ## update dependencies
 publish_base:
 	cd src/backend/base && uv publish
 
-publish_langflow:
+publish_langbuilder:
 	uv publish
 
 publish_base_testpypi:
 	# TODO: update this to use the test-pypi repository
 	cd src/backend/base && uv publish -r test-pypi
 
-publish_langflow_testpypi:
+publish_langbuilder_testpypi:
 	# TODO: update this to use the test-pypi repository
 	uv publish -r test-pypi
 
@@ -381,7 +381,7 @@ ifdef base
 endif
 
 ifdef main
-	make publish_langflow
+	make publish_langbuilder
 endif
 
 publish_testpypi: ## build the frontend static files and package the project and publish it to PyPI
@@ -390,32 +390,32 @@ publish_testpypi: ## build the frontend static files and package the project and
 # example make alembic-revision message="Add user table"
 alembic-revision: ## generate a new migration
 	@echo 'Generating a new Alembic revision'
-	cd src/backend/base/langflow/ && uv run alembic revision --autogenerate -m "$(message)"
+	cd src/backend/base/langbuilder/ && uv run alembic revision --autogenerate -m "$(message)"
 
 
 alembic-upgrade: ## upgrade database to the latest version
 	@echo 'Upgrading database to the latest version'
-	cd src/backend/base/langflow/ && uv run alembic upgrade head
+	cd src/backend/base/langbuilder/ && uv run alembic upgrade head
 
 alembic-downgrade: ## downgrade database by one version
 	@echo 'Downgrading database by one version'
-	cd src/backend/base/langflow/ && uv run alembic downgrade -1
+	cd src/backend/base/langbuilder/ && uv run alembic downgrade -1
 
 alembic-current: ## show current revision
 	@echo 'Showing current Alembic revision'
-	cd src/backend/base/langflow/ && uv run alembic current
+	cd src/backend/base/langbuilder/ && uv run alembic current
 
 alembic-history: ## show migration history
 	@echo 'Showing Alembic migration history'
-	cd src/backend/base/langflow/ && uv run alembic history --verbose
+	cd src/backend/base/langbuilder/ && uv run alembic history --verbose
 
 alembic-check: ## check migration status
 	@echo 'Running alembic check'
-	cd src/backend/base/langflow/ && uv run alembic check
+	cd src/backend/base/langbuilder/ && uv run alembic check
 
 alembic-stamp: ## stamp the database with a specific revision
 	@echo 'Stamping the database with revision $(revision)'
-	cd src/backend/base/langflow/ && uv run alembic stamp $(revision)
+	cd src/backend/base/langbuilder/ && uv run alembic stamp $(revision)
 
 ######################
 # VERSION MANAGEMENT
@@ -429,26 +429,26 @@ patch: ## Update version across all projects. Usage: make patch v=1.5.0
 	fi; \
 	echo "$(GREEN)Updating version to $(v)$(NC)"; \
 	\
-	LANGFLOW_VERSION="$(v)"; \
-	LANGFLOW_BASE_VERSION=$$(echo "$$LANGFLOW_VERSION" | sed -E 's/^[0-9]+\.(.*)$$/0.\1/'); \
+	LANGBUILDER_VERSION="$(v)"; \
+	LANGBUILDER_BASE_VERSION=$$(echo "$$LANGBUILDER_VERSION" | sed -E 's/^[0-9]+\.(.*)$$/0.\1/'); \
 	\
-	echo "$(GREEN)Langflow version: $$LANGFLOW_VERSION$(NC)"; \
-	echo "$(GREEN)Langflow-base version: $$LANGFLOW_BASE_VERSION$(NC)"; \
+	echo "$(GREEN)LangBuilder version: $$LANGBUILDER_VERSION$(NC)"; \
+	echo "$(GREEN)LangBuilder-base version: $$LANGBUILDER_BASE_VERSION$(NC)"; \
 	\
 	echo "$(GREEN)Updating main pyproject.toml...$(NC)"; \
-	python -c "import re; fname='pyproject.toml'; txt=open(fname).read(); txt=re.sub(r'^version = \".*\"', 'version = \"$$LANGFLOW_VERSION\"', txt, flags=re.MULTILINE); txt=re.sub(r'\"langflow-base==.*\"', '\"langflow-base==$$LANGFLOW_BASE_VERSION\"', txt); open(fname, 'w').write(txt)"; \
+	python -c "import re; fname='pyproject.toml'; txt=open(fname).read(); txt=re.sub(r'^version = \".*\"', 'version = \"$$LANGBUILDER_VERSION\"', txt, flags=re.MULTILINE); txt=re.sub(r'\"langbuilder-base==.*\"', '\"langbuilder-base==$$LANGBUILDER_BASE_VERSION\"', txt); open(fname, 'w').write(txt)"; \
 	\
-	echo "$(GREEN)Updating langflow-base pyproject.toml...$(NC)"; \
-	python -c "import re; fname='src/backend/base/pyproject.toml'; txt=open(fname).read(); txt=re.sub(r'^version = \".*\"', 'version = \"$$LANGFLOW_BASE_VERSION\"', txt, flags=re.MULTILINE); open(fname, 'w').write(txt)"; \
+	echo "$(GREEN)Updating langbuilder-base pyproject.toml...$(NC)"; \
+	python -c "import re; fname='src/backend/base/pyproject.toml'; txt=open(fname).read(); txt=re.sub(r'^version = \".*\"', 'version = \"$$LANGBUILDER_BASE_VERSION\"', txt, flags=re.MULTILINE); open(fname, 'w').write(txt)"; \
 	\
 	echo "$(GREEN)Updating frontend package.json...$(NC)"; \
-	python -c "import re; fname='src/frontend/package.json'; txt=open(fname).read(); txt=re.sub(r'\"version\": \".*\"', '\"version\": \"$$LANGFLOW_VERSION\"', txt); open(fname, 'w').write(txt)"; \
+	python -c "import re; fname='src/frontend/package.json'; txt=open(fname).read(); txt=re.sub(r'\"version\": \".*\"', '\"version\": \"$$LANGBUILDER_VERSION\"', txt); open(fname, 'w').write(txt)"; \
 	\
 	echo "$(GREEN)Validating version changes...$(NC)"; \
-	if ! grep -q "^version = \"$$LANGFLOW_VERSION\"" pyproject.toml; then echo "$(RED)✗ Main pyproject.toml version validation failed$(NC)"; exit 1; fi; \
-	if ! grep -q "\"langflow-base==$$LANGFLOW_BASE_VERSION\"" pyproject.toml; then echo "$(RED)✗ Main pyproject.toml langflow-base dependency validation failed$(NC)"; exit 1; fi; \
-	if ! grep -q "^version = \"$$LANGFLOW_BASE_VERSION\"" src/backend/base/pyproject.toml; then echo "$(RED)✗ Langflow-base pyproject.toml version validation failed$(NC)"; exit 1; fi; \
-	if ! grep -q "\"version\": \"$$LANGFLOW_VERSION\"" src/frontend/package.json; then echo "$(RED)✗ Frontend package.json version validation failed$(NC)"; exit 1; fi; \
+	if ! grep -q "^version = \"$$LANGBUILDER_VERSION\"" pyproject.toml; then echo "$(RED)✗ Main pyproject.toml version validation failed$(NC)"; exit 1; fi; \
+	if ! grep -q "\"langbuilder-base==$$LANGBUILDER_BASE_VERSION\"" pyproject.toml; then echo "$(RED)✗ Main pyproject.toml langbuilder-base dependency validation failed$(NC)"; exit 1; fi; \
+	if ! grep -q "^version = \"$$LANGBUILDER_BASE_VERSION\"" src/backend/base/pyproject.toml; then echo "$(RED)✗ LangBuilder-base pyproject.toml version validation failed$(NC)"; exit 1; fi; \
+	if ! grep -q "\"version\": \"$$LANGBUILDER_VERSION\"" src/frontend/package.json; then echo "$(RED)✗ Frontend package.json version validation failed$(NC)"; exit 1; fi; \
 	echo "$(GREEN)✓ All versions updated successfully$(NC)"; \
 	\
 	echo "$(GREEN)Syncing dependencies in parallel...$(NC)"; \
@@ -475,9 +475,9 @@ patch: ## Update version across all projects. Usage: make patch v=1.5.0
 	\
 	echo "$(GREEN)Version update complete!$(NC)"; \
 	echo "$(GREEN)Updated files:$(NC)"; \
-	echo "  - pyproject.toml: $$LANGFLOW_VERSION"; \
-	echo "  - src/backend/base/pyproject.toml: $$LANGFLOW_BASE_VERSION"; \
-	echo "  - src/frontend/package.json: $$LANGFLOW_VERSION"; \
+	echo "  - pyproject.toml: $$LANGBUILDER_VERSION"; \
+	echo "  - src/backend/base/pyproject.toml: $$LANGBUILDER_BASE_VERSION"; \
+	echo "  - src/frontend/package.json: $$LANGBUILDER_VERSION"; \
 	echo "  - uv.lock: dependency lock updated"; \
 	echo "  - src/frontend/package-lock.json: dependency lock updated"; \
 	echo "$(GREEN)Dependencies synced successfully!$(NC)"
@@ -509,7 +509,7 @@ locust: ## run locust load tests (options: locust_users=10 locust_spawn_rate=1 l
 	@echo "Using locustfile: $(locust_file)"
 	@export API_KEY=$(locust_api_key) && \
 	export FLOW_ID=$(locust_flow_id) && \
-	export LANGFLOW_HOST=$(locust_host) && \
+	export LANGBUILDER_HOST=$(locust_host) && \
 	export MIN_WAIT=$(locust_min_wait) && \
 	export MAX_WAIT=$(locust_max_wait) && \
 	export REQUEST_TIMEOUT=$(locust_request_timeout) && \

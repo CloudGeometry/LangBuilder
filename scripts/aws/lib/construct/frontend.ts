@@ -36,13 +36,13 @@ export class Web extends Construct {
   };
 
   // CDKにて 静的WebサイトをホストするためのAmazon S3バケットを作成
-  const websiteBucket = new s3.Bucket(this, 'LangflowWebsiteBucket', commonBucketProps);
+  const websiteBucket = new s3.Bucket(this, 'LangBuilderWebsiteBucket', commonBucketProps);
   
   const originAccessIdentity = new cloudfront.OriginAccessIdentity(
     this,
     'OriginAccessIdentity',
     {
-      comment: 'langflow-distribution-originAccessIdentity',
+      comment: 'langbuilder-distribution-originAccessIdentity',
     }
   );
 
@@ -75,7 +75,7 @@ export class Web extends Construct {
   }
 
   const cloudFrontWebDistribution = new cloudfront.Distribution(this, 'distribution', {
-    comment: 'langflow-distribution',
+    comment: 'langbuilder-distribution',
     defaultRootObject: 'index.html',
     errorResponses: [
       {

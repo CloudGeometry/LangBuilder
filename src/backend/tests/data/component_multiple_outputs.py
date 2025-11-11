@@ -1,6 +1,6 @@
-from langflow.custom import Component
-from langflow.inputs.inputs import IntInput, MessageTextInput
-from langflow.template.field.base import Output
+from langbuilder.custom import Component
+from langbuilder.inputs.inputs import IntInput, MessageTextInput
+from langbuilder.template.field.base import Output
 
 
 class MultipleOutputsComponent(Component):

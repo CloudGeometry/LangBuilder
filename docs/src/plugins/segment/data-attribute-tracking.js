@@ -10,7 +10,7 @@ let isDataAttributeTrackingInitialized = false;
  *
  * Example in navbar config:
  * {
- *   href: "https://github.com/langflow-ai/langflow",
+ *   href: "https://github.com/CloudGeometry/langbuilder",
  *   'data-event': 'GitHub Link Clicked',
  *   'data-source': 'navbar',
  *   'data-category': 'social'
@@ -20,7 +20,7 @@ let isDataAttributeTrackingInitialized = false;
  * window.analytics.track("GitHub Link Clicked", {
  *   source: "navbar",
  *   category: "social",
- *   url: "https://github.com/langflow-ai/langflow",
+ *   url: "https://github.com/CloudGeometry/langbuilder",
  *   page: "/current-page"
  * })
  */

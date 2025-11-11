@@ -1,11 +1,11 @@
 from collections import deque
 
 import pytest
-from langflow.components.input_output import ChatInput, ChatOutput, TextOutputComponent
-from langflow.components.langchain_utilities import ToolCallingAgentComponent
-from langflow.components.tools import YfinanceToolComponent
-from langflow.graph import Graph
-from langflow.graph.graph.constants import Finish
+from langbuilder.components.input_output import ChatInput, ChatOutput, TextOutputComponent
+from langbuilder.components.langchain_utilities import ToolCallingAgentComponent
+from langbuilder.components.tools import YfinanceToolComponent
+from langbuilder.graph import Graph
+from langbuilder.graph.graph.constants import Finish
 
 
 async def test_graph_not_prepared():

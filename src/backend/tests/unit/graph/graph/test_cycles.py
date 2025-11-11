@@ -1,16 +1,16 @@
 import os
 
 import pytest
-from langflow.components.input_output import ChatInput, ChatOutput, TextOutputComponent
-from langflow.components.input_output.text import TextInputComponent
-from langflow.components.logic.conditional_router import ConditionalRouterComponent
-from langflow.components.openai.openai_chat_model import OpenAIModelComponent
-from langflow.components.processing import PromptComponent
-from langflow.custom.custom_component.component import Component
-from langflow.graph.graph.base import Graph
-from langflow.graph.graph.utils import find_cycle_vertices
-from langflow.io import MessageTextInput, Output
-from langflow.schema.message import Message
+from langbuilder.components.input_output import ChatInput, ChatOutput, TextOutputComponent
+from langbuilder.components.input_output.text import TextInputComponent
+from langbuilder.components.logic.conditional_router import ConditionalRouterComponent
+from langbuilder.components.openai.openai_chat_model import OpenAIModelComponent
+from langbuilder.components.processing import PromptComponent
+from langbuilder.custom.custom_component.component import Component
+from langbuilder.graph.graph.base import Graph
+from langbuilder.graph.graph.utils import find_cycle_vertices
+from langbuilder.io import MessageTextInput, Output
+from langbuilder.schema.message import Message
 
 
 class Concatenate(Component):

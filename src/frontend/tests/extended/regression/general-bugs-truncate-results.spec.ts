@@ -26,11 +26,11 @@ test.skip(
 
     await page
       .getByTestId("inputlist_str_urls_0")
-      .fill("https://docs.langflow.org/");
+      .fill("https://docs.langbuilder.org/");
 
     await page
       .getByTestId("inputlist_str_urls_1")
-      .fill("https://www.langflow.org/");
+      .fill("https://www.langbuilder.org/");
     await page.getByTestId("canvas_controls_dropdown").click();
 
     await page.getByTitle("fit view").click();
