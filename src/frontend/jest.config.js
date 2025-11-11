@@ -5,6 +5,12 @@ module.exports = {
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
     "\\.(css|less|scss|sass)$": "identity-obj-proxy",
+    "^lucide-react/dynamicIconImports$":
+      "<rootDir>/src/__mocks__/lucide-react.ts",
+    "^@jsonquerylang/jsonquery$": "<rootDir>/src/__mocks__/jsonquery.ts",
+    "^vanilla-jsoneditor$": "<rootDir>/src/__mocks__/vanilla-jsoneditor.ts",
+    "\\.jsx$": "<rootDir>/src/__mocks__/svg.tsx",
+    "\\.svg$": "<rootDir>/src/__mocks__/svg.tsx",
   },
   setupFilesAfterEnv: ["<rootDir>/src/setupTests.ts"],
   testMatch: [
@@ -13,10 +19,21 @@ module.exports = {
   ],
   transform: {
     "^.+\\.(ts|tsx)$": "ts-jest",
+    "^.+\\.jsx$": [
+      "ts-jest",
+      {
+        tsconfig: {
+          jsx: "react",
+          allowJs: true,
+        },
+      },
+    ],
   },
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json"],
   // Ignore node_modules except for packages that need transformation
-  transformIgnorePatterns: ["node_modules/(?!(.*\\.mjs$|@testing-library))"],
+  transformIgnorePatterns: [
+    "node_modules/(?!(.*\\.mjs$|@testing-library|@jsonquerylang|vanilla-jsoneditor))",
+  ],
 
   // Coverage configuration
   collectCoverage: true,

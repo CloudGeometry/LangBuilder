@@ -1,6 +1,31 @@
 // Jest setup file for testing environment
 import "@testing-library/jest-dom";
 
+// Mock darkStore to avoid import.meta.env issues in Jest
+jest.mock("./stores/darkStore", () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    isDark: false,
+    setDark: jest.fn(),
+    theme: "light",
+    version: "1.0.0",
+    stars: 0,
+    refreshVersion: jest.fn(),
+    refreshStars: jest.fn(),
+    lastUpdated: new Date(),
+  })),
+  useDarkStore: jest.fn(() => ({
+    isDark: false,
+    setDark: jest.fn(),
+    theme: "light",
+    version: "1.0.0",
+    stars: 0,
+    refreshVersion: jest.fn(),
+    refreshStars: jest.fn(),
+    lastUpdated: new Date(),
+  })),
+}));
+
 // Mock ResizeObserver if not available in test environment
 global.ResizeObserver = jest.fn().mockImplementation(() => ({
   observe: jest.fn(),

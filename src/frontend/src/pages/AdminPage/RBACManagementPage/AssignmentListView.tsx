@@ -1,3 +1,4 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import IconComponent from "@/components/common/genericIconComponent";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { api } from "@/controllers/API";
 import CustomLoader from "@/customization/components/custom-loader";
+import useAlertStore from "@/stores/alertStore";
 
 interface Assignment {
   id: string;
@@ -31,13 +34,57 @@ interface AssignmentListViewProps {
 export default function AssignmentListView({
   onEditAssignment,
 }: AssignmentListViewProps) {
+  const queryClient = useQueryClient();
+  const setSuccessData = useAlertStore((state) => state.setSuccessData);
+  const setErrorData = useAlertStore((state) => state.setErrorData);
+
   const [filters, setFilters] = useState({
     username: "",
     role_name: "",
     scope_type: "",
   });
-  const [isLoading] = useState(false);
-  const [assignments] = useState<Assignment[]>([]);
+
+  // Fetch assignments with filters
+  const {
+    data: assignments = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["rbac-assignments", filters],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (filters.username) params.append("username", filters.username);
+      if (filters.role_name) params.append("role_name", filters.role_name);
+      if (filters.scope_type) params.append("scope_type", filters.scope_type);
+
+      const response = await api.get(
+        `/api/v1/rbac/assignments?${params.toString()}`,
+      );
+      return response.data as Assignment[];
+    },
+    staleTime: 30000, // Cache for 30 seconds
+  });
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (assignmentId: string) => {
+      await api.delete(`/api/v1/rbac/assignments/${assignmentId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["rbac-assignments"] });
+      setSuccessData({ title: "Role assignment deleted successfully" });
+    },
+    onError: (error: any) => {
+      setErrorData({
+        title: "Failed to delete role assignment",
+        list: [
+          error?.response?.data?.detail ||
+            error?.message ||
+            "An error occurred",
+        ],
+      });
+    },
+  });
 
   const handleFilterChange = (field: string, value: string) => {
     setFilters((prev) => ({ ...prev, [field]: value }));
@@ -47,24 +94,41 @@ export default function AssignmentListView({
     setFilters((prev) => ({ ...prev, [field]: "" }));
   };
 
-  const filteredAssignments = assignments.filter((assignment) => {
-    const matchesUsername = filters.username
-      ? assignment.username
-          ?.toLowerCase()
-          .includes(filters.username.toLowerCase())
-      : true;
-    const matchesRole = filters.role_name
-      ? assignment.role_name
-          .toLowerCase()
-          .includes(filters.role_name.toLowerCase())
-      : true;
-    const matchesScope = filters.scope_type
-      ? assignment.scope_type
-          .toLowerCase()
-          .includes(filters.scope_type.toLowerCase())
-      : true;
-    return matchesUsername && matchesRole && matchesScope;
-  });
+  // Client-side filtering is handled by query key changes
+  // Use assignments directly since filtering is done via API
+  const filteredAssignments = assignments;
+
+  const handleDelete = async (assignment: Assignment) => {
+    if (assignment.is_immutable) {
+      setErrorData({
+        title: "Cannot delete immutable assignment",
+        list: [
+          "This is a system-managed assignment (e.g., Starter Project Owner) and cannot be deleted.",
+        ],
+      });
+      return;
+    }
+
+    if (
+      window.confirm(
+        `Delete ${assignment.role_name} assignment for ${assignment.username || assignment.user_id}?`,
+      )
+    ) {
+      await deleteMutation.mutateAsync(assignment.id);
+    }
+  };
+
+  // Show error alert if query fails
+  if (error) {
+    setErrorData({
+      title: "Failed to load role assignments",
+      list: [
+        (error as any)?.response?.data?.detail ||
+          (error as any)?.message ||
+          "An error occurred while fetching role assignments",
+      ],
+    });
+  }
 
   return (
     <div className="flex flex-col space-y-4">
@@ -182,7 +246,10 @@ export default function AssignmentListView({
                       <Button
                         variant="ghost"
                         size="sm"
-                        disabled={assignment.is_immutable}
+                        onClick={() => handleDelete(assignment)}
+                        disabled={
+                          assignment.is_immutable || deleteMutation.isPending
+                        }
                       >
                         <IconComponent name="Trash2" className="h-4 w-4" />
                       </Button>

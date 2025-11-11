@@ -1,4 +1,5 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import AssignmentListView from "../AssignmentListView";
 
 // Mock IconComponent
@@ -46,16 +47,56 @@ jest.mock("@/components/ui/table", () => ({
   TableCell: ({ children }: any) => <td>{children}</td>,
 }));
 
+// Mock alertStore
+jest.mock("@/stores/alertStore", () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    setSuccessData: jest.fn(),
+    setErrorData: jest.fn(),
+  })),
+}));
+
+// Mock API
+jest.mock("@/controllers/API", () => ({
+  api: {
+    get: jest.fn(() => Promise.resolve({ data: [] })),
+    delete: jest.fn(() => Promise.resolve({})),
+  },
+}));
+
 describe("AssignmentListView", () => {
   const mockOnEditAssignment = jest.fn();
+  let queryClient: QueryClient;
+
+  const renderWithProviders = (component: React.ReactElement) => {
+    return render(
+      <QueryClientProvider client={queryClient}>
+        {component}
+      </QueryClientProvider>,
+    );
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Create a new QueryClient for each test to ensure isolation
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false, // Disable retries in tests
+          gcTime: 0, // Disable caching in tests
+        },
+        mutations: {
+          retry: false,
+        },
+      },
+    });
   });
 
   describe("Rendering", () => {
     it("should render filter inputs", () => {
-      render(<AssignmentListView onEditAssignment={mockOnEditAssignment} />);
+      renderWithProviders(
+        <AssignmentListView onEditAssignment={mockOnEditAssignment} />,
+      );
 
       expect(
         screen.getByPlaceholderText("Filter by username..."),
@@ -68,10 +109,16 @@ describe("AssignmentListView", () => {
       ).toBeInTheDocument();
     });
 
-    it("should render empty state when no assignments exist", () => {
-      render(<AssignmentListView onEditAssignment={mockOnEditAssignment} />);
+    it("should render empty state when no assignments exist", async () => {
+      renderWithProviders(
+        <AssignmentListView onEditAssignment={mockOnEditAssignment} />,
+      );
 
-      expect(screen.getByTestId("icon-UserCog")).toBeInTheDocument();
+      // Wait for the query to resolve
+      await waitFor(() => {
+        expect(screen.getByTestId("icon-UserCog")).toBeInTheDocument();
+      });
+
       expect(
         screen.getByText(
           "No role assignments found. Create your first assignment.",
@@ -80,7 +127,9 @@ describe("AssignmentListView", () => {
     });
 
     it("should not show clear icons when filters are empty", () => {
-      render(<AssignmentListView onEditAssignment={mockOnEditAssignment} />);
+      renderWithProviders(
+        <AssignmentListView onEditAssignment={mockOnEditAssignment} />,
+      );
 
       expect(screen.queryByTestId("icon-X")).not.toBeInTheDocument();
     });
@@ -88,7 +137,9 @@ describe("AssignmentListView", () => {
 
   describe("Filter functionality", () => {
     it("should show clear icon when username filter has value", () => {
-      render(<AssignmentListView onEditAssignment={mockOnEditAssignment} />);
+      renderWithProviders(
+        <AssignmentListView onEditAssignment={mockOnEditAssignment} />,
+      );
 
       const usernameInput = screen.getByPlaceholderText(
         "Filter by username...",
@@ -100,7 +151,9 @@ describe("AssignmentListView", () => {
     });
 
     it("should show clear icon when role filter has value", () => {
-      render(<AssignmentListView onEditAssignment={mockOnEditAssignment} />);
+      renderWithProviders(
+        <AssignmentListView onEditAssignment={mockOnEditAssignment} />,
+      );
 
       const roleInput = screen.getByPlaceholderText("Filter by role...");
       fireEvent.change(roleInput, { target: { value: "admin" } });
@@ -110,7 +163,9 @@ describe("AssignmentListView", () => {
     });
 
     it("should show clear icon when scope filter has value", () => {
-      render(<AssignmentListView onEditAssignment={mockOnEditAssignment} />);
+      renderWithProviders(
+        <AssignmentListView onEditAssignment={mockOnEditAssignment} />,
+      );
 
       const scopeInput = screen.getByPlaceholderText("Filter by scope...");
       fireEvent.change(scopeInput, { target: { value: "project" } });
@@ -120,7 +175,9 @@ describe("AssignmentListView", () => {
     });
 
     it("should clear filter when clear icon is clicked", () => {
-      render(<AssignmentListView onEditAssignment={mockOnEditAssignment} />);
+      renderWithProviders(
+        <AssignmentListView onEditAssignment={mockOnEditAssignment} />,
+      );
 
       const usernameInput = screen.getByPlaceholderText(
         "Filter by username...",
@@ -136,7 +193,9 @@ describe("AssignmentListView", () => {
     });
 
     it("should update filter state when input changes", () => {
-      render(<AssignmentListView onEditAssignment={mockOnEditAssignment} />);
+      renderWithProviders(
+        <AssignmentListView onEditAssignment={mockOnEditAssignment} />,
+      );
 
       const usernameInput = screen.getByPlaceholderText(
         "Filter by username...",
@@ -159,28 +218,40 @@ describe("AssignmentListView", () => {
   });
 
   describe("Loading state", () => {
-    it("should not show loader when not loading", () => {
-      render(<AssignmentListView onEditAssignment={mockOnEditAssignment} />);
+    it("should not show loader when not loading", async () => {
+      renderWithProviders(
+        <AssignmentListView onEditAssignment={mockOnEditAssignment} />,
+      );
 
-      expect(screen.queryByTestId("custom-loader")).not.toBeInTheDocument();
+      // Wait for the query to resolve
+      await waitFor(() => {
+        expect(screen.queryByTestId("custom-loader")).not.toBeInTheDocument();
+      });
     });
   });
 
   describe("Empty state messages", () => {
-    it("should show appropriate message when no assignments exist", () => {
-      render(<AssignmentListView onEditAssignment={mockOnEditAssignment} />);
+    it("should show appropriate message when no assignments exist", async () => {
+      renderWithProviders(
+        <AssignmentListView onEditAssignment={mockOnEditAssignment} />,
+      );
 
-      expect(
-        screen.getByText(
-          "No role assignments found. Create your first assignment.",
-        ),
-      ).toBeInTheDocument();
+      // Wait for the query to resolve
+      await waitFor(() => {
+        expect(
+          screen.getByText(
+            "No role assignments found. Create your first assignment.",
+          ),
+        ).toBeInTheDocument();
+      });
     });
   });
 
   describe("Accessibility", () => {
     it("should have accessible filter inputs with placeholders", () => {
-      render(<AssignmentListView onEditAssignment={mockOnEditAssignment} />);
+      renderWithProviders(
+        <AssignmentListView onEditAssignment={mockOnEditAssignment} />,
+      );
 
       const usernameInput = screen.getByPlaceholderText(
         "Filter by username...",
