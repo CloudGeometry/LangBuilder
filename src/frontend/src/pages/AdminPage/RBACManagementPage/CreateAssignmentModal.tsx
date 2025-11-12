@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -126,6 +126,27 @@ export default function CreateAssignmentModal({
     onClose();
   };
 
+  /**
+   * Validates whether the user can proceed from the current step of the wizard.
+   *
+   * Each step has specific validation requirements:
+   * - Step 1 (User Selection): Requires user_id to be selected
+   * - Step 2 (Scope Type): Requires scope_type to be selected
+   * - Step 3 (Resource Selection): Requires scope_id (automatically passes for Global scope)
+   * - Step 4 (Role Selection): Requires role_name to be selected
+   *
+   * @param currentStep - The current step number (1-4)
+   * @returns true if all required fields for the step are filled, false otherwise
+   *
+   * @example
+   * ```typescript
+   * // User selected, can proceed from step 1
+   * canProceedFromStep(1) // returns true if formData.user_id is set
+   *
+   * // Global scope selected, automatically passes step 3
+   * canProceedFromStep(3) // returns true if scope_type === "Global"
+   * ```
+   */
   const canProceedFromStep = (currentStep: number): boolean => {
     switch (currentStep) {
       case 1:
@@ -164,8 +185,8 @@ export default function CreateAssignmentModal({
     }
   };
 
-  const handleSubmit = async () => {
-    await createMutation.mutateAsync({
+  const handleSubmit = () => {
+    createMutation.mutate({
       user_id: formData.user_id,
       role_name: formData.role_name,
       scope_type: formData.scope_type,
@@ -173,6 +194,12 @@ export default function CreateAssignmentModal({
     });
   };
 
+  /**
+   * Returns the display title for the current wizard step.
+   *
+   * @param currentStep - The current step number (1-4)
+   * @returns The user-friendly title for the step
+   */
   const getStepTitle = (currentStep: number): string => {
     switch (currentStep) {
       case 1:
@@ -188,6 +215,19 @@ export default function CreateAssignmentModal({
     }
   };
 
+  /**
+   * Renders the content for the current wizard step.
+   *
+   * Each step displays different UI elements:
+   * - Step 1: User selection dropdown (loads users from API)
+   * - Step 2: Scope type selection (Global, Project, or Flow)
+   * - Step 3: Resource selection (Project or Flow, skipped for Global scope)
+   * - Step 4: Role selection (Admin for Global, Owner/Editor/Viewer for Project/Flow)
+   *
+   * Loading states are shown while data is being fetched from the API.
+   *
+   * @returns React element for the current step, or null if step is invalid
+   */
   const renderStepContent = () => {
     if (step === 1) {
       if (isLoadingUsers) {
@@ -321,16 +361,26 @@ export default function CreateAssignmentModal({
     return null;
   };
 
-  const getMaxSteps = () => {
+  /**
+   * Calculates the maximum number of steps for the wizard based on scope type.
+   * Global scope has 3 steps (skips resource selection), others have 4 steps.
+   * Memoized to avoid recalculation on every render.
+   */
+  const maxSteps = useMemo(() => {
     return formData.scope_type === "Global" ? 3 : 4;
-  };
+  }, [formData.scope_type]);
 
-  const getCurrentStepNumber = () => {
+  /**
+   * Calculates the display step number, accounting for Global scope skipping step 3.
+   * For Global scope, step 4 is displayed as step 3.
+   * Memoized to avoid recalculation on every render.
+   */
+  const currentStepNumber = useMemo(() => {
     if (formData.scope_type === "Global" && step === 4) {
       return 3;
     }
     return step;
-  };
+  }, [formData.scope_type, step]);
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -338,8 +388,7 @@ export default function CreateAssignmentModal({
         <DialogHeader>
           <DialogTitle>Create Role Assignment</DialogTitle>
           <DialogDescription>
-            Step {getCurrentStepNumber()} of {getMaxSteps()}:{" "}
-            {getStepTitle(step)}
+            Step {currentStepNumber} of {maxSteps}: {getStepTitle(step)}
           </DialogDescription>
         </DialogHeader>
 
@@ -353,7 +402,7 @@ export default function CreateAssignmentModal({
           >
             Back
           </Button>
-          {step < 4 || (step === 4 && formData.scope_type !== "Global") ? (
+          {step < 4 ? (
             <Button
               onClick={handleNext}
               disabled={!canProceedFromStep(step) || createMutation.isPending}

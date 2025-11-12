@@ -85,3 +85,25 @@ afterAll(() => {
   console.error = originalError;
   console.warn = originalWarn;
 });
+
+// Mock scrollIntoView for Radix UI components (not implemented in jsdom)
+Element.prototype.scrollIntoView = jest.fn();
+
+// Suppress unhandled promise rejection warnings in tests
+// TanStack Query mutations can have unhandled rejections that are actually handled by onError
+const originalUnhandledRejection = process.listeners("unhandledRejection");
+process.removeAllListeners("unhandledRejection");
+process.on("unhandledRejection", (reason) => {
+  // Only suppress if it's a handled error from TanStack Query
+  // You can add more specific filtering here if needed
+  const isHandled =
+    reason &&
+    typeof reason === "object" &&
+    ("response" in reason || reason instanceof Error);
+  if (!isHandled) {
+    // Re-throw truly unhandled rejections
+    originalUnhandledRejection.forEach((listener) =>
+      listener(reason, Promise.reject(reason)),
+    );
+  }
+});

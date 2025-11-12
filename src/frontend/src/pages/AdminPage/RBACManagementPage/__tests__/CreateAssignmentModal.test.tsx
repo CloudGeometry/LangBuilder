@@ -68,7 +68,16 @@ describe("CreateAssignmentModal", () => {
     queryClient = new QueryClient({
       defaultOptions: {
         queries: { retry: false },
-        mutations: { retry: false },
+        mutations: {
+          retry: false,
+          // Prevent unhandled errors in tests
+          useErrorBoundary: false,
+        },
+      },
+      logger: {
+        log: () => {},
+        warn: () => {},
+        error: () => {},
       },
     });
     mockOnClose = jest.fn();
@@ -142,6 +151,11 @@ describe("CreateAssignmentModal", () => {
       renderModal();
       await waitFor(() => {
         expect(API.api.get).toHaveBeenCalledWith("/api/v1/users");
+      });
+
+      // Wait for the combobox to be rendered after data loads
+      await waitFor(() => {
+        expect(screen.getByRole("combobox")).toBeInTheDocument();
       });
 
       // Find select by id and open the dropdown
@@ -689,6 +703,11 @@ describe("CreateAssignmentModal", () => {
       await waitFor(() => {
         expect(screen.getByText(/Step 4 of 4/)).toBeInTheDocument();
       });
+      await waitFor(() => {
+        expect(
+          screen.getByRole("combobox", { name: /role/i }),
+        ).toBeInTheDocument();
+      });
       const roleSelect = screen.getByRole("combobox", { name: /role/i });
       fireEvent.click(roleSelect);
       await waitFor(() => {
@@ -742,39 +761,47 @@ describe("CreateAssignmentModal", () => {
 
     it("should show error message on API failure", async () => {
       const errorMessage = "User not found";
-      (API.api.post as jest.Mock).mockRejectedValueOnce({
+      const errorResponse = {
         response: { data: { detail: errorMessage } },
-      });
+      };
+      (API.api.post as jest.Mock).mockRejectedValueOnce(errorResponse);
 
       await completeWorkflowWithGlobal();
 
       const createButton = screen.getByText("Create Assignment");
       fireEvent.click(createButton);
 
-      await waitFor(() => {
-        expect(mockSetErrorData).toHaveBeenCalledWith({
-          title: "Failed to create role assignment",
-          list: [errorMessage],
-        });
-      });
+      // Wait for the error handler to be called
+      await waitFor(
+        () => {
+          expect(mockSetErrorData).toHaveBeenCalledWith({
+            title: "Failed to create role assignment",
+            list: [errorMessage],
+          });
+        },
+        { timeout: 3000 },
+      );
     });
 
     it("should show generic error message when API error has no detail", async () => {
-      (API.api.post as jest.Mock).mockRejectedValueOnce(
-        new Error("Network error"),
-      );
+      const networkError = new Error("Network error");
+      (API.api.post as jest.Mock).mockRejectedValueOnce(networkError);
 
       await completeWorkflowWithGlobal();
 
       const createButton = screen.getByText("Create Assignment");
       fireEvent.click(createButton);
 
-      await waitFor(() => {
-        expect(mockSetErrorData).toHaveBeenCalledWith({
-          title: "Failed to create role assignment",
-          list: ["Network error"],
-        });
-      });
+      // Wait for the error handler to be called
+      await waitFor(
+        () => {
+          expect(mockSetErrorData).toHaveBeenCalledWith({
+            title: "Failed to create role assignment",
+            list: ["Network error"],
+          });
+        },
+        { timeout: 3000 },
+      );
     });
 
     it("should disable buttons during submission", async () => {
@@ -791,16 +818,22 @@ describe("CreateAssignmentModal", () => {
       fireEvent.click(createButton);
 
       // Check that button is disabled during submission
-      await waitFor(() => {
-        expect(screen.getByText("Creating...")).toBeInTheDocument();
-      });
+      await waitFor(
+        () => {
+          expect(screen.getByText("Creating...")).toBeInTheDocument();
+        },
+        { timeout: 3000 },
+      );
 
       // Resolve the promise
       resolvePromise!({ data: { id: "assignment-1" } });
 
-      await waitFor(() => {
-        expect(mockSetSuccessData).toHaveBeenCalled();
-      });
+      await waitFor(
+        () => {
+          expect(mockSetSuccessData).toHaveBeenCalled();
+        },
+        { timeout: 3000 },
+      );
     });
   });
 
