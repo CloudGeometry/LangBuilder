@@ -10,6 +10,10 @@ import type {
   VertexBuildTypeAPI,
   VerticesOrderTypeAPI,
 } from "../../types/api/index";
+
+// Re-export api for use in other components
+export { api };
+
 import type { FlowStyleType, FlowType } from "../../types/flow";
 import type { StoreComponentResponse } from "../../types/store";
 
