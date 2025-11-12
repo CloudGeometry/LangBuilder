@@ -3,14 +3,18 @@ module.exports = {
   testEnvironment: "jsdom",
   injectGlobals: true,
   moduleNameMapper: {
-    "^@/(.*)$": "<rootDir>/src/$1",
+    // Asset and style mocks must be before the @/ alias to avoid conflicts
     "\\.(css|less|scss|sass)$": "identity-obj-proxy",
+    "\\.svg(\\?react)?$": "<rootDir>/src/__mocks__/svg.tsx",
+    "\\.jsx$": "<rootDir>/src/__mocks__/svg.tsx",
+    // Special mocks for problematic modules
+    "^react-markdown$": "<rootDir>/src/__mocks__/react-markdown.tsx",
     "^lucide-react/dynamicIconImports$":
       "<rootDir>/src/__mocks__/lucide-react.ts",
     "^@jsonquerylang/jsonquery$": "<rootDir>/src/__mocks__/jsonquery.ts",
     "^vanilla-jsoneditor$": "<rootDir>/src/__mocks__/vanilla-jsoneditor.ts",
-    "\\.jsx$": "<rootDir>/src/__mocks__/svg.tsx",
-    "\\.svg$": "<rootDir>/src/__mocks__/svg.tsx",
+    // Path alias (must be last to not interfere with other patterns)
+    "^@/(.*)$": "<rootDir>/src/$1",
   },
   setupFilesAfterEnv: ["<rootDir>/src/setupTests.ts"],
   testMatch: [
@@ -18,7 +22,12 @@ module.exports = {
     "<rootDir>/src/**/*.{test,spec}.{ts,tsx}",
   ],
   transform: {
-    "^.+\\.(ts|tsx)$": "ts-jest",
+    "^.+\\.(ts|tsx)$": [
+      "ts-jest",
+      {
+        useESM: false,
+      },
+    ],
     "^.+\\.jsx$": [
       "ts-jest",
       {
@@ -28,11 +37,23 @@ module.exports = {
         },
       },
     ],
+    // Transform ESM modules (like react-markdown) from node_modules
+    "^.+\\.(js|mjs)$": [
+      "ts-jest",
+      {
+        tsconfig: {
+          allowJs: true,
+          esModuleInterop: true,
+          allowSyntheticDefaultImports: true,
+        },
+        useESM: false,
+      },
+    ],
   },
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json"],
   // Ignore node_modules except for packages that need transformation
   transformIgnorePatterns: [
-    "node_modules/(?!(.*\\.mjs$|@testing-library|@jsonquerylang|vanilla-jsoneditor))",
+    "node_modules/(?!(.*\\.mjs$|@testing-library|@jsonquerylang|vanilla-jsoneditor|react-markdown|remark-.*|rehype-.*|unified|vfile.*|unist-.*|bail|is-plain-obj|trough|mdast-.*|micromark.*|decode-named-character-reference|character-entities|ccount|escape-string-regexp|markdown-table|property-information|space-separated-tokens|comma-separated-tokens|hast-util-.*|html-void-elements|web-namespaces|zwitch|trim-lines))",
   ],
 
   // Coverage configuration

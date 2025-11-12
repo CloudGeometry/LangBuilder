@@ -1,3 +1,4 @@
+import RBACGuard from "@/components/authorization/RBACGuard";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import useAlertStore from "@/stores/alertStore";
@@ -41,21 +42,29 @@ const DropdownComponent = ({
 
   return (
     <>
-      <DropdownMenuItem
-        onClick={(e) => {
-          e.stopPropagation();
-          handleSelectOptionsChange("edit");
+      <RBACGuard
+        check={{
+          permission: "Update",
+          scope_type: "Flow",
+          scope_id: flowData.id,
         }}
-        className="cursor-pointer"
-        data-testid="btn-edit-flow"
       >
-        <ForwardedIconComponent
-          name="SquarePen"
-          aria-hidden="true"
-          className="mr-2 h-4 w-4"
-        />
-        Edit details
-      </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={(e) => {
+            e.stopPropagation();
+            handleSelectOptionsChange("edit");
+          }}
+          className="cursor-pointer"
+          data-testid="btn-edit-flow"
+        >
+          <ForwardedIconComponent
+            name="SquarePen"
+            aria-hidden="true"
+            className="mr-2 h-4 w-4"
+          />
+          Edit details
+        </DropdownMenuItem>
+      </RBACGuard>
       <DropdownMenuItem
         onClick={(e) => {
           e.stopPropagation();
@@ -86,21 +95,29 @@ const DropdownComponent = ({
         />
         Duplicate
       </DropdownMenuItem>
-      <DropdownMenuItem
-        onClick={(e) => {
-          e.stopPropagation();
-          setOpenDelete(true);
+      <RBACGuard
+        check={{
+          permission: "Delete",
+          scope_type: "Flow",
+          scope_id: flowData.id,
         }}
-        className="cursor-pointer text-destructive"
-        data-testid="btn_delete_dropdown_menu"
       >
-        <ForwardedIconComponent
-          name="Trash2"
-          aria-hidden="true"
-          className="mr-2 h-4 w-4"
-        />
-        Delete
-      </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={(e) => {
+            e.stopPropagation();
+            setOpenDelete(true);
+          }}
+          className="cursor-pointer text-destructive"
+          data-testid="btn_delete_dropdown_menu"
+        >
+          <ForwardedIconComponent
+            name="Trash2"
+            aria-hidden="true"
+            className="mr-2 h-4 w-4"
+          />
+          Delete
+        </DropdownMenuItem>
+      </RBACGuard>
     </>
   );
 };

@@ -93,9 +93,11 @@ const edgeTypes = {
 export default function Page({
   view,
   setIsLoading,
+  readOnly = false,
 }: {
   view?: boolean;
   setIsLoading: (isLoading: boolean) => void;
+  readOnly?: boolean;
 }): JSX.Element {
   const uploadFlow = useUploadFlow();
   const autoSaveFlow = useAutoSaveFlow();
@@ -670,7 +672,7 @@ export default function Page({
                 shadowBoxWidth={shadowBoxWidth}
                 shadowBoxHeight={shadowBoxHeight}
               />
-              <FlowToolbar />
+              <FlowToolbar readOnly={readOnly} />
             </>
           )}
           <MemoizedSidebarTrigger />
@@ -685,25 +687,27 @@ export default function Page({
             edges={edges}
             onNodesChange={onNodesChangeWithHelperLines}
             onEdgesChange={onEdgesChange}
-            onConnect={isLocked ? undefined : onConnectMod}
+            onConnect={isLocked || readOnly ? undefined : onConnectMod}
             disableKeyboardA11y={true}
             onInit={setReactFlowInstance}
             nodeTypes={nodeTypes}
-            onReconnect={isLocked ? undefined : onEdgeUpdate}
-            onReconnectStart={isLocked ? undefined : onEdgeUpdateStart}
-            onReconnectEnd={isLocked ? undefined : onEdgeUpdateEnd}
-            onNodeDrag={onNodeDrag}
-            onNodeDragStart={onNodeDragStart}
-            onSelectionDragStart={onSelectionDragStart}
+            onReconnect={isLocked || readOnly ? undefined : onEdgeUpdate}
+            onReconnectStart={
+              isLocked || readOnly ? undefined : onEdgeUpdateStart
+            }
+            onReconnectEnd={isLocked || readOnly ? undefined : onEdgeUpdateEnd}
+            onNodeDrag={readOnly ? undefined : onNodeDrag}
+            onNodeDragStart={readOnly ? undefined : onNodeDragStart}
+            onSelectionDragStart={readOnly ? undefined : onSelectionDragStart}
             elevateEdgesOnSelect={true}
             onSelectionEnd={onSelectionEnd}
             onSelectionStart={onSelectionStart}
             connectionRadius={30}
             edgeTypes={edgeTypes}
             connectionLineComponent={ConnectionLineComponent}
-            onDragOver={onDragOver}
-            onNodeDragStop={onNodeDragStop}
-            onDrop={onDrop}
+            onDragOver={readOnly ? undefined : onDragOver}
+            onNodeDragStop={readOnly ? undefined : onNodeDragStop}
+            onDrop={readOnly ? undefined : onDrop}
             onSelectionChange={onSelectionChange}
             deleteKeyCode={[]}
             fitView={isEmptyFlow.current ? false : true}
@@ -718,6 +722,10 @@ export default function Page({
             proOptions={{ hideAttribution: true }}
             onPaneClick={onPaneClick}
             onEdgeClick={handleEdgeClick}
+            nodesDraggable={!readOnly}
+            nodesConnectable={!readOnly}
+            edgesUpdatable={!readOnly}
+            edgesFocusable={!readOnly}
           >
             <FlowBuildingComponent />
             <UpdateAllComponents />

@@ -3,7 +3,11 @@ import useFlowStore from "@/stores/flowStore";
 import PublishDropdown from "./deploy-dropdown";
 import PlaygroundButton from "./playground-button";
 
-export default function FlowToolbarOptions() {
+export default function FlowToolbarOptions({
+  readOnly = false,
+}: {
+  readOnly?: boolean;
+}) {
   const [open, setOpen] = useState<boolean>(false);
   const hasIO = useFlowStore((state) => state.hasIO);
 
@@ -17,7 +21,7 @@ export default function FlowToolbarOptions() {
           canvasOpen
         />
       </div>
-      <PublishDropdown />
+      {!readOnly && <PublishDropdown />}
     </div>
   );
 }

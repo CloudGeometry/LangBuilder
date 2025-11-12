@@ -11,7 +11,11 @@ import { classNames, cn, isThereModal } from "../../../utils/utils";
 import ForwardedIconComponent from "../../common/genericIconComponent";
 import FlowToolbarOptions from "./components/flow-toolbar-options";
 
-const FlowToolbar = memo(function FlowToolbar(): JSX.Element {
+const FlowToolbar = memo(function FlowToolbar({
+  readOnly = false,
+}: {
+  readOnly?: boolean;
+}): JSX.Element {
   const preventDefault = true;
   const [open, setOpen] = useState<boolean>(false);
   const [openCodeModal, setOpenCodeModal] = useState<boolean>(false);
@@ -55,7 +59,13 @@ const FlowToolbar = memo(function FlowToolbar(): JSX.Element {
             "hover:shadow-round-btn-shadow flex h-11 items-center justify-center gap-7 rounded-md border bg-background px-1.5 shadow transition-all",
           )}
         >
-          <FlowToolbarOptions />
+          {readOnly && (
+            <div className="flex items-center gap-2 px-3 text-sm text-muted-foreground">
+              <ForwardedIconComponent name="Eye" className="h-4 w-4" />
+              <span>View Only</span>
+            </div>
+          )}
+          <FlowToolbarOptions readOnly={readOnly} />
         </div>
       </Panel>
     </>
