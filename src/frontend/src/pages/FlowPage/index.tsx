@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { useBlocker, useParams } from "react-router-dom";
+import { PermissionErrorBoundary } from "@/components/authorization/PermissionErrorBoundary";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { useGetFlow } from "@/controllers/API/queries/flows/use-get-flow";
 import { useGetTypes } from "@/controllers/API/queries/flows/use-get-types";
 import { useCustomNavigate } from "@/customization/hooks/use-custom-navigate";
 import useSaveFlow from "@/hooks/flows/use-save-flow";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { usePermission } from "@/hooks/usePermission";
 import { SaveChangesModal } from "@/modals/saveChangesModal";
 import useAlertStore from "@/stores/alertStore";
 import { useTypesStore } from "@/stores/typesStore";
@@ -17,9 +19,17 @@ import Page from "./components/PageComponent";
 
 export default function FlowPage({ view }: { view?: boolean }): JSX.Element {
   const types = useTypesStore((state) => state.types);
+  const { id } = useParams();
 
   useGetTypes({
     enabled: Object.keys(types).length <= 0,
+  });
+
+  // Check if user has Update permission for the flow (for read-only mode)
+  const { data: canUpdate } = usePermission({
+    permission: "Update",
+    scope_type: "Flow",
+    scope_id: id || null,
   });
 
   const setCurrentFlow = useFlowsManagerStore((state) => state.setCurrentFlow);
@@ -36,7 +46,6 @@ export default function FlowPage({ view }: { view?: boolean }): JSX.Element {
   const blocker = useBlocker(changesNotSaved || isBuilding);
 
   const setOnFlowPage = useFlowStore((state) => state.setOnFlowPage);
-  const { id } = useParams();
   const navigate = useCustomNavigate();
   const saveFlow = useSaveFlow();
 
@@ -155,46 +164,51 @@ export default function FlowPage({ view }: { view?: boolean }): JSX.Element {
 
   const isMobile = useIsMobile();
 
+  // Determine read-only mode based on permissions
+  const isReadOnly = !canUpdate;
+
   return (
-    <>
-      <div className="flow-page-positioning">
-        {currentFlow && (
-          <div className="flex h-full overflow-hidden">
-            <SidebarProvider width="17.5rem" defaultOpen={!isMobile}>
-              {!view && <FlowSidebarComponent isLoading={isLoading} />}
-              <main className="flex w-full overflow-hidden">
-                <div className="h-full w-full">
-                  <Page setIsLoading={setIsLoading} />
-                </div>
-              </main>
-            </SidebarProvider>
-          </div>
-        )}
-      </div>
-      {blocker.state === "blocked" && (
-        <>
-          {!isBuilding && currentSavedFlow && (
-            <SaveChangesModal
-              onSave={handleSave}
-              onCancel={() => blocker.reset?.()}
-              onProceed={handleExit}
-              flowName={currentSavedFlow.name}
-              lastSaved={
-                updatedAt
-                  ? new Date(updatedAt).toLocaleString("en-US", {
-                      hour: "numeric",
-                      minute: "numeric",
-                      second: "numeric",
-                      month: "numeric",
-                      day: "numeric",
-                    })
-                  : undefined
-              }
-              autoSave={autoSaving}
-            />
+    <PermissionErrorBoundary>
+      <>
+        <div className="flow-page-positioning">
+          {currentFlow && (
+            <div className="flex h-full overflow-hidden">
+              <SidebarProvider width="17.5rem" defaultOpen={!isMobile}>
+                {!view && <FlowSidebarComponent isLoading={isLoading} />}
+                <main className="flex w-full overflow-hidden">
+                  <div className="h-full w-full">
+                    <Page setIsLoading={setIsLoading} readOnly={isReadOnly} />
+                  </div>
+                </main>
+              </SidebarProvider>
+            </div>
           )}
-        </>
-      )}
-    </>
+        </div>
+        {blocker.state === "blocked" && (
+          <>
+            {!isBuilding && currentSavedFlow && (
+              <SaveChangesModal
+                onSave={handleSave}
+                onCancel={() => blocker.reset?.()}
+                onProceed={handleExit}
+                flowName={currentSavedFlow.name}
+                lastSaved={
+                  updatedAt
+                    ? new Date(updatedAt).toLocaleString("en-US", {
+                        hour: "numeric",
+                        minute: "numeric",
+                        second: "numeric",
+                        month: "numeric",
+                        day: "numeric",
+                      })
+                    : undefined
+                }
+                autoSave={autoSaving}
+              />
+            )}
+          </>
+        )}
+      </>
+    </PermissionErrorBoundary>
   );
 }

@@ -1,6 +1,7 @@
 import { debounce } from "lodash";
 import { useCallback, useEffect, useState } from "react";
 import LangbuilderLogo from "@/assets/LangbuilderLogo.svg?react";
+import RBACGuard from "@/components/authorization/RBACGuard";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import ShadTooltip from "@/components/common/shadTooltipComponent";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ interface HeaderComponentProps {
   setView: (view: "list" | "grid") => void;
   setNewProjectModal: (newProjectModal: boolean) => void;
   folderName?: string;
+  folderId?: string;
   setSearch: (search: string) => void;
   isEmptyFolder: boolean;
   selectedFlows: string[];
@@ -27,6 +29,7 @@ interface HeaderComponentProps {
 
 const HeaderComponent = ({
   folderName = "",
+  folderId,
   flowType,
   setFlowType,
   view,
@@ -219,25 +222,33 @@ const HeaderComponent = ({
                     </Button>
                   </DeleteConfirmationModal>
                 </div>
-                <ShadTooltip content="New Flow" side="bottom">
-                  <Button
-                    variant="default"
-                    size="iconMd"
-                    className="z-50 px-2.5 !text-mmd"
-                    onClick={() => setNewProjectModal(true)}
-                    id="new-project-btn"
-                    data-testid="new-project-btn"
-                  >
-                    <ForwardedIconComponent
-                      name="Plus"
-                      aria-hidden="true"
-                      className="h-4 w-4"
-                    />
-                    <span className="hidden whitespace-nowrap font-semibold md:inline">
-                      New Flow
-                    </span>
-                  </Button>
-                </ShadTooltip>
+                <RBACGuard
+                  check={{
+                    permission: "Create",
+                    scope_type: "Project",
+                    scope_id: folderId || null,
+                  }}
+                >
+                  <ShadTooltip content="New Flow" side="bottom">
+                    <Button
+                      variant="default"
+                      size="iconMd"
+                      className="z-50 px-2.5 !text-mmd"
+                      onClick={() => setNewProjectModal(true)}
+                      id="new-project-btn"
+                      data-testid="new-project-btn"
+                    >
+                      <ForwardedIconComponent
+                        name="Plus"
+                        aria-hidden="true"
+                        className="h-4 w-4"
+                      />
+                      <span className="hidden whitespace-nowrap font-semibold md:inline">
+                        New Flow
+                      </span>
+                    </Button>
+                  </ShadTooltip>
+                </RBACGuard>
               </div>
             </div>
           )}

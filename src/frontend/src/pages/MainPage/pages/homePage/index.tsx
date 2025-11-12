@@ -256,6 +256,7 @@ const HomePage = ({ type }: { type: "flows" | "components" | "mcp" }) => {
             <div className="flex h-full flex-col justify-start">
               <HeaderComponent
                 folderName={folderName}
+                folderId={folderId ?? myCollectionId}
                 flowType={flowType}
                 setFlowType={setFlowType}
                 view={view}
