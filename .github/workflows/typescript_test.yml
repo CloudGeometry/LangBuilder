@@ -200,7 +200,7 @@ jobs:
           echo "suites=$SUITES" >> $GITHUB_OUTPUT
 
       - name: Setup Node ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         id: setup-node
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -270,7 +270,7 @@ jobs:
           ref: ${{ inputs.ref || github.ref }}
 
       - name: Setup Node.js Environment
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         id: setup-node
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -363,7 +363,7 @@ jobs:
       - name: Setup Node.js
 
         if: ${{ steps.should_merge_reports.outputs.should_merge_reports == 'true' }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
 
