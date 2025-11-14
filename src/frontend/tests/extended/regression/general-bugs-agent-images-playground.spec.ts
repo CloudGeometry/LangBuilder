@@ -64,7 +64,9 @@ test(
     // Dispatch the drop event on the target element
     await element.dispatchEvent("drop", { dataTransfer });
 
-    await page.getByTestId("input-chat-playground").fill("what is this image?");
+    await page
+      .getByTestId("input-chat-playground")
+      .fill("tell me a small history about the image");
 
     await page.waitForSelector('[data-testid="button-send"]', {
       timeout: 100000,
@@ -83,7 +85,7 @@ test(
       .last()
       .textContent();
 
-    expect(textFromLlm?.toLowerCase()).toMatch(/(chain|inkscape|logo)/);
+    expect(textFromLlm?.toLowerCase()).toContain("chain");
     const lengthOfTextFromLlm = textFromLlm?.length;
     expect(lengthOfTextFromLlm).toBeGreaterThan(100);
   },

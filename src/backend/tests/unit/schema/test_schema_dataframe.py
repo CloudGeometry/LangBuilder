@@ -1,8 +1,8 @@
 import pandas as pd
 import pytest
-from langchain_core.documents import Document
 from langbuilder.schema.data import Data
 from langbuilder.schema.dataframe import DataFrame
+from langchain_core.documents import Document
 
 
 @pytest.fixture

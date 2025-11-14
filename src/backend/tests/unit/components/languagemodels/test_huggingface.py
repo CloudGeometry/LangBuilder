@@ -1,5 +1,13 @@
 from langbuilder.components.huggingface.huggingface import DEFAULT_MODEL, HuggingFaceEndpointsComponent
-from langbuilder.inputs.inputs import DictInput, DropdownInput, FloatInput, IntInput, SecretStrInput, SliderInput, StrInput
+from langbuilder.inputs.inputs import (
+    DictInput,
+    DropdownInput,
+    FloatInput,
+    IntInput,
+    SecretStrInput,
+    SliderInput,
+    StrInput,
+)
 
 
 def test_huggingface_inputs():

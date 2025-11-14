@@ -3,21 +3,21 @@ title: Configure an external PostgreSQL database
 slug: /configuration-custom-database
 ---
 
-LangBuilder's default database is [SQLite](https://www.sqlite.org/docs.html), but you can configure LangBuilder to use PostgreSQL instead.
+Langbuilder's default database is [SQLite](https://www.sqlite.org/docs.html), but you can configure Langbuilder to use PostgreSQL instead.
 
-This guide walks you through setting up an external database for LangBuilder by replacing the default SQLite connection string `sqlite:///./langbuilder.db` with PostgreSQL, both in local and containerized environments.
+This guide walks you through setting up an external database for Langbuilder by replacing the default SQLite connection string `sqlite:///./langbuilder.db` with PostgreSQL, both in local and containerized environments.
 
-In this configuration, all structured application data from LangBuilder, including flows, message history, and logs, is instead managed by PostgreSQL.
+In this configuration, all structured application data from Langbuilder, including flows, message history, and logs, is instead managed by PostgreSQL.
 PostgreSQL is better suited for production environments due to its robust support for concurrent users, advanced data integrity features, and scalability.
-LangBuilder can more efficiently handle multiple users and larger workloads by using PostgreSQL as the database.
+Langbuilder can more efficiently handle multiple users and larger workloads by using PostgreSQL as the database.
 
 ## Prerequisites
 
 - A [PostgreSQL](https://www.pgadmin.org/download/) database
 
-## Connect LangBuilder to a local PostgreSQL database
+## Connect Langbuilder to a local PostgreSQL database
 
-1. If LangBuilder is running, stop LangBuilder with <kbd>Ctrl+C</kbd>.
+1. If Langbuilder is running, stop Langbuilder with <kbd>Ctrl+C</kbd>.
 
 2. Find your PostgreSQL database's connection string in the format `postgresql://user:password@host:port/dbname`.
 
@@ -28,13 +28,13 @@ LangBuilder can more efficiently handle multiple users and larger workloads by u
     - If you're running PostgreSQL in a separate Docker container with `docker run`, use the container's IP address or network alias.
     - If you're running a cloud-hosted PostgreSQL, your provider will share your connection string, which includes a username and password.
 
-3. Create a LangBuilder `.env` file:
+3. Create a Langbuilder `.env` file:
 
     ```
     touch .env
     ```
 
-    You can use the [`.env.example`](https://github.com/CloudGeometry/langbuilder/blob/main/.env.example) file in the LangBuilder repository as a template for your own `.env` file.
+    You can use the [`.env.example`](https://github.com/cloudgeometry/langbuilder/blob/main/.env.example) file in the Langbuilder repository as a template for your own `.env` file.
 
 4. In your `.env` file, set `LANGBUILDER_DATABASE_URL` to your PostgreSQL connection string:
 
@@ -42,35 +42,35 @@ LangBuilder can more efficiently handle multiple users and larger workloads by u
     LANGBUILDER_DATABASE_URL="postgresql://user:password@localhost:5432/dbname"
     ```
 
-5. Save your changes, and then start LangBuilder with your `.env` file:
+5. Save your changes, and then start Langbuilder with your `.env` file:
 
     ```bash
     uv run langbuilder run --env-file .env
     ```
 
-6. In LangBuilder, run any flow to create traffic.
+6. In Langbuilder, run any flow to create traffic.
 
 7. Inspect your PostgreSQL database's tables and activity to verify that new tables and traffic were created after you ran a flow.
 
-## Deploy LangBuilder and PostgreSQL containers with docker-compose.yml
+## Deploy Langbuilder and PostgreSQL containers with docker-compose.yml
 
-Launching LangBuilder and PostgreSQL containers in the same Docker network ensures proper connectivity between services.
-For an example, see the [`docker-compose.yml`](https://github.com/CloudGeometry/langbuilder/blob/main/docker_example/docker-compose.yml) file in the LangBuilder repository.
+Launching Langbuilder and PostgreSQL containers in the same Docker network ensures proper connectivity between services.
+For an example, see the [`docker-compose.yml`](https://github.com/cloudgeometry/langbuilder/blob/main/docker_example/docker-compose.yml) file in the Langbuilder repository.
 
-The configuration in the example `docker-compose.yml` also sets up persistent volumes for both LangBuilder and PostgreSQL data.
+The configuration in the example `docker-compose.yml` also sets up persistent volumes for both Langbuilder and PostgreSQL data.
 Persistent volumes map directories inside of containers to storage on the host machine, so data persists through container restarts.
 
 Docker Compose creates an isolated network for all services defined in `docker-compose.yml`. This ensures that the services can communicate with each other using their service names as hostnames, such as `postgres` in the database URL.
-In contrast, if you run PostgreSQL separately with `docker run`, it launches in a different network than the LangBuilder container, and this prevents LangBuilder from connecting to PostgreSQL using the service name.
+In contrast, if you run PostgreSQL separately with `docker run`, it launches in a different network than the Langbuilder container, and this prevents Langbuilder from connecting to PostgreSQL using the service name.
 
-To start the LangBuilder and PostgreSQL services with the example Docker Compose file, navigate to the `langbuilder/docker_example` directory, and then run `docker-compose up`.
+To start the Langbuilder and PostgreSQL services with the example Docker Compose file, navigate to the `langbuilder/docker_example` directory, and then run `docker-compose up`.
 If you're using a different `docker-compose.yml` file, run the `docker-compose up` command from the same directory as your `docker-compose.yml` file.
 
-## Deploy multiple LangBuilder instances with a shared PostgreSQL database
+## Deploy multiple Langbuilder instances with a shared PostgreSQL database
 
-To configure multiple LangBuilder instances that share the same PostgreSQL database, modify your `docker-compose.yml` file to include multiple LangBuilder services.
+To configure multiple Langbuilder instances that share the same PostgreSQL database, modify your `docker-compose.yml` file to include multiple Langbuilder services.
 
-This example populates the values in `docker-compose.yml` with values from your LangBuilder `.env` file.
+This example populates the values in `docker-compose.yml` with values from your Langbuilder `.env` file.
 This approach means you only have to manage deployment variables in one file, instead of copying values across multiple files.
 
 1. Update your `.env` file with values for your PostgreSQL database:
@@ -103,7 +103,7 @@ For example:
           - langbuilder-postgres:/var/lib/postgresql/data
 
       langbuilder-1:
-        image: cloudgeometry/langbuilder:latest
+        image: nickchasecg/langbuilder:latest
         pull_policy: always
         ports:
           - "${LANGBUILDER_PORT_1}:7860"
@@ -118,7 +118,7 @@ For example:
           - langbuilder-data-1:/app/langbuilder
 
       langbuilder-2:
-        image: cloudgeometry/langbuilder:latest
+        image: nickchasecg/langbuilder:latest
         pull_policy: always
         ports:
           - "${LANGBUILDER_PORT_2}:7860"
@@ -139,7 +139,7 @@ For example:
     ```
 
 3. Deploy the file with `docker-compose up`.
-You can access the first LangBuilder instance at `http://localhost:7860`, and the second LangBuilder instance at `http://localhost:7861`.
+You can access the first Langbuilder instance at `http://localhost:7860`, and the second Langbuilder instance at `http://localhost:7861`.
 
 4. To confirm both instances are using the same database, run the `docker exec` command to start `psql` in your PostgreSQL container.
 Your container name may vary.
@@ -155,12 +155,12 @@ Your container name may vary.
     ```
 
 6. Examine the query results for multiple connections with different `client_addr` values, for example `172.21.0.3` and `172.21.0.4`.
-Since each LangBuilder instance runs in its own container on the Docker network, using different incoming IP addresses confirms that both instances are actively connected to the PostgreSQL database.
+Since each Langbuilder instance runs in its own container on the Docker network, using different incoming IP addresses confirms that both instances are actively connected to the PostgreSQL database.
 
 7. To quit psql, type `quit`.
 
 ## See also
 
-* [LangBuilder database guide for enterprise DBAs](/enterprise-database-guide)
+* [Langbuilder database guide for enterprise DBAs](/enterprise-database-guide)
 * [Memory management options](/memory)
 * [Logs](/logging)

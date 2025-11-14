@@ -5,6 +5,7 @@ from typing import Any
 
 import pytest
 import requests
+from astrapy.admin import parse_api_endpoint
 from langbuilder.api.v1.schemas import InputValueRequest
 from langbuilder.custom import Component
 from langbuilder.custom.eval import eval_custom_component_code
@@ -34,11 +35,6 @@ def valid_nvidia_vectorize_region(api_endpoint: str) -> bool:
     Returns:
         True if the region contains hosted nvidia models, False otherwise.
     """
-    try:
-        from astrapy.admin import parse_api_endpoint
-    except ImportError as e:
-        msg = "Could not import astrapy package. Please install it with `uv pip install astrapy`."
-        raise ImportError(msg) from e
     parsed_endpoint = parse_api_endpoint(api_endpoint)
     if not parsed_endpoint:
         msg = "Invalid ASTRA_DB_API_ENDPOINT"
@@ -103,7 +99,7 @@ class JSONFlow:
 
 def download_flow_from_github(name: str, version: str) -> JSONFlow:
     response = requests.get(
-        f"https://raw.githubusercontent.com/CloudGeometry/langbuilder/v{version}/src/backend/base/langbuilder/initial_setup/starter_projects/{name}.json",
+        f"https://raw.githubusercontent.com/cloudgeometry/langbuilder/v{version}/src/backend/base/langbuilder/initial_setup/starter_projects/{name}.json",
         timeout=10,
     )
     response.raise_for_status()
@@ -114,7 +110,7 @@ def download_flow_from_github(name: str, version: str) -> JSONFlow:
 def download_component_from_github(module: str, file_name: str, version: str) -> Component:
     version_string = f"v{version}" if version != "main" else version
     response = requests.get(
-        f"https://raw.githubusercontent.com/CloudGeometry/langbuilder/{version_string}/src/backend/base/langbuilder/components/{module}/{file_name}.py",
+        f"https://raw.githubusercontent.com/cloudgeometry/langbuilder/{version_string}/src/backend/base/langbuilder/components/{module}/{file_name}.py",
         timeout=10,
     )
     response.raise_for_status()

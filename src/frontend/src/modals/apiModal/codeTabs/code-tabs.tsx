@@ -8,7 +8,6 @@ import { useShallow } from "zustand/react/shallow";
 import IconComponent from "@/components/common/genericIconComponent";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs-button";
-import { customCodeTabsClass } from "@/customization/constants";
 import { useIsAutoLogin } from "@/hooks/use-is-auto-login";
 import useAuthStore from "@/stores/authStore";
 import useFlowStore from "@/stores/flowStore";
@@ -260,7 +259,7 @@ export default function APITabsComponent() {
                           style={dark ? oneDark : oneLight}
                           className={`!mt-0 ${
                             index === steps.length - 1 ? "h-full" : ""
-                          } ${customCodeTabsClass.step}`}
+                          } w-full overflow-scroll !rounded-b-md border border-border text-left !custom-scroll`}
                         >
                           {step.code}
                         </SyntaxHighlighter>
@@ -297,7 +296,7 @@ export default function APITabsComponent() {
                       wrapLongLines={true}
                       language={currentTab.language}
                       style={dark ? oneDark : oneLight}
-                      className={customCodeTabsClass.default}
+                      className="!mt-0 h-full w-full overflow-scroll !rounded-b-md border border-border text-left !custom-scroll"
                     >
                       {currentTab.code}
                     </SyntaxHighlighter>

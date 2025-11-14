@@ -112,7 +112,7 @@ class TestDynamicImportIntegration:
 
         # Time the import of a large module
         start_time = time.time()
-        from langbuilder.components import chroma
+        from langbuilder.components import vectorstores
 
         import_time = time.time() - start_time
 
@@ -124,7 +124,7 @@ class TestDynamicImportIntegration:
 
         # Now access a component - this should trigger loading
         start_time = time.time()
-        chroma_component = chroma.ChromaVectorStoreComponent
+        chroma_component = vectorstores.ChromaVectorStoreComponent
         access_time = time.time() - start_time
 
         assert chroma_component is not None
@@ -236,21 +236,21 @@ class TestDynamicImportIntegration:
 
     def test_large_scale_component_access(self):
         """Test accessing many components doesn't cause issues."""
-        from langbuilder.components import datastax
+        from langbuilder.components import vectorstores
 
         # Access multiple components rapidly
         components_accessed = []
         component_names = [
-            "AstraDBVectorStoreComponent",
-            "AstraDBChatComponent",
-            "AstraDBToolComponent",
-            "AstraDBCQLToolComponent",
-            "AstraAssistantManager",
+            "ChromaVectorStoreComponent",
+            "PineconeVectorStoreComponent",
+            "FaissVectorStoreComponent",
+            "WeaviateVectorStoreComponent",
+            "QdrantVectorStoreComponent",
         ]
 
         for name in component_names:
-            if hasattr(datastax, name):
-                component = getattr(datastax, name)
+            if hasattr(vectorstores, name):
+                component = getattr(vectorstores, name)
                 components_accessed.append(component)
 
         # Should have accessed multiple components without issues

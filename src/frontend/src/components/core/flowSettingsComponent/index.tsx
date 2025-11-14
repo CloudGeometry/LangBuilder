@@ -9,54 +9,15 @@ import useFlowsManagerStore from "@/stores/flowsManagerStore";
 import type { FlowType } from "@/types/flow";
 import EditFlowSettings from "../editFlowSettingsComponent";
 
-type FlowSettingsComponentProps = {
-  flowData?: FlowType;
-  close: () => void;
-  open: boolean;
-};
-
-const updateFlowWithFormValues = (
-  baseFlow: FlowType,
-  newName: string,
-  newDescription: string,
-  newLocked: boolean,
-): FlowType => {
-  const newFlow = cloneDeep(baseFlow);
-  newFlow.name = newName;
-  newFlow.description = newDescription;
-  newFlow.locked = newLocked;
-  return newFlow;
-};
-
-const buildInvalidNameList = (
-  allFlows: FlowType[] | undefined,
-  currentFlowName: string | undefined,
-): string[] => {
-  if (!allFlows) return [];
-  const names = allFlows.map((f) => f?.name ?? "");
-  return names.filter((n) => n !== (currentFlowName ?? ""));
-};
-
-const isSaveDisabled = (
-  flow: FlowType | undefined,
-  invalidNameList: string[],
-  name: string,
-  description: string,
-  locked: boolean,
-): boolean => {
-  if (!flow) return true;
-  const isNameChangedAndValid =
-    !invalidNameList.includes(name) && flow.name !== name;
-  const isDescriptionChanged = flow.description !== description;
-  const isLockedChanged = flow.locked !== locked;
-  return !(isNameChangedAndValid || isDescriptionChanged || isLockedChanged);
-};
-
-const FlowSettingsComponent = ({
+export default function FlowSettingsComponent({
   flowData,
   close,
   open,
-}: FlowSettingsComponentProps): JSX.Element => {
+}: {
+  flowData?: FlowType;
+  close: () => void;
+  open: boolean;
+}): JSX.Element {
   const saveFlow = useSaveFlow();
   const currentFlow = useFlowStore((state) =>
     flowData ? undefined : state.currentFlow,
@@ -67,7 +28,6 @@ const FlowSettingsComponent = ({
   const flow = flowData ?? currentFlow;
   const [name, setName] = useState(flow?.name ?? "");
   const [description, setDescription] = useState(flow?.description ?? "");
-  const [locked, setLocked] = useState<boolean>(flow?.locked ?? false);
   const [isSaving, setIsSaving] = useState(false);
   const [disableSave, setDisableSave] = useState(true);
   const autoSaving = useFlowsManagerStore((state) => state.autoSaving);
@@ -76,14 +36,15 @@ const FlowSettingsComponent = ({
   useEffect(() => {
     setName(flow?.name ?? "");
     setDescription(flow?.description ?? "");
-    setLocked(flow?.locked ?? false);
   }, [flow?.name, flow?.description, flow?.endpoint_name, open]);
 
   function handleSubmit(event?: React.FormEvent<HTMLFormElement>): void {
     if (event) event.preventDefault();
     setIsSaving(true);
     if (!flow) return;
-    const newFlow = updateFlowWithFormValues(flow, name, description, locked);
+    const newFlow = cloneDeep(flow);
+    newFlow.name = name;
+    newFlow.description = description;
 
     if (autoSaving) {
       saveFlow(newFlow)
@@ -109,12 +70,25 @@ const FlowSettingsComponent = ({
   const [nameLists, setNameList] = useState<string[]>([]);
 
   useEffect(() => {
-    setNameList(buildInvalidNameList(flows, flow?.name));
+    if (flows) {
+      const tempNameList: string[] = [];
+      flows.forEach((flow: FlowType) => {
+        tempNameList.push(flow?.name ?? "");
+      });
+      setNameList(tempNameList.filter((name) => name !== (flow?.name ?? "")));
+    }
   }, [flows]);
 
   useEffect(() => {
-    setDisableSave(isSaveDisabled(flow, nameLists, name, description, locked));
-  }, [nameLists, flow, description, name, locked]);
+    if (
+      (!nameLists.includes(name) && flow?.name !== name) ||
+      flow?.description !== description
+    ) {
+      setDisableSave(false);
+    } else {
+      setDisableSave(true);
+    }
+  }, [nameLists, flow, description, name]);
   return (
     <Form.Root onSubmit={handleSubmit} ref={formRef}>
       <div className="flex flex-col gap-4">
@@ -126,8 +100,6 @@ const FlowSettingsComponent = ({
             setName={setName}
             setDescription={setDescription}
             submitForm={submitForm}
-            locked={locked}
-            setLocked={setLocked}
           />
         </div>
         <div className="flex justify-end gap-2">
@@ -155,6 +127,4 @@ const FlowSettingsComponent = ({
       </div>
     </Form.Root>
   );
-};
-
-export default FlowSettingsComponent;
+}

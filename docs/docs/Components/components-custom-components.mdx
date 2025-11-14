@@ -7,9 +7,9 @@ import Icon from "@site/src/components/icon";
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-Custom components extend LangBuilder's functionality through Python classes that inherit from `Component`. This enables integration of new features, data manipulation, external services, and specialized tools.
+Custom components extend Langbuilder's functionality through Python classes that inherit from `Component`. This enables integration of new features, data manipulation, external services, and specialized tools.
 
-In LangBuilder's node-based environment, each node is a "component" that performs discrete functions. Custom components are Python classes which define:
+In Langbuilder's node-based environment, each node is a "component" that performs discrete functions. Custom components are Python classes which define:
 
 * **Inputs** — Data or parameters your component requires.
 * **Outputs** — Data your component provides to downstream nodes.
@@ -19,7 +19,7 @@ The benefits of creating custom components include unlimited extensibility, reus
 
 Create custom components for performing specialized tasks, calling APIs, or adding advanced logic.
 
-Custom components in LangBuilder are built upon:
+Custom components in Langbuilder are built upon:
 
 * The Python class that inherits from `Component`.
 * Class-level attributes that identify and describe the component.
@@ -41,16 +41,16 @@ class MyCsvReader(Component):
 
 * `display_name`: A user-friendly label shown in the **Components** menu and on the component itself when you add it to a flow.
 * `description`: A brief summary shown in tooltips and printed below the component name when added to a flow.
-* `icon`: A decorative icon from LangBuilder's icon library, printed next to the name.
+* `icon`: A decorative icon from Langbuilder's icon library, printed next to the name.
 
-    LangBuilder uses [Lucide](https://lucide.dev/icons) for icons. To assign an icon to your component, set the icon attribute to the name of a Lucide icon as a string, such as `icon = "file-text"`. LangBuilder renders icons from the Lucide library automatically.
+    Langbuilder uses [Lucide](https://lucide.dev/icons) for icons. To assign an icon to your component, set the icon attribute to the name of a Lucide icon as a string, such as `icon = "file-text"`. Langbuilder renders icons from the Lucide library automatically.
 
 * `name`: A unique internal identifier.
 * `documentation`: An optional link to external documentation, such as API or product documentation.
 
 ### Structure of a custom component
 
-A LangBuilder custom component is more than a class with inputs and outputs. It includes an internal structure with optional lifecycle steps, output generation, front-end interaction, and logic organization.
+A Langbuilder custom component is more than a class with inputs and outputs. It includes an internal structure with optional lifecycle steps, output generation, front-end interaction, and logic organization.
 
 A basic component:
 
@@ -79,7 +79,7 @@ class MyComponent(Component):
 ```
 ### Internal Lifecycle and Execution Flow
 
-LangBuilder's engine manages:
+Langbuilder's engine manages:
 
 * **Instantiation**:  A component is created and internal structures are initialized.
 * **Assigning Inputs**: Values from the visual editor or connections are assigned to component fields.
@@ -151,7 +151,7 @@ outputs = [
 
 #### Output Grouping Behavior with `group_outputs`
 
-By default, components in LangBuilder that produce multiple outputs only allow one output selection in the visual editor.
+By default, components in Langbuilder that produce multiple outputs only allow one output selection in the visual editor.
 The component will have only one output port where the user can select the preferred output type.
 
 This behavior is controlled by the `group_outputs` parameter:
@@ -239,29 +239,24 @@ def some_method(self):
 
 ## Directory structure requirements
 
-By default, LangBuilder looks for custom components in the `/components` directory.
+By default, Langbuilder looks for custom components in the `/components` directory.
 
 If you're creating custom components in a different location using the `LANGBUILDER_COMPONENTS_PATH` [environment variable](/environment-variables), components must be organized in a specific directory structure to be properly loaded and displayed in the visual editor:
-
-Each category directory **must** contain an `__init__.py` file for LangBuilder to properly recognize and load the components.
-This is a Python package requirement that ensures the directory is treated as a module.
 
 ```
 /your/custom/components/path/    # Base directory set by LANGBUILDER_COMPONENTS_PATH
     └── category_name/          # Required category subfolder that determines menu name
-        ├── __init__.py         # Required
         └── custom_component.py # Component file
 ```
 
 Components must be placed inside category folders, not directly in the base directory.
 
-The category folder name determines where the component appears in the LangBuilder **Components** menu.
+The category folder name determines where the component appears in the Langbuilder **Components** menu.
 For example, to add a component to the **Helpers** category, place it in the `helpers` subfolder:
 
 ```
 /app/custom_components/          # LANGBUILDER_COMPONENTS_PATH
     └── helpers/                 # Displayed within the "Helpers" category
-        ├── __init__.py          # Required
         └── custom_component.py  # Your component
 ```
 
@@ -269,14 +264,12 @@ You can have multiple category folders to organize components into different cat
 ```
 /app/custom_components/
     ├── helpers/
-    │   ├── __init__.py
     │   └── helper_component.py
     └── tools/
-        ├── __init__.py
         └── tool_component.py
 ```
 
-This folder structure is required for LangBuilder to properly discover and load your custom components. Components placed directly in the base directory aren't loaded.
+This folder structure is required for Langbuilder to properly discover and load your custom components. Components placed directly in the base directory aren't loaded.
 
 ```
 /app/custom_components/          # LANGBUILDER_COMPONENTS_PATH
@@ -289,7 +282,7 @@ Inputs and outputs define how data flows through the component, how it appears i
 
 ### Inputs
 
-Inputs are defined in a class-level `inputs` list. When LangBuilder loads the component, it uses this list to render component fields and [ports](/concepts-components#component-ports) in the visual editor. Users or other components provide values or connections to fill these inputs.
+Inputs are defined in a class-level `inputs` list. When Langbuilder loads the component, it uses this list to render component fields and [ports](/concepts-components#component-ports) in the visual editor. Users or other components provide values or connections to fill these inputs.
 
 An input is usually an instance of a class from `langbuilder.io` (such as `StrInput`, `DataInput`, or `MessageTextInput`). The most common constructor parameters are:
 
@@ -344,7 +337,7 @@ inputs = [
 
 ### Outputs
 
-Outputs are defined in a class-level `outputs` list. When LangBuilder renders a component, each output becomes a connector point in the visual editor. When you connect something to an output, LangBuilder automatically calls the corresponding method and passes the returned object to the next component.
+Outputs are defined in a class-level `outputs` list. When Langbuilder renders a component, each output becomes a connector point in the visual editor. When you connect something to an output, Langbuilder automatically calls the corresponding method and passes the returned object to the next component.
 
 An output is usually an instance of `Output` from `langbuilder.io`, with common parameters:
 
@@ -362,7 +355,7 @@ You can also set a `self.status` message inside the method to show progress or l
 - **`DataFrame`**: Pandas-based tables (`langbuilder.schema.DataFrame`).
 - **Primitive types**: `str`, `int`, `bool` (not recommended if you need type/color consistency).
 
-In this example, the `DataToDataFrame` component defines its output using the outputs list. The `df_out` output is linked to the `build_df` method, so when connected to another component (node), LangBuilder calls this method and passes its returned `DataFrame` to the next node. This demonstrates how each output maps to a method that generates the actual output data.
+In this example, the `DataToDataFrame` component defines its output using the outputs list. The `df_out` output is linked to the `build_df` method, so when connected to another component (node), Langbuilder calls this method and passes its returned `DataFrame` to the next node. This demonstrates how each output maps to a method that generates the actual output data.
 
 ```python
 from langbuilder.custom import Component
@@ -422,7 +415,7 @@ inputs = [
 ]
 ```
 
-LangBuilder currently supports the following input types for **Tool Mode**:
+Langbuilder currently supports the following input types for **Tool Mode**:
 
 * `DataInput`
 * `DataFrameInput`
@@ -433,12 +426,12 @@ LangBuilder currently supports the following input types for **Tool Mode**:
 
 ## Typed annotations
 
-In LangBuilder, **typed annotations** allow LangBuilder to visually guide users and maintain flow consistency.
+In Langbuilder, **typed annotations** allow Langbuilder to visually guide users and maintain flow consistency.
 
 Typed annotations provide:
 
 * **Color-coding**: Outputs like `-> Data` or `-> Message` get distinct colors.
-* **Validation**: LangBuilder blocks incompatible connections automatically.
+* **Validation**: Langbuilder blocks incompatible connections automatically.
 * **Readability**: Developers can quickly understand data flow.
 * **Development tools**: Better code suggestions and error checking in your code editor.
 
@@ -487,7 +480,7 @@ When using typed annotations, consider the following best practices:
 
 ## Enable dynamic fields
 
-In **LangBuilder**, dynamic fields allow inputs to change or appear based on user interactions. You can make an input dynamic by setting `dynamic=True`.
+In **Langbuilder**, dynamic fields allow inputs to change or appear based on user interactions. You can make an input dynamic by setting `dynamic=True`.
 Optionally, setting `real_time_refresh=True` triggers the `update_build_config` method to adjust the input's visibility or properties in real time, creating a contextual visual editor experience that only exposes relevant fields based on the user's choices.
 
 In this example, the operator field triggers updates with `real_time_refresh=True`.
@@ -520,7 +513,7 @@ class RegexRouter(Component):
 
 ### Implement `update_build_config`
 
-When a field with `real_time_refresh=True` is modified, LangBuilder calls the `update_build_config` method, passing the updated field name, value, and the component's configuration to dynamically adjust the visibility or properties of other fields based on user input.
+When a field with `real_time_refresh=True` is modified, Langbuilder calls the `update_build_config` method, passing the updated field name, value, and the component's configuration to dynamically adjust the visibility or properties of other fields based on user input.
 
 This example will show or hide the `regex_pattern` field when the user selects a different operator.
 
@@ -556,11 +549,11 @@ When working with dynamic fields, consider the following best practices to ensur
 
 ## Error handling and logging
 
-In LangBuilder, robust error handling ensures that your components behave predictably, even when unexpected situations occur, such as invalid inputs, external API failures, or internal logic errors.
+In Langbuilder, robust error handling ensures that your components behave predictably, even when unexpected situations occur, such as invalid inputs, external API failures, or internal logic errors.
 
 ### Error handling techniques
 
-* **Raise Exceptions**: If a critical error occurs, you can raise standard Python exceptions such as `ValueError`, or specialized exceptions like `ToolException`. LangBuilder will automatically catch these and display appropriate error messages in the visual editor, helping users quickly identify what went wrong.
+* **Raise Exceptions**: If a critical error occurs, you can raise standard Python exceptions such as `ValueError`, or specialized exceptions like `ToolException`. Langbuilder will automatically catch these and display appropriate error messages in the visual editor, helping users quickly identify what went wrong.
 
     ```python
     def compute_result(self) -> str:
@@ -595,7 +588,7 @@ In LangBuilder, robust error handling ensures that your components behave predic
     ```python
     def some_output(self) -> Data:
     if <some condition>:
-        self.stop("some_output")  # Tells LangBuilder no data flows
+        self.stop("some_output")  # Tells Langbuilder no data flows
         return Data(data={"error": "Condition not met"})
     ```
 
@@ -617,6 +610,6 @@ To build more reliable components, consider the following best practices:
 * **Return structured errors**: When appropriate, return `Data(data={"error": ...})` instead of raising exceptions to allow downstream handling.
 * **Stop outputs selectively**: Only halt specific outputs with `self.stop(...)` if necessary, to preserve correct flow behavior elsewhere.
 
-## Contribute custom components to LangBuilder
+## Contribute custom components to Langbuilder
 
-See [How to Contribute](/contributing-components) to contribute your custom component to LangBuilder.
+See [How to Contribute](/contributing-components) to contribute your custom component to Langbuilder.

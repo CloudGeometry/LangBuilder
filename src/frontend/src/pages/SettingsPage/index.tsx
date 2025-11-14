@@ -91,7 +91,7 @@ export default function SettingsPage(): JSX.Element {
     <PageLayout
       backTo={-1 as To}
       title="Settings"
-      description="Manage the general settings for LangBuilder."
+      description="Manage the general settings for Langbuilder."
     >
       <SidebarProvider width="15rem" defaultOpen={false}>
         <SideBarButtonsComponent items={sidebarNavItems} />

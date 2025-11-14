@@ -24,11 +24,10 @@ withEventDeliveryModes(
 
     await page.getByTestId("side_nav_options_all-templates").click();
     await page.getByTestId("template-custom-component-generator").click();
-    await page.getByTestId("canvas_controls_dropdown").click();
+
     await page.waitForSelector('[data-testid="fit_view"]', {
       timeout: 100000,
     });
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await page.waitForSelector('[data-testid="dropdown_str_model_name"]', {
       timeout: 5000,
@@ -59,7 +58,7 @@ withEventDeliveryModes(
       .getByTestId("input-chat-playground")
       .last()
       .fill(
-        "Create a custom component that can generate a random number between 1 and 100 and is called LangBuilder Random Number",
+        "Create a custom component that can generate a random number between 1 and 100 and is called Langbuilder Random Number",
       );
 
     await page.getByTestId("button-send").last().click();

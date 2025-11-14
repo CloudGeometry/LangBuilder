@@ -8,7 +8,7 @@ export const CustomStoreSidebar = (
 
   if (hasApiKey) {
     items.push({
-      title: "LangBuilder API Keys",
+      title: "Langbuilder API Keys",
       href: "/settings/api-keys",
       icon: (
         <ForwardedIconComponent
@@ -21,7 +21,7 @@ export const CustomStoreSidebar = (
 
   if (hasStore) {
     items.push({
-      title: "LangBuilder Store",
+      title: "Langbuilder Store",
       href: "/settings/store",
       icon: (
         <ForwardedIconComponent

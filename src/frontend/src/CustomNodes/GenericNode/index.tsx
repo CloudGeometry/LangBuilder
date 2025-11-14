@@ -30,7 +30,6 @@ import { classNames, cn } from "../../utils/utils";
 import { processNodeAdvancedFields } from "../helpers/process-node-advanced-fields";
 import useUpdateNodeCode from "../hooks/use-update-node-code";
 import NodeDescription from "./components/NodeDescription";
-import NodeLegacyComponent from "./components/NodeLegacyComponent";
 import NodeName from "./components/NodeName";
 import NodeOutputs from "./components/NodeOutputParameter/NodeOutputs";
 import NodeUpdateComponent from "./components/NodeUpdateComponent";
@@ -98,21 +97,9 @@ function GenericNode({
   const removeDismissedNodes = useFlowStore(
     (state) => state.removeDismissedNodes,
   );
-
-  const dismissedNodesLegacy = useFlowStore(
-    (state) => state.dismissedNodesLegacy,
-  );
-  const addDismissedNodesLegacy = useFlowStore(
-    (state) => state.addDismissedNodesLegacy,
-  );
-
   const dismissAll = useMemo(
     () => dismissedNodes.includes(data.id),
     [dismissedNodes, data.id],
-  );
-  const dismissAllLegacy = useMemo(
-    () => dismissedNodesLegacy.includes(data.id),
-    [dismissedNodesLegacy, data.id],
   );
 
   const showNode = data.showNode ?? true;
@@ -339,28 +326,15 @@ function GenericNode({
   );
 
   useEffect(() => {
-    const outputs = data?.node?.outputs || [];
-    const nonGroupOutputs = outputs.filter((output) => !output.group_outputs);
-    const selectedNonGroupOutput = nonGroupOutputs.find(
-      (output) => output.selected,
-    );
-    const defaultOutput = selectedNonGroupOutput || nonGroupOutputs[0];
-
-    const hasManualSelection = !!data?.selected_output;
-    const hasOneOrFewerOutputs = nonGroupOutputs.length <= 1;
-    const hasSelectedOutput = !!selectedNonGroupOutput;
-    const hasNoValidOutput = defaultOutput === undefined;
-
-    // Skip auto-selection if output is manually selected, only one output exists with selection, or no valid output
     if (
-      hasManualSelection ||
-      (hasOneOrFewerOutputs && hasSelectedOutput) ||
-      hasNoValidOutput
-    ) {
+      data?.selected_output ||
+      (data?.node?.outputs?.filter((output) => !output.group_outputs)?.length ??
+        0) <= 1
+    )
       return;
-    }
-
-    handleSelectOutput(defaultOutput);
+    handleSelectOutput(
+      data.node?.outputs?.find((output) => output.selected) || null,
+    );
   }, [data.node?.outputs, data?.selected_output, handleSelectOutput]);
 
   const [hasChangedNodeDescription, setHasChangedNodeDescription] =
@@ -380,11 +354,6 @@ function GenericNode({
   const shouldShowUpdateComponent = useMemo(
     () => (isOutdated || hasBreakingChange) && !isUserEdited && !dismissAll,
     [isOutdated, hasBreakingChange, isUserEdited, dismissAll],
-  );
-
-  const shouldShowLegacyComponent = useMemo(
-    () => (data.node?.legacy || data.node?.replacement) && !dismissAllLegacy,
-    [data.node?.legacy, data.node?.replacement, dismissAllLegacy],
   );
 
   const memoizedNodeToolbarComponent = useMemo(() => {
@@ -488,11 +457,6 @@ function GenericNode({
     [addDismissedNodes, data.id],
   );
 
-  const memoizedSetDismissAllLegacy = useCallback(
-    () => addDismissedNodesLegacy([data.id]),
-    [addDismissedNodesLegacy, data.id],
-  );
-
   return (
     <div className={cn(shouldShowUpdateComponent ? "relative -mt-10" : "")}>
       <div
@@ -512,7 +476,7 @@ function GenericNode({
           />
         )}
         {memoizedNodeToolbarComponent}
-        {shouldShowUpdateComponent ? (
+        {shouldShowUpdateComponent && (
           <NodeUpdateComponent
             hasBreakingChange={hasBreakingChange}
             showNode={showNode}
@@ -520,16 +484,7 @@ function GenericNode({
             loadingUpdate={loadingUpdate}
             setDismissAll={memoizedSetDismissAll}
           />
-        ) : shouldShowLegacyComponent ? (
-          <NodeLegacyComponent
-            legacy={data.node?.legacy}
-            replacement={data.node?.replacement}
-            setDismissAll={memoizedSetDismissAllLegacy}
-          />
-        ) : (
-          <></>
         )}
-
         <div
           data-testid={`${data.id}-main-node`}
           className={cn(
@@ -559,10 +514,6 @@ function GenericNode({
                   selected={selected}
                   showNode={showNode}
                   beta={data.node?.beta || false}
-                  legacy={
-                    data.node?.legacy ||
-                    (data.node?.replacement?.length ?? 0) > 0
-                  }
                   editNameDescription={editNameDescription}
                   toggleEditNameDescription={toggleEditNameDescription}
                   setHasChangedNodeDescription={setHasChangedNodeDescription}

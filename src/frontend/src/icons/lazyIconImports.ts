@@ -106,21 +106,13 @@ export const lazyIconsMapping = {
     import("@/icons/GoogleDrive").then((mod) => ({
       default: mod.GoogleDriveIcon,
     })),
-  Googlemeet: () =>
-    import("@/icons/googlemeet").then((mod) => ({
-      default: mod.GooglemeetIcon,
-    })),
-  GoogleTasks: () =>
-    import("@/icons/GoogleTasks").then((mod) => ({
-      default: mod.GoogleTasksIcon,
-    })),
-  Googlesheets: () =>
-    import("@/icons/googlesheets").then((mod) => ({
-      default: mod.GooglesheetsIcon,
-    })),
   GoogleGenerativeAI: () =>
     import("@/icons/GoogleGenerativeAI").then((mod) => ({
       default: mod.GoogleGenerativeAIIcon,
+    })),
+  GoogleSheets: () =>
+    import("@/icons/GoogleSheets").then((mod) => ({
+      default: mod.GoogleSheets,
     })),
   Gmail: () =>
     import("@/icons/gmail").then((mod) => ({ default: mod.GmailIcon })),
@@ -133,18 +125,6 @@ export const lazyIconsMapping = {
   GradientInfinity: () =>
     import("@/icons/GradientSparkles").then((mod) => ({
       default: mod.GradientInfinity,
-    })),
-  Googlemaps: () =>
-    import("@/icons/googlemaps").then((mod) => ({
-      default: mod.GooglemapsIcon,
-    })),
-  Todoist: () =>
-    import("@/icons/todoist").then((mod) => ({
-      default: mod.TodoistIcon,
-    })),
-  Zoom: () =>
-    import("@/icons/zoom").then((mod) => ({
-      default: mod.ZoomIcon,
     })),
   GradientUngroup: () =>
     import("@/icons/GradientSparkles").then((mod) => ({
@@ -182,8 +162,8 @@ export const lazyIconsMapping = {
     import("@/icons/JigsawStack").then((mod) => ({
       default: mod.JigsawStackIcon,
     })),
-  Linear: () =>
-    import("@/icons/linear").then((mod) => ({ default: mod.LinearIcon })),
+  Jira: () =>
+    import("@/icons/Jira").then((mod) => ({ default: mod.Jira })),
   LangChain: () =>
     import("@/icons/LangChain").then((mod) => ({ default: mod.LangChainIcon })),
   Langwatch: () =>
@@ -212,7 +192,7 @@ export const lazyIconsMapping = {
       default: mod.NotDiamondIcon,
     })),
   Notion: () =>
-    import("@/icons/Notion").then((mod) => ({ default: mod.NotionIcon })),
+    import("@/icons/Notion").then((mod) => ({ default: mod.Notion })),
   Novita: () =>
     import("@/icons/Novita").then((mod) => ({ default: mod.NovitaIcon })),
   NVIDIA: () =>
@@ -247,13 +227,20 @@ export const lazyIconsMapping = {
     })),
   Redis: () =>
     import("@/icons/Redis").then((mod) => ({ default: mod.RedisIcon })),
-  Reddit: () =>
-    import("@/icons/reddit").then((mod) => ({ default: mod.RedditIcon })),
+  Salesforce: () =>
+    import("@/icons/Salesforce").then((mod) => ({
+      default: mod.Salesforce,
+    })),
   SambaNova: () =>
     import("@/icons/SambaNova").then((mod) => ({ default: mod.SambaNovaIcon })),
+  SAP: () => import("@/icons/SAP").then((mod) => ({ default: mod.SAP })),
   ScrapeGraph: () =>
     import("@/icons/ScrapeGraphAI").then((mod) => ({
       default: mod.ScrapeGraph,
+    })),
+  ServiceNow: () =>
+    import("@/icons/ServiceNow").then((mod) => ({
+      default: mod.ServiceNow,
     })),
   SearchAPI: () =>
     import("@/icons/SearchAPI").then((mod) => ({ default: mod.SearchAPIIcon })),
@@ -281,6 +268,10 @@ export const lazyIconsMapping = {
     import("@/icons/Share").then((mod) => ({ default: mod.ShareIcon })),
   Share2: () =>
     import("@/icons/Share2").then((mod) => ({ default: mod.Share2Icon })),
+  SharePoint: () =>
+    import("@/icons/SharePoint").then((mod) => ({
+      default: mod.SharePoint,
+    })),
   Slack: () =>
     import("@/icons/Slack/SlackIcon").then((mod) => ({ default: mod.default })),
   Spider: () =>
@@ -315,10 +306,6 @@ export const lazyIconsMapping = {
     import("@/icons/Upstash").then((mod) => ({ default: mod.UpstashSvgIcon })),
   Vectara: () =>
     import("@/icons/VectaraIcon").then((mod) => ({ default: mod.VectaraIcon })),
-  VectorStores: () =>
-    import("@/icons/vectorstores").then((mod) => ({
-      default: mod.VectorStoresIcon,
-    })),
   VertexAI: () =>
     import("@/icons/VertexAI").then((mod) => ({ default: mod.VertexAIIcon })),
   WatsonxAI: () =>
@@ -331,6 +318,8 @@ export const lazyIconsMapping = {
     import("@/icons/Wikipedia/Wikipedia").then((mod) => ({
       default: mod.default,
     })),
+  Workday: () =>
+    import("@/icons/Workday").then((mod) => ({ default: mod.Workday })),
   Windsurf: () =>
     import("@/icons/Windsurf").then((mod) => ({ default: mod.WindsurfIcon })),
   Wolfram: () =>

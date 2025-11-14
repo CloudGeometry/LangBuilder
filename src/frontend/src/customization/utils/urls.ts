@@ -1,3 +1,3 @@
-export const LangBuilderButtonRedirectTarget = () => {
+export const LangbuilderButtonRedirectTarget = () => {
   return "https://langbuilder.org";
 };

@@ -57,7 +57,7 @@ export class Rds extends Construct {
     );
     instanceParameterGroup.bindToInstance({});
 
-    this.rdsCluster = new rds.DatabaseCluster(scope, "LangBuilderDbCluster", {
+    this.rdsCluster = new rds.DatabaseCluster(scope, "LangbuilderDbCluster", {
       engine: rds.DatabaseClusterEngine.auroraMysql({
         version: rds.AuroraMysqlEngineVersion.of(
           "8.0.mysql_aurora.3.05.2",

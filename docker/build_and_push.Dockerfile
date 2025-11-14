@@ -20,9 +20,6 @@ ENV UV_COMPILE_BYTECODE=1
 # Copy from the cache instead of linking since it's a mounted volume
 ENV UV_LINK_MODE=copy
 
-# Set RUSTFLAGS for reqwest unstable features needed by apify-client v2.0.0
-ENV RUSTFLAGS='--cfg reqwest_unstable'
-
 RUN apt-get update \
     && apt-get upgrade -y \
     && apt-get install --no-install-recommends -y \
@@ -84,10 +81,10 @@ COPY --from=builder --chown=1000 /app/.venv /app/.venv
 ENV PATH="/app/.venv/bin:$PATH"
 
 LABEL org.opencontainers.image.title=langbuilder
-LABEL org.opencontainers.image.authors=['LangBuilder']
+LABEL org.opencontainers.image.authors=['Langbuilder']
 LABEL org.opencontainers.image.licenses=MIT
-LABEL org.opencontainers.image.url=https://github.com/CloudGeometry/langbuilder
-LABEL org.opencontainers.image.source=https://github.com/CloudGeometry/langbuilder
+LABEL org.opencontainers.image.url=https://github.com/cloudgeometry/langbuilder
+LABEL org.opencontainers.image.source=https://github.com/cloudgeometry/langbuilder
 
 USER user
 WORKDIR /app
@@ -96,4 +93,3 @@ ENV LANGBUILDER_HOST=0.0.0.0
 ENV LANGBUILDER_PORT=7860
 
 CMD ["langbuilder", "run"]
-

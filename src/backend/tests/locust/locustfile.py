@@ -14,13 +14,13 @@ def _(environment, **_kwargs):
 
 
 class FlowRunUser(FastHttpUser):
-    """FlowRunUser simulates users sending requests to the LangBuilder run endpoint.
+    """FlowRunUser simulates users sending requests to the Langbuilder run endpoint.
 
     Designed for high-load testing with proper wait times and connection handling.
     Uses FastHttpUser for better performance with keep-alive connections and connection pooling.
 
     Environment Variables:
-      - LANGBUILDER_HOST: Base URL for the LangBuilder server (default: http://localhost:7860)
+      - LANGBUILDER_HOST: Base URL for the Langbuilder server (default: http://localhost:7860)
       - FLOW_ID: UUID or endpoint name of the flow to test (default: 62c21279-f7ca-43e2-b5e3-326ac573db04)
       - API_KEY: API key for authentication, sent as header 'x-api-key' (Required)
       - MIN_WAIT: Minimum wait time between requests in ms (default: 2000)

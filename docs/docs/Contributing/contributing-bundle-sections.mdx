@@ -1,0 +1,314 @@
+---
+title: Create custom bundle sections
+slug: /contributing-bundle-sections
+---
+
+Learn how to organize bundles into custom sections in the Langbuilder sidebar.
+
+By default, all bundles appear under a single "Bundles" section in the Components sidebar. You can create custom sections to group related bundles together, making the UI more organized for users.
+
+This guide shows how to create a custom "Cloud Geometry" section containing enterprise integration bundles.
+
+## Overview
+
+Creating custom bundle sections requires two key modifications:
+
+1. **Add section metadata** to bundle definitions in `styleUtils.ts`
+2. **Update the sidebar component** to group and render bundles by section
+
+## Step 1: Add section metadata to bundles
+
+Navigate to the frontend utilities file where bundles are defined:
+```
+src/frontend/src/utils/styleUtils.ts
+```
+
+Locate the `SIDEBAR_BUNDLES` array and add a `section` property to each bundle you want to group.
+
+### Example
+
+To create a "Cloud Geometry" section with enterprise integration bundles:
+
+```typescript
+export const SIDEBAR_BUNDLES = [
+  // ... existing bundles ...
+
+  // Cloud Geometry bundles
+  {
+    display_name: "Google Sheets",
+    name: "googlesheets",
+    icon: "GoogleSheets",
+    section: "Cloud Geometry"
+  },
+  {
+    display_name: "Jira",
+    name: "jira",
+    icon: "Jira",
+    section: "Cloud Geometry"
+  },
+  {
+    display_name: "Notion",
+    name: "Notion",
+    icon: "Notion",
+    section: "Cloud Geometry"
+  },
+  {
+    display_name: "Salesforce",
+    name: "salesforce",
+    icon: "Salesforce",
+    section: "Cloud Geometry"
+  },
+  {
+    display_name: "SAP",
+    name: "sap",
+    icon: "SAP",
+    section: "Cloud Geometry"
+  },
+  {
+    display_name: "ServiceNow",
+    name: "servicenow",
+    icon: "ServiceNow",
+    section: "Cloud Geometry"
+  },
+  {
+    display_name: "SharePoint",
+    name: "sharepoint",
+    icon: "SharePoint",
+    section: "Cloud Geometry"
+  },
+  {
+    display_name: "Workday",
+    name: "workday",
+    icon: "Workday",
+    section: "Cloud Geometry"
+  },
+
+  // Other bundles without section property will default to "Bundles"
+];
+```
+
+:::tip
+Bundles without a `section` property will automatically be grouped under the default "Bundles" section.
+:::
+
+## Step 2: Update the sidebar rendering component
+
+Navigate to the sidebar bundles component:
+```
+src/frontend/src/pages/FlowPage/components/flowSidebarComponent/components/sidebarBundles/index.tsx
+```
+
+Replace the existing `MemoizedSidebarGroup` component implementation with the following:
+
+```typescript
+import { memo, useCallback, useMemo, useState } from "react";
+import {
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+} from "@/components/ui/sidebar";
+import type { SidebarGroupProps } from "../../types";
+import { BundleItem } from "../bundleItems";
+
+export const MemoizedSidebarGroup = memo(
+  ({
+    BUNDLES,
+    search,
+    sortedCategories,
+    dataFilter,
+    nodeColors,
+    onDragStart,
+    sensitiveSort,
+    handleKeyDownInput,
+    openCategories,
+    setOpenCategories,
+  }: SidebarGroupProps) => {
+    // Sort bundles based on search or default order
+    const sortedBundles = useMemo(() => {
+      return BUNDLES.toSorted((a, b) => {
+        const referenceArray = search !== "" ? sortedCategories : BUNDLES;
+        return (
+          referenceArray.findIndex((value) => value === a.name) -
+          referenceArray.findIndex((value) => value === b.name)
+        );
+      });
+    }, [BUNDLES, search, sortedCategories]);
+
+    // Group bundles by section
+    const groupedBundles = useMemo(() => {
+      const groups: Record<string, typeof sortedBundles> = {};
+      sortedBundles.forEach((bundle) => {
+        const section = (bundle as any).section || "Bundles";
+        if (!groups[section]) {
+          groups[section] = [];
+        }
+        groups[section].push(bundle);
+      });
+      return groups;
+    }, [sortedBundles]);
+
+    // Define section rendering order (custom sections first, then default)
+    const sectionOrder = ["Cloud Geometry", "Bundles"];
+
+    return (
+      <>
+        {sectionOrder.map((sectionName) => {
+          const bundles = groupedBundles[sectionName];
+          if (!bundles || bundles.length === 0) return null;
+
+          return (
+            <SidebarGroup key={sectionName} className="p-3">
+              <SidebarGroupLabel className="cursor-default">
+                {sectionName}
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {bundles.map((item) => (
+                    <BundleItem
+                      key={item.name}
+                      item={item}
+                      openCategories={openCategories}
+                      setOpenCategories={setOpenCategories}
+                      dataFilter={dataFilter}
+                      nodeColors={nodeColors}
+                      onDragStart={onDragStart}
+                      sensitiveSort={sensitiveSort}
+                      handleKeyDownInput={handleKeyDownInput}
+                    />
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          );
+        })}
+      </>
+    );
+  },
+);
+
+MemoizedSidebarGroup.displayName = "MemoizedSidebarGroup";
+
+export default MemoizedSidebarGroup;
+```
+
+### Key implementation details
+
+**Grouping logic:**
+```typescript
+const groupedBundles = useMemo(() => {
+  const groups: Record<string, typeof sortedBundles> = {};
+  sortedBundles.forEach((bundle) => {
+    const section = (bundle as any).section || "Bundles";
+    if (!groups[section]) {
+      groups[section] = [];
+    }
+    groups[section].push(bundle);
+  });
+  return groups;
+}, [sortedBundles]);
+```
+
+This creates a dictionary where:
+- Keys are section names ("Cloud Geometry", "Bundles", etc.)
+- Values are arrays of bundles belonging to that section
+- Bundles without a `section` property default to "Bundles"
+
+**Section rendering order:**
+```typescript
+const sectionOrder = ["Cloud Geometry", "Bundles"];
+```
+
+This array controls which sections appear first in the sidebar. Add your custom section names before "Bundles" to display them at the top.
+
+**Multiple sections:**
+```typescript
+{sectionOrder.map((sectionName) => {
+  const bundles = groupedBundles[sectionName];
+  if (!bundles || bundles.length === 0) return null;
+
+  return (
+    <SidebarGroup key={sectionName} className="p-3">
+      <SidebarGroupLabel className="cursor-default">
+        {sectionName}
+      </SidebarGroupLabel>
+      {/* ... bundle items ... */}
+    </SidebarGroup>
+  );
+})}
+```
+
+This renders a separate `SidebarGroup` component for each section, creating visual separation in the UI.
+
+## Result
+
+After implementing these changes, your sidebar will display:
+
+1. **Cloud Geometry** section (appears first)
+   - Google Sheets
+   - Jira
+   - Notion
+   - Salesforce
+   - SAP
+   - ServiceNow
+   - SharePoint
+   - Workday
+
+2. **Bundles** section (appears second)
+   - All other bundles (Anthropic, AWS, Azure, Cohere, etc.)
+
+## Adding more custom sections
+
+To add additional sections beyond "Cloud Geometry":
+
+1. Add the `section` property to more bundles in `styleUtils.ts`:
+```typescript
+{
+  display_name: "Custom Component",
+  name: "customcomponent",
+  icon: "CustomIcon",
+  section: "My Custom Section"
+}
+```
+
+2. Update the `sectionOrder` array to control rendering order:
+```typescript
+const sectionOrder = ["Cloud Geometry", "My Custom Section", "Bundles"];
+```
+
+:::tip
+The implementation automatically handles any number of sections. Simply add section names to bundles and update the `sectionOrder` array.
+:::
+
+## Preserving existing functionality
+
+The section grouping implementation preserves all existing sidebar features:
+
+- **Search functionality**: Bundles are still searchable across all sections
+- **Sorting**: Maintains the existing sort order within each section
+- **Drag and drop**: All bundles remain draggable to the canvas
+- **Category expansion**: Open/closed state is preserved for each bundle's categories
+
+## Hot module reload
+
+When developing locally, Vite automatically picks up these changes via Hot Module Reload (HMR). You should see updates in the browser at `http://localhost:5372` without needing to restart the development server.
+
+Files that trigger HMR:
+- `src/frontend/src/utils/styleUtils.ts`
+- `src/frontend/src/pages/FlowPage/components/flowSidebarComponent/components/sidebarBundles/index.tsx`
+
+## Troubleshooting
+
+**Sections not appearing:**
+- Verify the `section` property is added to bundles in `styleUtils.ts`
+- Check that section names in `sectionOrder` match the section names in bundle definitions
+- Ensure the frontend development server is running
+
+**Icons not displaying:**
+- Ensure icon components use the `{...props}` spread operator pattern
+- Verify `forwardRef` is properly implemented in icon index files
+- See the [Contribute bundles](/contributing-bundles) guide for icon implementation details
+
+**TypeScript errors:**
+- The `(bundle as any).section` cast is intentional to avoid modifying type definitions
+- Alternatively, you can update the bundle type interface to include an optional `section?: string` property

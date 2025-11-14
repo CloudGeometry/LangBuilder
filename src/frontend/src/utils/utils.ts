@@ -28,7 +28,6 @@ import type {
 import type { AllNodeType, NodeDataType } from "../types/flow";
 import type { FlowState } from "../types/tabs";
 import { isErrorLog } from "../types/utils/typeCheckingUtils";
-import { getLocalStorage } from "./local-storage-util";
 import { parseString } from "./stringManipulation";
 
 export function classNames(...classes: Array<string>): string {
@@ -1022,12 +1021,4 @@ export const setAuthCookie = (
     secure: true,
     sameSite: "strict",
   });
-};
-
-export const getBooleanFromStorage = (
-  key: string,
-  defaultValue: boolean,
-): boolean => {
-  const stored = getLocalStorage(key);
-  return stored === null ? defaultValue : stored === "true";
 };

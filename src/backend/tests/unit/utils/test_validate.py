@@ -139,17 +139,17 @@ def test_func():
     @patch("langbuilder.utils.validate.logger")
     def test_logging_on_parse_error(self, mock_logger):
         """Test that parsing errors are logged."""
-        # Structlog doesn't have opt method, so hasattr(logger, "opt") returns False
+        mock_logger.opt.return_value = mock_logger
         mock_logger.debug = Mock()
 
         code = "invalid python syntax +++"
         validate_code(code)
 
-        # With structlog, we expect logger.debug to be called with exc_info=True
-        mock_logger.debug.assert_called_with("Error parsing code", exc_info=True)
+        mock_logger.opt.assert_called_once_with(exception=True)
+        mock_logger.debug.assert_called_with("Error parsing code")
 
 
-class TestCreateLangBuilderExecutionContext:
+class TestCreateLangbuilderExecutionContext:
     """Test cases for _create_langbuilder_execution_context function."""
 
     def test_creates_context_with_langbuilder_imports(self):
@@ -429,7 +429,7 @@ class TestClass:
 
         with (
             patch("langbuilder.utils.validate.prepare_global_scope", side_effect=validation_error),
-            pytest.raises(ValueError, match=r".*"),
+            pytest.raises(ValueError, match=".*"),
         ):
             create_class(code, "TestClass")
 

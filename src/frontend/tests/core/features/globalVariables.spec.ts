@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { adjustScreenView } from "../../utils/adjust-screen-view";
 import { awaitBootstrapTest } from "../../utils/await-bootstrap-test";
 import { initialGPTsetup } from "../../utils/initialGPTsetup";
 
@@ -26,10 +27,7 @@ test(
         await page.getByTestId("add-component-button-openai").last().click();
       });
 
-    await page.getByTestId("canvas_controls_dropdown").click();
-
     await page.getByTestId("fit_view").click();
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await initialGPTsetup(page, {
       skipAdjustScreenView: true,

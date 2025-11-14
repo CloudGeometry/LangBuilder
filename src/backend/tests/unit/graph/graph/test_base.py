@@ -1,3 +1,4 @@
+import logging
 from collections import deque
 
 import pytest
@@ -18,20 +19,16 @@ async def test_graph_not_prepared():
         await graph.astep()
 
 
-def test_graph():
+def test_graph(caplog: pytest.LogCaptureFixture):
     chat_input = ChatInput()
     chat_output = ChatOutput()
     graph = Graph()
     graph.add_component(chat_input)
     graph.add_component(chat_output)
-
-    # Test that graph preparation works despite having no edges
-    # The warning is logged but the graph should still be prepared
-    graph.prepare()
-
-    # Verify the graph has vertices but no edges (the condition that triggers the warning)
-    assert len(graph.vertices) == 2
-    assert len(graph.edges) == 0
+    caplog.clear()
+    with caplog.at_level(logging.WARNING):
+        graph.prepare()
+        assert "Graph has vertices but no edges" in caplog.text
 
 
 async def test_graph_with_edge():

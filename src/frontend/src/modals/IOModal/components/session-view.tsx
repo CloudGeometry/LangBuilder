@@ -7,7 +7,6 @@ import {
   useDeleteMessages,
   useUpdateMessage,
 } from "@/controllers/API/queries/messages";
-import useFlowStore from "@/stores/flowStore";
 import TableComponent from "../../../components/core/parameterRenderComponent/components/tableComponent";
 import useAlertStore from "../../../stores/alertStore";
 import { useMessagesStore } from "../../../stores/messagesStore";
@@ -26,7 +25,6 @@ export default function SessionView({
   const updateMessage = useMessagesStore((state) => state.updateMessage);
   const deleteMessagesStore = useMessagesStore((state) => state.removeMessages);
   const columns = extractColumnsFromRows(messages, "intersection");
-  const playgroundPage = useFlowStore((state) => state.playgroundPage);
   const isFetching = useIsFetching({
     queryKey: ["useGetMessagesQuery"],
     exact: false,
@@ -93,12 +91,6 @@ export default function SessionView({
     deleteMessages({ ids: selectedRows });
   }
 
-  const editable = useMemo(() => {
-    return playgroundPage
-      ? false
-      : [{ field: "text", onUpdate: handleUpdateMessage, editableCell: false }];
-  }, [handleUpdateMessage]);
-
   return isFetching > 0 ? (
     <div className="flex h-full w-full items-center justify-center align-middle">
       <Loading></Loading>
@@ -106,14 +98,16 @@ export default function SessionView({
   ) : (
     <TableComponent
       key={"sessionView"}
-      onDelete={playgroundPage ? undefined : handleRemoveMessages}
+      onDelete={handleRemoveMessages}
       readOnlyEdit
-      editable={editable}
+      editable={[
+        { field: "text", onUpdate: handleUpdateMessage, editableCell: false },
+      ]}
       overlayNoRowsTemplate="No data available"
       onSelectionChanged={(event: SelectionChangedEvent) => {
         setSelectedRows(event.api.getSelectedRows().map((row) => row.id));
       }}
-      rowSelection={playgroundPage ? undefined : "multiple"}
+      rowSelection="multiple"
       suppressRowClickSelection={true}
       pagination={true}
       columnDefs={columns.sort(messagesSorter)}

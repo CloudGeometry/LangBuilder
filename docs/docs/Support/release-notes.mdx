@@ -1,22 +1,22 @@
 ---
-title: LangBuilder release notes
+title: Langbuilder release notes
 slug: /release-notes
 ---
 
-This page summarizes significant changes to LangBuilder in each release.
-For all changes, see the [Changelog](https://github.com/CloudGeometry/langbuilder/releases/latest).
+This page summarizes significant changes to Langbuilder in each release.
+For all changes, see the [Changelog](https://github.com/cloudgeometry/langbuilder/releases/latest).
 
-Due to strict SemVer requirements, LangBuilder Desktop can have different patch versions than the core LangBuilder OSS Python package, but the major and minor versions are aligned.
+Due to strict SemVer requirements, Langbuilder Desktop can have different patch versions than the core Langbuilder OSS Python package, but the major and minor versions are aligned.
 
 ## Prepare to upgrade
 
 :::important
-Whenever possible, the LangBuilder team recommends installing new LangBuilder versions in a new virtual environment or VM before upgrading your primary installation.
+Whenever possible, the Langbuilder team recommends installing new Langbuilder versions in a new virtual environment or VM before upgrading your primary installation.
 This allows you to [import flows](/concepts-flows-import#import-a-flow) from your existing installation and test them in the new version without disrupting your existing installation.
 In the event of breaking changes or bugs, your existing installation is preserved in a stable state.
 :::
 
-To avoid the impact of potential breaking changes and test new versions, the LangBuilder team recommends the following upgrade process:
+To avoid the impact of potential breaking changes and test new versions, the Langbuilder team recommends the following upgrade process:
 
 1. Recommended: [Export your projects](/api-projects#export-a-project) to create backups of your flows:
 
@@ -31,9 +31,9 @@ To avoid the impact of potential breaking changes and test new versions, the Lan
 
 2. Install the new version:
 
-   * **LangBuilder OSS Python package**: Install the new version in a new virtual environment. For instructions, see [Install and run the LangBuilder OSS Python package](/get-started-installation#install-and-run-the-langbuilder-oss-python-package).
-   * **LangBuilder Docker image**: Run the new image in a separate container.
-   * **LangBuilder Desktop**: To upgrade in place, open LangBuilder Desktop, and then click **Upgrade Available** in the LangBuilder header. If you want to isolate the new version, you must install LangBuilder Desktop on a separate physical or virtual machine, and then [import your flows](/concepts-flows-import) to the new installation.
+   * **Langbuilder OSS Python package**: Install the new version in a new virtual environment. For instructions, see [Install and run the Langbuilder OSS Python package](/get-started-installation#install-and-run-the-langbuilder-oss-python-package).
+   * **Langbuilder Docker image**: Run the new image in a separate container.
+   * **Langbuilder Desktop**: To upgrade in place, open Langbuilder Desktop, and then click **Upgrade Available** in the Langbuilder header. If you want to isolate the new version, you must install Langbuilder Desktop on a separate physical or virtual machine, and then [import your flows](/concepts-flows-import) to the new installation.
 
 3. [Import your flows](/concepts-flows-import) to test them in the new version, [upgrading components](/concepts-components#component-versions) as needed.
 
@@ -46,13 +46,13 @@ To avoid the impact of potential breaking changes and test new versions, the Lan
 ## 1.5.0
 
 Highlights of this release include the following changes.
-For all changes, see the [Changelog](https://github.com/CloudGeometry/langbuilder/releases).
+For all changes, see the [Changelog](https://github.com/cloudgeometry/langbuilder/releases).
 
 ### New features and enhancements
 
 - Authentication changes
 
-    To enhance security and ensure proper authentication for automatic login features, most API endpoints now require authentication with a LangBuilder API key, regardless of the `AUTO_LOGIN` setting.
+    To enhance security and ensure proper authentication for automatic login features, most API endpoints now require authentication with a Langbuilder API key, regardless of the `AUTO_LOGIN` setting.
     The only exceptions are the MCP endpoints `/v1/mcp`, `/v1/mcp-projects`, and `/v2/mcp`, which never require authentication.
     For more information, see [API keys and authentication](/api-keys-and-authentication).
 
@@ -61,18 +61,18 @@ For all changes, see the [Changelog](https://github.com/CloudGeometry/langbuilde
     The [**Language Model** component](/components-models) and [**Embedding Model** component](/components-embedding-models) are now core components for your LLM and embeddings flows. They support multiple models and model providers, and allow you to experiment with different models without swapping out single-provider components.
     Find them in the **Components** menu in the **Models** category.
 
-    The single-provider components are still available for your flows in the **Components** menu in the [**Bundles**](/components-bundle-components) section, and you can use them to replace the **Language Model** and **Embedding Model** core components, or connect them to the **Agent** component with the **Custom** provider option.
+    The single-provider components are still available for your flows in the **Components** menu in the [**Bundles**](/components-bundle-components) section, and you can connect them to the **Language Model** and **Embedding Model** components with the **Custom** provider option.
 
 - MCP server one-click installation
 
-    On your LangBuilder project's **MCP server** page, click **Auto install** to install your LangBuilder MCP server to MCP clients with just one click.
+    On your Langbuilder project's **MCP server** page, click **Auto install** to install your Langbuilder MCP server to MCP clients with just one click.
     The option to install with a JSON configuration file is available for macOS, Windows, and WSL.
-    For more information, see [Use LangBuilder as an MCP server](/mcp-server).
+    For more information, see [Use Langbuilder as an MCP server](/mcp-server).
 
 - MCP server management
 
-    You can now add, remove, and edit your MCP servers in the **MCP Tools** components and through your LangBuilder **Settings** page.
-    For more information, see [Use LangBuilder as an MCP client](/mcp-client).
+    You can now add, remove, and edit your MCP servers in the **MCP Tools** components and through your Langbuilder **Settings** page.
+    For more information, see [Use Langbuilder as an MCP client](/mcp-client).
 
 - Input schema replaces temporary overrides
 
@@ -91,7 +91,7 @@ For all changes, see the [Changelog](https://github.com/CloudGeometry/langbuilde
 - Stability improvements
 
     General stability improvements and bug fixes for enhanced reliability.
-    See an issue? [Raise it on GitHub](https://github.com/CloudGeometry/langbuilder/issues).
+    See an issue? [Raise it on GitHub](https://github.com/cloudgeometry/langbuilder/issues).
 
 - New integrations and bundles
 
@@ -100,7 +100,7 @@ For all changes, see the [Changelog](https://github.com/CloudGeometry/langbuilde
 ## 1.4.2
 
 Highlights of this release include the following changes.
-For all changes, see the [Changelog](https://github.com/CloudGeometry/langbuilder/releases).
+For all changes, see the [Changelog](https://github.com/cloudgeometry/langbuilder/releases).
 
 ### New features and enhancements
 
@@ -116,20 +116,20 @@ For all changes, see the [Changelog](https://github.com/CloudGeometry/langbuilde
 ## 1.4.1
 
 Highlights of this release include the following changes.
-For all changes, see the [Changelog](https://github.com/CloudGeometry/langbuilder/releases).
+For all changes, see the [Changelog](https://github.com/cloudgeometry/langbuilder/releases).
 
 ### New features and enhancements
 
-- Added an enhanced **Breaking Changes** feature to help update components without breaking flows after updating LangBuilder.
+- Added an enhanced **Breaking Changes** feature to help update components without breaking flows after updating Langbuilder.
 
 ## 1.4.0
 
 Highlights of this release include the following changes.
-For all changes, see the [Changelog](https://github.com/CloudGeometry/langbuilder/releases).
+For all changes, see the [Changelog](https://github.com/cloudgeometry/langbuilder/releases).
 
 ### New features and enhancements
 
-- Introduced MCP server functionality to serve LangBuilder tools to MCP-compatible clients.
+- Introduced MCP server functionality to serve Langbuilder tools to MCP-compatible clients.
 - Renamed **Folders** to **Projects** in the visual editor.
 - The `/folders` endpoints now redirect to `/projects`.
 
@@ -140,4 +140,4 @@ For alternatives, see the [**Google** bundle](/bundles-google).
 
 ## Earlier releases
 
-See the [Changelog](https://github.com/CloudGeometry/langbuilder/releases).
+See the [Changelog](https://github.com/cloudgeometry/langbuilder/releases).

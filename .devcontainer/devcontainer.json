@@ -1,5 +1,5 @@
 {
-  "name": "LangBuilder Dev Container",
+  "name": "Langbuilder Dev Container",
   "build": {
     "context": "..",
     "dockerfile": "Dockerfile"

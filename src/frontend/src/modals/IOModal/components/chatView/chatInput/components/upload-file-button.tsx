@@ -8,11 +8,6 @@ const UploadFileButton = ({
   handleButtonClick,
   isBuilding,
 }) => {
-  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    handleButtonClick();
-  };
-
   return (
     <ShadTooltip
       styleClasses="z-50"
@@ -34,7 +29,7 @@ const UploadFileButton = ({
               ? "cursor-not-allowed"
               : "text-muted-foreground hover:text-primary"
           }`}
-          onClick={handleClick}
+          onClick={handleButtonClick}
           unstyled
         >
           <ForwardedIconComponent className="h-[18px] w-[18px]" name="Image" />

@@ -1,5 +1,5 @@
 ---
-description: "Guide for creating a basic LangBuilder component, including requirements gathering, component structure, and implementation best practices."
+description: "Guide for creating a basic Langbuilder component, including requirements gathering, component structure, and implementation best practices."
 globs:
   - "src/backend/**/components/**/*.py"
   - "src/backend/base/langbuilder/components/**/*.py"
@@ -7,10 +7,10 @@ alwaysApply: false
 ---
 
 
-# Rule: How to Create a Basic LangBuilder Component
+# Rule: How to Create a Basic Langbuilder Component
 
 ## Purpose
-Guide for Creating a LangBuilder Component
+Guide for Creating a Langbuilder Component
 
 ---
 

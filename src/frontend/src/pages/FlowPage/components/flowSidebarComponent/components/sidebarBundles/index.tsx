@@ -31,29 +31,54 @@ export const MemoizedSidebarGroup = memo(
       });
     }, [BUNDLES, search, sortedCategories]);
 
+    // Group bundles by section
+    const groupedBundles = useMemo(() => {
+      const groups: Record<string, typeof sortedBundles> = {};
+      sortedBundles.forEach((bundle) => {
+        const section = (bundle as any).section || "Bundles";
+        if (!groups[section]) {
+          groups[section] = [];
+        }
+        groups[section].push(bundle);
+      });
+      return groups;
+    }, [sortedBundles]);
+
+    // Render Cloud Geometry section first, then Bundles
+    const sectionOrder = ["Cloud Geometry", "Bundles"];
+
     return (
-      <SidebarGroup className="p-3">
-        <SidebarGroupLabel className="cursor-default">
-          Bundles
-        </SidebarGroupLabel>
-        <SidebarGroupContent>
-          <SidebarMenu>
-            {sortedBundles.map((item) => (
-              <BundleItem
-                key={item.name}
-                item={item}
-                openCategories={openCategories}
-                setOpenCategories={setOpenCategories}
-                dataFilter={dataFilter}
-                nodeColors={nodeColors}
-                onDragStart={onDragStart}
-                sensitiveSort={sensitiveSort}
-                handleKeyDownInput={handleKeyDownInput}
-              />
-            ))}
-          </SidebarMenu>
-        </SidebarGroupContent>
-      </SidebarGroup>
+      <>
+        {sectionOrder.map((sectionName) => {
+          const bundles = groupedBundles[sectionName];
+          if (!bundles || bundles.length === 0) return null;
+
+          return (
+            <SidebarGroup key={sectionName} className="p-3">
+              <SidebarGroupLabel className="cursor-default">
+                {sectionName}
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {bundles.map((item) => (
+                    <BundleItem
+                      key={item.name}
+                      item={item}
+                      openCategories={openCategories}
+                      setOpenCategories={setOpenCategories}
+                      dataFilter={dataFilter}
+                      nodeColors={nodeColors}
+                      onDragStart={onDragStart}
+                      sensitiveSort={sensitiveSort}
+                      handleKeyDownInput={handleKeyDownInput}
+                    />
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          );
+        })}
+      </>
     );
   },
 );

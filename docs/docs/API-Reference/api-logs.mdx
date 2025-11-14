@@ -6,11 +6,11 @@ slug: /api-logs
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-Retrieve logs for your LangBuilder flow.
+Retrieve logs for your Langbuilder flow.
 
 ## Enable log retrieval
 
-The `/logs` endpoint requires log retrieval to be enabled in your LangBuilder instance.
+The `/logs` endpoint requires log retrieval to be enabled in your Langbuilder instance.
 
 1. To enable log retrieval, include these values in your `.env` file:
 
@@ -22,7 +22,7 @@ The `/logs` endpoint requires log retrieval to be enabled in your LangBuilder in
 
     Log retrieval requires that `LANGBUILDER_LOG_RETRIEVER_BUFFER_SIZE` is greater than 0. The default value is `10000`.
 
-2. Start LangBuilder with the updated `.env`:
+2. Start Langbuilder with the updated `.env`:
 
    ```text
    uv run langbuilder run --env-file .env

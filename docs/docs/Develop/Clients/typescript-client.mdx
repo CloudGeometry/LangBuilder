@@ -1,20 +1,20 @@
 ---
-title: LangBuilder TypeScript client
+title: Langbuilder TypeScript client
 slug: /typescript-client
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-The LangBuilder TypeScript client allows your TypeScript applications to programmatically interact with the LangBuilder API.
+The Langbuilder TypeScript client allows your TypeScript applications to programmatically interact with the Langbuilder API.
 
 For the client code repository, see [langbuilder-client-ts](https://github.com/datastax/langbuilder-client-ts/).
 
 For the npm package, see [@datastax/langbuilder-client](https://www.npmjs.com/package/@datastax/langbuilder-client).
 
-## Install the LangBuilder TypeScript package
+## Install the Langbuilder TypeScript package
 
-To install the LangBuilder typescript client package, use one of the following commands:
+To install the Langbuilder typescript client package, use one of the following commands:
 
 <Tabs>
 <TabItem value="npm" label="npm" default>
@@ -40,37 +40,37 @@ pnpm add @datastax/langbuilder-client
 </TabItem>
 </Tabs>
 
-## Initialize the LangBuilder TypeScript client
+## Initialize the Langbuilder TypeScript client
 
 1. Import the client into your code.
 
     ```tsx
-    import { LangBuilderClient } from "@datastax/langbuilder-client";
+    import { LangbuilderClient } from "@datastax/langbuilder-client";
     ```
 
-2. Initialize a `LangBuilderClient` object to interact with your server:
+2. Initialize a `LangbuilderClient` object to interact with your server:
 
     ```tsx
     const baseUrl = "BASE_URL";
     const apiKey = "API_KEY";
-    const client = new LangBuilderClient({ baseUrl, apiKey });
+    const client = new LangbuilderClient({ baseUrl, apiKey });
     ```
 
     Replace `BASE_URL` and `API_KEY` with values from your deployment.
-    The default LangBuilder base URL is `http://localhost:7860`.
+    The default Langbuilder base URL is `http://localhost:7860`.
     To create an API key, see [API keys and authentication](/api-keys-and-authentication).
 
-## LangBuilder TypeScript client quickstart
+## Langbuilder TypeScript client quickstart
 
-1. With your LangBuilder client initialized, test the connection by calling your LangBuilder server.
+1. With your Langbuilder client initialized, test the connection by calling your Langbuilder server.
 
     The following example runs a flow (`runFlow`) by sending the flow ID and a chat input string:
 
     ```tsx
-    import { LangBuilderClient } from "@datastax/langbuilder-client";
+    import { LangbuilderClient } from "@datastax/langbuilder-client";
 
     const baseUrl = "http://localhost:7860";
-    const client = new LangBuilderClient({ baseUrl });
+    const client = new LangbuilderClient({ baseUrl });
 
     async function runFlow() {
         const flowId = "aa5a238b-02c0-4f03-bc5c-cc3a83335cdf";
@@ -86,14 +86,14 @@ pnpm add @datastax/langbuilder-client
 
     Replace the following:
 
-    * `baseUrl`: The URL of your LangBuilder server
+    * `baseUrl`: The URL of your Langbuilder server
     * `flowId`: The ID of the flow you want to run
     * `input`: The chat input message you want to send to trigger the flow
 
 
-2. Review the result to confirm that the client connected to your LangBuilder server.
+2. Review the result to confirm that the client connected to your Langbuilder server.
 
-    The following example shows the response from a well-formed `runFlow` request that reached the LangBuilder server and successfully started the flow:
+    The following example shows the response from a well-formed `runFlow` request that reached the Langbuilder server and successfully started the flow:
 
     ```
     FlowResponse {
@@ -122,7 +122,7 @@ pnpm add @datastax/langbuilder-client
 
 The TypeScript client can do more than just connect to your server and run a flow.
 
-This example builds on the quickstart with additional features for interacting with LangBuilder.
+This example builds on the quickstart with additional features for interacting with Langbuilder.
 
 1. Pass tweaks to your code as an object with the request.
 
@@ -151,17 +151,17 @@ This example builds on the quickstart with additional features for interacting w
     ```
 
     The response is a [`ReadableStream`](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream) of objects.
-    For more information on streaming LangBuilder responses, see the [`/run` endpoint](/api-flows-run#run-flow).
+    For more information on streaming Langbuilder responses, see the [`/run` endpoint](/api-flows-run#run-flow).
 
 4. Run the modified TypeScript application to run the flow with `tweaks` and `session_id`, and then stream the response back.
 
 Replace `baseUrl` and `flowId` with values from your deployment.
 
     ```tsx
-    import { LangBuilderClient } from "@datastax/langbuilder-client";
+    import { LangbuilderClient } from "@datastax/langbuilder-client";
 
     const baseUrl = "http://localhost:7860";
-    const client = new LangBuilderClient({ baseUrl });
+    const client = new LangbuilderClient({ baseUrl });
 
     async function runFlow() {
         const flowId = "aa5a238b-02c0-4f03-bc5c-cc3a83335cdf";
@@ -263,9 +263,9 @@ Replace `baseUrl` and `flowId` with values from your deployment.
 
     </details>
 
-## Retrieve LangBuilder logs with the TypeScript client
+## Retrieve Langbuilder logs with the TypeScript client
 
-To retrieve [LangBuilder logs](/logging), you must enable log retrieval on your LangBuilder server by including the following values in your server's `.env` file:
+To retrieve [Langbuilder logs](/logging), you must enable log retrieval on your Langbuilder server by including the following values in your server's `.env` file:
 
 ```text
 LANGBUILDER_ENABLE_LOG_RETRIEVAL=True
@@ -276,19 +276,19 @@ LANGBUILDER_LOG_LEVEL=DEBUG
 The following example script starts streaming logs in the background, and then runs a flow so you can monitor the flow run:
 
 ```tsx
-import { LangBuilderClient } from "@datastax/langbuilder-client";
+import { LangbuilderClient } from "@datastax/langbuilder-client";
 
 const baseUrl = "http://localhost:7863";
 const flowId = "86f0bf45-0544-4e88-b0b1-8e622da7a7f0";
 
-async function runFlow(client: LangBuilderClient) {
+async function runFlow(client: LangbuilderClient) {
     const input = "Is anyone there?";
     const response = await client.flow(flowId).run(input);
     console.log('Flow response:', response);
 }
 
 async function main() {
-    const client = new LangBuilderClient({ baseUrl: baseUrl });
+    const client = new LangbuilderClient({ baseUrl: baseUrl });
 
     // Start streaming logs
     console.log('Starting log stream...');

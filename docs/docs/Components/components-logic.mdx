@@ -5,7 +5,7 @@ slug: /components-logic
 
 import Icon from "@site/src/components/icon";
 
-LangBuilder's **Logic** components provide functionalities for routing, conditional processing, and flow management.
+Langbuilder's **Logic** components provide functionalities for routing, conditional processing, and flow management.
 
 ## If-Else (conditional router) {#if-else}
 
@@ -33,10 +33,7 @@ The following example uses the **If-Else** component to check incoming chat mess
 
 1. Add an **If-Else** component to your flow, and then configure it as follows:
 
-    * **Text Input**: Connect the **Text Input** port to a **Chat Input** component or another `Message` input.
-
-        If your input isn't in `Message` format, you can use another component to transform it, such as the [**Type Convert** component](/components-processing#type-convert) or [**Parser** component](/components-processing#parser).
-        If your input isn't appropriate for `Message` format, consider using another component for conditional routing, such as the [**Data Operations** component](/components-processing#data-operations).
+    * **Text Input**: Connect the **Text Input** port to a **Chat Input** component.
 
     * **Match Text**: Enter `.*(urgent|warning|caution).*` so the component looks for these values in incoming input. The regex match is case sensitive, so if you need to look for all permutations of `warning`, enter `warning|Warning|WARNING`.
 
@@ -99,10 +96,7 @@ You can toggle parameters through the <Icon name="SlidersHorizontal" aria-hidden
 
 ## Loop
 
-The **Loop** component iterates over a list of input by passing individual items to other components attached at the **Item** output port until there are no items left to process.
-Then, the **Loop** component passes the aggregated result of all looping to the component connected to the **Done** port.
-
-### The looping process
+The **Loop** component iterates over a list of input by passing individual items to other components attached at the **Item** output port until there are no items left to process. Then, the **Loop** component passes the aggregated result of all looping to the component connected to the **Done** port.
 
 The **Loop** component is like a miniature flow within your flow.
 Here's a breakdown of the looping process:
@@ -121,13 +115,9 @@ Here's a breakdown of the looping process:
 
     Only one component connects to the **Item** port, but you can pass the data through as many components as you need, as long as the last component in the chain connects back to the **Looping** port.
 
-    The **If-Else** component isn't compatible with the **Loop** component.
-    For more information, see [Conditional looping](#conditional-looping).
-
 4. After processing all items, the results are aggregated into a single `Data` object that is passed from the **Loop** component's **Done** port to the next component in the flow.
 
-The following simplified Python code summarizes how the **Loop** component works.
-This _isn't_ the actual component code; it is only meant to help you understand the general process.
+In terms of simplified code, the **Loop** component works like this:
 
 ```python
 for i in input:             # Receive input data as a list
@@ -142,7 +132,8 @@ done = aggregate_results()  # Compile all returned items
 print(done)                 # Send the aggregated results from the Done port to another component
 ```
 
-### Loop example
+<details>
+<summary>Loop example</summary>
 
 In the follow example, the **Loop** component iterates over a CSV file until there are no rows left to process.
 In this case, the **Item** port passes each row to a **Type Convert** component to convert the row into a `Message` object, passes the `Message` to a **Structured Output** component to be processed into structured data that is then passed back to the **Loop** component's **Looping** port.
@@ -151,16 +142,10 @@ After processing all rows, the **Loop** component loads the aggregated list of s
 ![Loop CSV parser](/img/component-loop-csv.png)
 
 :::tip
-For more examples of the **Loop** component, try the **Research Translation Loop** template in LangBuilder, or see the video tutorial [Mastering the Loop Component & Agentic RAG in LangBuilder](https://www.youtube.com/watch?v=9Wx7WODSKTo).
+For more examples of the **Loop** component, try the **Research Translation Loop** template in Langbuilder, or see the video tutorial [Mastering the Loop Component & Agentic RAG in Langbuilder](https://www.youtube.com/watch?v=9Wx7WODSKTo).
 :::
 
-### Conditional looping
-
-The **If-Else** component isn't compatible with the **Loop** component.
-If you need conditional loop events, redesign your flow to process conditions before the loop.
-For example, if you are looping over a `DataFrame`, you could use multiple [**DataFrame Operations** components](/components-processing#dataframe-operations) to conditionally filter data, and then run separate loops on each set of filtered data.
-
-![A flow with conditional looping.](/img/conditional-looping.png)
+</details>
 
 ## Notify and Listen
 
@@ -173,7 +158,7 @@ The notification data can then be passed to other components in the flow, such a
 
 ## Run flow
 
-The **Run Flow** component runs another LangBuilder flow as a subprocess of the current flow.
+The **Run Flow** component runs another Langbuilder flow as a subprocess of the current flow.
 
 You can use this component to chain flows together, run flows conditionally, and attach flows to [**Agent** components](/components-agents) as [tools for agents](/agents-tools) to run as needed.
 
@@ -265,7 +250,7 @@ It accepts the following parameters:
 
 This component constructed a tool from a function that ran a loaded flow.
 
-It was deprecated in LangBuilder version 1.1.2 and replaced by the [**Run Flow** component](#run-flow).
+It was deprecated in Langbuilder version 1.1.2 and replaced by the [**Run Flow** component](#run-flow).
 
 </details>
 
@@ -275,6 +260,6 @@ It was deprecated in LangBuilder version 1.1.2 and replaced by the [**Run Flow**
 This component integrated entire flows as components within a larger workflow.
 It dynamically generated inputs based on the selected flow and executed the flow with provided parameters.
 
-It was deprecated in LangBuilder version 1.1.2 and replaced by the [**Run Flow** component](#run-flow).
+It was deprecated in Langbuilder version 1.1.2 and replaced by the [**Run Flow** component](#run-flow).
 
 </details>

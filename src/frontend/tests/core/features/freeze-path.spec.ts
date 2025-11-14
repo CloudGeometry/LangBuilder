@@ -1,7 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 import * as dotenv from "dotenv";
 import path from "path";
-import { addFlowToTestOnEmptyLangBuilder } from "../../utils/add-flow-to-test-on-empty-langbuilder";
+import { addFlowToTestOnEmptyLangbuilder } from "../../utils/add-flow-to-test-on-empty-langbuilder";
 import { awaitBootstrapTest } from "../../utils/await-bootstrap-test";
 import { initialGPTsetup } from "../../utils/initialGPTsetup";
 
@@ -21,12 +21,12 @@ test(
 
     await awaitBootstrapTest(page);
 
-    const firstRunLangBuilder = await page
+    const firstRunLangbuilder = await page
       .getByTestId("empty-project-description")
       .count();
 
-    if (firstRunLangBuilder > 0) {
-      await addFlowToTestOnEmptyLangBuilder(page);
+    if (firstRunLangbuilder > 0) {
+      await addFlowToTestOnEmptyLangbuilder(page);
     }
 
     await page.getByTestId("side_nav_options_all-templates").click();
@@ -44,10 +44,7 @@ test(
     await page.getByTestId("dropdown_str_model_name").click();
     await page.getByTestId("gpt-4o-1-option").click();
 
-    await page.getByTestId("canvas_controls_dropdown").click();
-
     await page.getByTestId("fit_view").click();
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await page.waitForSelector('[data-testid="button_run_chat output"]', {
       timeout: 3000,

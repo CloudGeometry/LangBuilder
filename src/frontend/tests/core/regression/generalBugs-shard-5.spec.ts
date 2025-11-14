@@ -26,10 +26,8 @@ test(
     await page
       .getByTestId("input_outputText Input")
       .dragTo(page.locator('//*[@id="react-flow-id"]'), {});
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await zoomOut(page, 4);
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await page.waitForTimeout(500);
 
@@ -168,13 +166,9 @@ test(
       .nth(1);
     await elementCombineTextInput1.click();
 
-    await page.getByTestId("canvas_controls_dropdown").click();
-
     await page.getByTitle("fit view").click();
 
     await zoomOut(page, 2);
-
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await page
       .getByTestId("title-Combine Text")

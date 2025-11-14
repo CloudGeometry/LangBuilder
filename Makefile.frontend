@@ -1,4 +1,4 @@
-# Frontend-specific Makefile for LangBuilder
+# Frontend-specific Makefile for Langbuilder
 # This file contains all frontend-related targets
 
 # Variables
@@ -50,8 +50,12 @@ build_frontend: ## build the frontend static files
 ######################
 
 run_frontend: ## run the frontend
-	@-kill -9 `lsof -t -i:3000`
-	@cd $(FRONTEND_DIR) && npm start $(if $(FRONTEND_START_FLAGS),-- $(FRONTEND_START_FLAGS))
+	@-VITE_PORT=$$(grep '^VITE_PORT=' .env 2>/dev/null | cut -d '=' -f2 || echo 8766); \
+	kill -9 $$(lsof -t -i:$$VITE_PORT) 2>/dev/null || true; \
+	kill -9 $$(lsof -t -i:3000) 2>/dev/null || true
+	@VITE_PORT=$$(grep '^VITE_PORT=' .env 2>/dev/null | cut -d '=' -f2 || echo 8766); \
+	echo "Starting frontend on port $$VITE_PORT..."; \
+	cd $(FRONTEND_DIR) && VITE_PORT=$$VITE_PORT npm start $(if $(FRONTEND_START_FLAGS),-- $(FRONTEND_START_FLAGS))
 
 frontend: install_frontend ## run the frontend in development mode
 	make run_frontend

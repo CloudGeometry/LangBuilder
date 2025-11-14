@@ -1,4 +1,4 @@
-"""Script to update LangBuilder starter projects with the latest component versions."""
+"""Script to update Langbuilder starter projects with the latest component versions."""
 
 import asyncio
 import os

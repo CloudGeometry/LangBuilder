@@ -57,9 +57,7 @@ export default function DragFilesComponent({
         if (filesIds.length > 0) {
           onUpload(filesIds);
           setSuccessData({
-            title: `File${
-              filesIds.length > 1 ? "s" : ""
-            } uploaded successfully`,
+            title: `File${filesIds.length > 1 ? "s" : ""} uploaded successfully`,
           });
         }
       } catch (error: any) {
@@ -110,11 +108,8 @@ export default function DragFilesComponent({
           <div className="flex items-center gap-1">
             <span>{types.slice(0, 3).join(", ")}</span>
             {types.length > 3 && (
-              <ShadTooltip content={types.slice(3).toSorted().join(", ")}>
-                <span
-                  className="text-muted-foreground flex items-center gap-1"
-                  data-testid="info-types"
-                >
+              <ShadTooltip content={types.slice(3).join(", ")}>
+                <span className="text-muted-foreground flex items-center gap-1">
                   +{types.length - 3} more
                   <ForwardedIconComponent name="info" className="w-3 h-3" />
                 </span>

@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       langbuilder-version:
-        description: "LangBuilder version to test from PyPI (leave empty to test from source)"
+        description: "Langbuilder version to test from PyPI (leave empty to test from source)"
         required: false
         type: string
         default: ""
@@ -256,8 +256,7 @@ jobs:
       - name: Test CLI help command (Windows)
         if: matrix.os == 'windows'
         run: |
-          call test-env\Scripts\activate.bat
-          python -m langbuilder --help
+          test-env\Scripts\python.exe -m langbuilder --help
         shell: cmd
 
       - name: Test CLI help command (Unix)
@@ -509,8 +508,7 @@ jobs:
       - name: Test CLI help command (Windows)
         if: matrix.os == 'windows'
         run: |
-          call test-env\Scripts\activate.bat
-          python -m langbuilder --help
+          test-env\Scripts\python.exe -m langbuilder --help
         shell: cmd
 
       - name: Test CLI help command (Unix)

@@ -17,19 +17,12 @@ test(
       },
     );
 
-    await page.getByTestId("canvas_controls_dropdown").click();
-
     await page.waitForSelector('[data-testid="zoom_out"]', {
       timeout: 3000,
     });
 
-    await page.getByTestId("canvas_controls_dropdown").click();
-
     await page.getByTestId("sidebar-custom-component-button").click();
-    await page.getByTestId("canvas_controls_dropdown").click();
-
     await page.getByTitle("fit view").click();
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await page.getByTestId("sidebar-search-input").click();
     await page.waitForTimeout(500);
@@ -92,11 +85,10 @@ class CustomComponent(Component):
     await page.locator("textarea").fill(waitTimeoutCode);
 
     await page.getByText("Check & Save").last().click();
-    await page.getByTestId("canvas_controls_dropdown").click();
+
     await page.getByTestId("fit_view").click();
     await page.getByTestId("zoom_out").click();
     await page.getByTestId("zoom_out").click();
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     //connection 1
     const elementCustomComponentOutput = await page

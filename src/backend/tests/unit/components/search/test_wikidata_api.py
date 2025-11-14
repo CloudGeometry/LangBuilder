@@ -2,10 +2,10 @@ from unittest.mock import MagicMock, patch
 
 import httpx
 import pytest
-from langchain_core.tools import ToolException
 from langbuilder.components.wikipedia import WikidataComponent
 from langbuilder.custom import Component
 from langbuilder.custom.utils import build_custom_component_template
+from langchain_core.tools import ToolException
 
 # Import the base test class
 from tests.base import ComponentTestBaseWithoutClient

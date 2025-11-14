@@ -1,7 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import ShortUniqueId from "short-unique-id";
-import { useStickToBottomContext } from "use-stick-to-bottom";
 import { usePostUploadFile } from "@/controllers/API/queries/files/use-post-upload-file";
 import { ENABLE_IMAGE_ON_PLAYGROUND } from "@/customization/feature-flags";
 import useFileSizeValidator from "@/shared/hooks/use-file-size-validator";
@@ -41,8 +40,6 @@ export default function ChatInput({
   const stopBuilding = useFlowStore((state) => state.stopBuilding);
   const isBuilding = useFlowStore((state) => state.isBuilding);
   const chatValue = useUtilityStore((state) => state.chatValueStore);
-
-  const { scrollToBottom } = useStickToBottomContext();
 
   const [showAudioInput, setShowAudioInput] = useState(false);
 
@@ -175,10 +172,6 @@ export default function ChatInput({
     const storedFiles = [...files];
     setFiles([]);
     try {
-      scrollToBottom({
-        animation: "smooth",
-        duration: 1000,
-      });
       await sendMessage({
         repeat: 1,
         files: filesToSend,

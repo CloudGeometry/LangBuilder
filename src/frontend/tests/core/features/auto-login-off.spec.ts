@@ -140,16 +140,12 @@ test(
     await page.getByTestId("side_nav_options_all-templates").click();
     await page.getByRole("heading", { name: "Basic Prompting" }).click();
 
-    await page.waitForSelector('[data-testid="canvas_controls_dropdown"]', {
+    await page.waitForSelector('[data-testid="fit_view"]', {
       timeout: 100000,
     });
 
-    await page.getByTestId("canvas_controls_dropdown").click();
-
     await page.getByTestId("fit_view").click();
     await page.getByTestId("zoom_out").click();
-
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await renameFlow(page, { flowName: randomFlowName });
 
@@ -219,16 +215,12 @@ test(
     await page.getByTestId("side_nav_options_all-templates").click();
     await page.getByRole("heading", { name: "Basic Prompting" }).click();
 
-    await page.waitForSelector('[data-testid="canvas_controls_dropdown"]', {
+    await page.waitForSelector('[data-testid="fit_view"]', {
       timeout: 100000,
     });
 
-    await page.getByTestId("canvas_controls_dropdown").click();
-
     await page.getByTestId("fit_view").click();
     await page.getByTestId("zoom_out").click();
-
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await renameFlow(page, { flowName: secondRandomFlowName });
 

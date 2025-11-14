@@ -4,12 +4,12 @@ from textwrap import dedent
 
 import pytest
 from langbuilder.components.data import FileComponent
-from langbuilder.components.datastax import AstraDBVectorStoreComponent
 from langbuilder.components.input_output import ChatInput, ChatOutput
 from langbuilder.components.openai.openai import OpenAIEmbeddingsComponent
 from langbuilder.components.openai.openai_chat_model import OpenAIModelComponent
 from langbuilder.components.processing import ParseDataComponent, PromptComponent
 from langbuilder.components.processing.split_text import SplitTextComponent
+from langbuilder.components.vectorstores import AstraDBVectorStoreComponent
 from langbuilder.graph.graph.base import Graph
 from langbuilder.graph.graph.constants import Finish
 from langbuilder.schema import Data

@@ -1,4 +1,4 @@
-import { type Dispatch, type SetStateAction, useState } from "react";
+import { useState } from "react";
 import { useHref } from "react-router-dom";
 import IconComponent from "@/components/common/genericIconComponent";
 import ShadTooltipComponent from "@/components/common/shadTooltipComponent";
@@ -17,21 +17,14 @@ import { customMcpOpen } from "@/customization/utils/custom-mcp-open";
 import ApiModal from "@/modals/apiModal";
 import EmbedModal from "@/modals/EmbedModal/embed-modal";
 import ExportModal from "@/modals/exportModal";
+import PublishModal from "@/modals/publishModal";
 import useAlertStore from "@/stores/alertStore";
 import useAuthStore from "@/stores/authStore";
 import useFlowStore from "@/stores/flowStore";
 import useFlowsManagerStore from "@/stores/flowsManagerStore";
 import { cn } from "@/utils/utils";
 
-type PublishDropdownProps = {
-  openApiModal: boolean;
-  setOpenApiModal: Dispatch<SetStateAction<boolean>>;
-};
-
-export default function PublishDropdown({
-  openApiModal,
-  setOpenApiModal,
-}: PublishDropdownProps) {
+export default function PublishDropdown() {
   const location = useHref("/");
   const domain = window.location.origin + location;
   const [openEmbedModal, setOpenEmbedModal] = useState(false);
@@ -47,7 +40,10 @@ export default function PublishDropdown({
   const isPublished = currentFlow?.access_type === "PUBLIC";
   const hasIO = useFlowStore((state) => state.hasIO);
   const isAuth = useAuthStore((state) => !!state.autoLogin);
+  const [openApiModal, setOpenApiModal] = useState(false);
   const [openExportModal, setOpenExportModal] = useState(false);
+  const [openPublishModal, setOpenPublishModal] = useState(false);
+  const setSuccessData = useAlertStore((state) => state.setSuccessData);
 
   const handlePublishedSwitch = async (checked: boolean) => {
     mutateAsync(
@@ -119,6 +115,17 @@ export default function PublishDropdown({
           >
             <IconComponent name="Download" className={`icon-size mr-2`} />
             <span>Export</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            className="deploy-dropdown-item group"
+            onSelect={() => {
+              // Use setTimeout to allow dropdown to close first
+              setTimeout(() => setOpenPublishModal(true), 0);
+            }}
+            data-testid="publish-to-openwebui-item"
+          >
+            <IconComponent name="Globe" className={`icon-size mr-2`} />
+            <span>Publish to OpenWebUI</span>
           </DropdownMenuItem>
           <CustomLink
             className={cn("flex-1")}
@@ -222,6 +229,24 @@ export default function PublishDropdown({
         activeTweaks={false}
       ></EmbedModal>
       <ExportModal open={openExportModal} setOpen={setOpenExportModal} />
+      <PublishModal
+        flowId={flowId ?? ""}
+        flowName={flowName ?? ""}
+        open={openPublishModal}
+        setOpen={setOpenPublishModal}
+        onSuccess={(response) => {
+          setSuccessData({
+            title: "Flow published successfully!",
+            list: [
+              `Model: ${response.model_name}`,
+              `Platform: ${response.openwebui_url}`,
+              response.pipe_function_deployed
+                ? "Pipe function deployed"
+                : "Using existing pipe function",
+            ],
+          });
+        }}
+      />
     </>
   );
 }

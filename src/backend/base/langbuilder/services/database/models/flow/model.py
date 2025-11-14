@@ -24,6 +24,7 @@ from langbuilder.schema.data import Data
 
 if TYPE_CHECKING:
     from langbuilder.services.database.models.folder.model import Folder
+    from langbuilder.services.database.models.publish_record.model import PublishRecord
     from langbuilder.services.database.models.user.model import User
 
 HEX_COLOR_LENGTH = 7
@@ -199,6 +200,7 @@ class Flow(FlowBase, table=True):  # type: ignore[call-arg]
     folder_id: UUID | None = Field(default=None, foreign_key="folder.id", nullable=True, index=True)
     fs_path: str | None = Field(default=None, nullable=True)
     folder: Optional["Folder"] = Relationship(back_populates="flows")
+    publish_records: list["PublishRecord"] = Relationship(back_populates="flow")
 
     def to_data(self):
         serialized = self.model_dump()

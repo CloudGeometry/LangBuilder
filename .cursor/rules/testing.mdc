@@ -1,5 +1,5 @@
 ---
-description: "Guidelines for testing LangBuilder components and backend code, with emphasis on async patterns and robust, well-documented testing practices."
+description: "Guidelines for testing Langbuilder components and backend code, with emphasis on async patterns and robust, well-documented testing practices."
 globs:
   - "src/backend/tests/**/*.py"
   - "src/frontend/**/*.test.{ts,tsx,js,jsx}"
@@ -10,10 +10,10 @@ globs:
 alwaysApply: false
 ---
 
-# Testing Guidelines for LangBuilder
+# Testing Guidelines for Langbuilder
 
 ## Purpose
-Guidelines for testing LangBuilder components and backend code, with emphasis on async patterns and robust, well-documented testing practices.
+Guidelines for testing Langbuilder components and backend code, with emphasis on async patterns and robust, well-documented testing practices.
 
 ---
 
@@ -56,7 +56,7 @@ Located in `src/backend/tests/base.py`.
 Required fixtures for subclasses:
 1. `component_class` → the component **class** under test.
 2. `default_kwargs` → dict of kwargs to instantiate the component (can be empty).
-3. `file_names_mapping` → list of `VersionComponentMapping` dicts mapping historical **LangBuilder versions** to module/file names.
+3. `file_names_mapping` → list of `VersionComponentMapping` dicts mapping historical **Langbuilder versions** to module/file names.
 
 Example skeleton:
 ```python
@@ -299,10 +299,10 @@ async def test_component_background_processing():
 
 ---
 
-## 9. LangBuilder-Specific Testing Patterns
+## 9. Langbuilder-Specific Testing Patterns
 
 ### Message Testing
-Test LangBuilder's `Message` objects and chat functionality:
+Test Langbuilder's `Message` objects and chat functionality:
 
 ```python
 from langbuilder.schema.message import Message
@@ -411,7 +411,7 @@ async def test_file_operations(self, component_class, tmp_path):
 ```
 
 ### API Endpoint Testing
-Test LangBuilder's REST API endpoints:
+Test Langbuilder's REST API endpoints:
 
 ```python
 async def test_flows_endpoint(client, logged_in_headers):
@@ -490,12 +490,12 @@ async def consume_and_validate_events(response, expected_job_id):
 ```
 
 ### Testing Component Versioning
-Test backward compatibility across LangBuilder versions:
+Test backward compatibility across Langbuilder versions:
 
 ```python
 @pytest.fixture
 def file_names_mapping(self):
-    """Map component files across LangBuilder versions."""
+    """Map component files across Langbuilder versions."""
     return [
         VersionComponentMapping(
             version="1.1.1",

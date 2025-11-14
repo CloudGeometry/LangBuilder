@@ -1,35 +1,31 @@
-name: LangBuilder Release
-run-name: LangBuilder Release by @${{ github.actor }}
+name: Langbuilder Release
+run-name: Langbuilder Release by @${{ github.actor }}
 
 on:
   workflow_dispatch:
     inputs:
-      release_branch:
-        description: "Branch to release from. This is the branch that contains the source code for the release."
-        required: true
-        type: string
       release_package_base:
-        description: "Release LangBuilder Base"
+        description: "Release Langbuilder Base"
         required: true
         type: boolean
         default: false
       release_package_main:
-        description: "Release LangBuilder"
+        description: "Release Langbuilder"
         required: true
         type: boolean
         default: false
       build_docker_base:
-        description: "Build Docker Image for LangBuilder Base"
+        description: "Build Docker Image for Langbuilder Base"
         required: true
         type: boolean
         default: false
       build_docker_main:
-        description: "Build Docker Image for LangBuilder"
+        description: "Build Docker Image for Langbuilder"
         required: true
         type: boolean
         default: false
       build_docker_ep:
-        description: "Build Docker Image for LangBuilder with Entrypoint"
+        description: "Build Docker Image for Langbuilder with Entrypoint"
         required: false
         type: boolean
         default: false
@@ -52,7 +48,6 @@ jobs:
     name: CI
     uses: ./.github/workflows/ci.yml
     with:
-      branch: ${{ inputs.release_branch }}
       python-versions: "['3.10', '3.11', '3.12', '3.13']"
       frontend-tests-folder: "tests"
       release: true
@@ -60,7 +55,7 @@ jobs:
 
 
   build-base:
-    name: Build LangBuilder Base
+    name: Build Langbuilder Base
     needs: [ci]
     if: inputs.release_package_base == true
     runs-on: ubuntu-latest
@@ -70,14 +65,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.release_branch }}
-      - name: Debug branch information
-        run: |
-          echo "Workflow triggered from: ${{ github.ref }}"
-          echo "Checking out branch: ${{ inputs.release_branch }}"
-          echo "Current branch after checkout: $(git branch --show-current)"
-          echo "Current commit: $(git rev-parse HEAD)"
       - name: Setup Environment
         uses: astral-sh/setup-uv@v6
         with:
@@ -137,7 +124,7 @@ jobs:
           path: src/backend/base/dist
 
   build-main:
-    name: Build LangBuilder Main
+    name: Build Langbuilder Main
     if: inputs.release_package_main == true
     needs: [build-base]
     runs-on: ubuntu-latest
@@ -146,14 +133,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.release_branch }}
-      - name: Debug branch information
-        run: |
-          echo "Workflow triggered from: ${{ github.ref }}"
-          echo "Checking out branch: ${{ inputs.release_branch }}"
-          echo "Current branch after checkout: $(git branch --show-current)"
-          echo "Current commit: $(git rev-parse HEAD)"
       - name: Setup Environment
         uses: astral-sh/setup-uv@v6
         with:
@@ -231,7 +210,7 @@ jobs:
       main-artifact-name: "dist-main"
 
   publish-base:
-    name: Publish LangBuilder Base to PyPI
+    name: Publish Langbuilder Base to PyPI
     if: inputs.release_package_base == true
     needs: [build-base, test-cross-platform]
     runs-on: ubuntu-latest
@@ -254,7 +233,7 @@ jobs:
           cd src/backend/base && uv publish dist/*.whl
 
   publish-main:
-    name: Publish LangBuilder Main to PyPI
+    name: Publish Langbuilder Main to PyPI
     if: inputs.release_package_main == true
     needs: [build-main, test-cross-platform, publish-base]
     runs-on: ubuntu-latest
@@ -276,38 +255,35 @@ jobs:
           uv publish dist/*.whl
 
   call_docker_build_base:
-    name: Call Docker Build Workflow for LangBuilder Base
+    name: Call Docker Build Workflow for Langbuilder Base
     if: inputs.build_docker_base == true
-    needs: [build-base, build-main, publish-base, publish-main]
+    needs: [publish-base, publish-main]
     uses: ./.github/workflows/docker-build.yml
     with:
-      ref: ${{ inputs.release_branch }}
-      base_version: ${{ needs.build-base.outputs.version }}
-      main_version: ${{ needs.build-main.outputs.version }}
+      base_version: ${{ needs.publish-base.needs.build-base.outputs.version }}
+      main_version: ${{ needs.publish-main.needs.build-main.outputs.version }}
       release_type: base
       pre_release: ${{ inputs.pre_release }}
     secrets: inherit
 
   call_docker_build_main_ep:
-    name: Call Docker Build Workflow for LangBuilder with Entrypoint
+    name: Call Docker Build Workflow for Langbuilder with Entrypoint
     if: inputs.build_docker_ep == true
-    needs: [build-main, publish-main, call_docker_build_base]
+    needs: [publish-main, call_docker_build_base]
     uses: ./.github/workflows/docker-build.yml
     with:
-      ref: ${{ inputs.release_branch }}
-      main_version: ${{ needs.build-main.outputs.version }}
+      main_version: ${{ needs.publish-main.needs.build-main.outputs.version }}
       release_type: main-ep
       pre_release: False
     secrets: inherit
 
   call_docker_build_main:
-    name: Call Docker Build Workflow for LangBuilder
+    name: Call Docker Build Workflow for Langbuilder
     if: inputs.build_docker_main == true
-    needs: [build-main, publish-main, call_docker_build_main_ep]
+    needs: [publish-main, call_docker_build_main_ep]
     uses: ./.github/workflows/docker-build.yml
     with:
-      ref: ${{ inputs.release_branch }}
-      main_version: ${{ needs.build-main.outputs.version }}
+      main_version: ${{ needs.publish-main.needs.build-main.outputs.version }}
       release_type: main
       pre_release: ${{ inputs.pre_release }}
     secrets: inherit
@@ -315,11 +291,10 @@ jobs:
   call_docker_build_main_all:
     name: Call Docker Build Workflow for langbuilder-all
     if: inputs.build_docker_main == true
-    needs: [build-main, publish-main]
+    needs: [publish-main]
     uses: ./.github/workflows/docker-build.yml
     with:
-      ref: ${{ inputs.release_branch }}
-      main_version: ${{ needs.build-main.outputs.version }}
+      main_version: ${{ needs.publish-main.needs.build-main.outputs.version }}
       release_type: main-all
       pre_release: ${{ inputs.pre_release }}
     secrets: inherit
@@ -328,7 +303,7 @@ jobs:
   create_release:
     name: Create Release
     runs-on: ubuntu-latest
-    needs: [build-main, publish-main]
+    needs: publish-main
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -342,5 +317,5 @@ jobs:
           draft: false
           generateReleaseNotes: true
           prerelease: ${{ inputs.pre_release }}
-          tag: ${{ needs.build-main.outputs.version }}
-          commit: ${{ inputs.release_branch }}
+          tag: ${{ needs.publish-main.needs.build-main.outputs.version }}
+          commit: ${{ github.ref }}

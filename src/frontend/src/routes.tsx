@@ -16,7 +16,6 @@ import { BASENAME } from "./customization/config-constants";
 import {
   ENABLE_CUSTOM_PARAM,
   ENABLE_FILE_MANAGEMENT,
-  ENABLE_KNOWLEDGE_BASES,
 } from "./customization/feature-flags";
 import { CustomRoutesStore } from "./customization/utils/custom-routes-store";
 import { CustomRoutesStorePages } from "./customization/utils/custom-routes-store-pages";
@@ -27,7 +26,6 @@ import FlowPage from "./pages/FlowPage";
 import LoginPage from "./pages/LoginPage";
 import FilesPage from "./pages/MainPage/pages/filesPage";
 import HomePage from "./pages/MainPage/pages/homePage";
-import KnowledgePage from "./pages/MainPage/pages/knowledgePage";
 import CollectionPage from "./pages/MainPage/pages/main-page";
 import SettingsPage from "./pages/SettingsPage";
 import ApiKeysPage from "./pages/SettingsPage/pages/ApiKeysPage";
@@ -84,19 +82,7 @@ const router = createBrowserRouter(
                     element={<CustomNavigate replace to={"flows"} />}
                   />
                   {ENABLE_FILE_MANAGEMENT && (
-                    <Route path="assets">
-                      <Route
-                        index
-                        element={<CustomNavigate replace to="files" />}
-                      />
-                      <Route path="files" element={<FilesPage />} />
-                      {ENABLE_KNOWLEDGE_BASES && (
-                        <Route
-                          path="knowledge-bases"
-                          element={<KnowledgePage />}
-                        />
-                      )}
-                    </Route>
+                    <Route path="files" element={<FilesPage />} />
                   )}
                   <Route
                     path="flows/"
