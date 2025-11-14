@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { awaitBootstrapTest } from "../../utils/await-bootstrap-test";
+import { extractAndCleanCode } from "../../utils/extract-and-clean-code";
 
 test(
   "user must be able to see icons fallback if the icon is not found",
@@ -8,12 +9,10 @@ test(
     await awaitBootstrapTest(page);
 
     await page.getByTestId("blank-flow").click();
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await page.waitForSelector('[data-testid="fit_view"]', {
       timeout: 100000,
     });
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await page.getByTestId("disclosure-data").click();
     await page.waitForTimeout(500);

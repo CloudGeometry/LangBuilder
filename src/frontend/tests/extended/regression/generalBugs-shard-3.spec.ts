@@ -34,8 +34,12 @@ test(
     await page
       .getByTestId("input_outputChat Output")
       .dragTo(page.locator('//*[@id="react-flow-id"]'), {
-        targetPosition: { x: 400, y: 100 },
+        targetPosition: { x: 0, y: 0 },
       });
+
+    await page
+      .getByTestId("input_outputChat Output")
+      .dragTo(page.locator('//*[@id="react-flow-id"]'));
 
     await page.getByTestId("sidebar-search-input").click();
     await page.getByTestId("sidebar-search-input").fill("chat input");
@@ -56,7 +60,6 @@ test(
       });
 
     await initialGPTsetup(page);
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await page.waitForSelector('[data-testid="fit_view"]', {
       timeout: 5000,
@@ -64,7 +67,6 @@ test(
     });
 
     await page.getByTestId("fit_view").click();
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await page
       .getByTestId("handle-chatinput-noshownode-chat message-source")
@@ -78,11 +80,8 @@ test(
       .getByTestId("handle-chatoutput-noshownode-inputs-target")
       .last()
       .click();
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await page.getByTestId("fit_view").click();
-    await page.getByTestId("canvas_controls_dropdown").click();
-
     await page.getByRole("button", { name: "Playground", exact: true }).click();
     await page.waitForSelector('[data-testid="input-chat-playground"]', {
       timeout: 100000,
@@ -134,7 +133,7 @@ test(
 
     expect(await page.getByTestId("playground-btn-flow").isDisabled());
 
-    expect(await page.getByText("LangBuilder Chat").isHidden());
+    expect(await page.getByText("Langbuilder Chat").isHidden());
 
     await page.getByTestId("sidebar-search-input").click();
     await page.getByTestId("sidebar-search-input").fill("chat output");
@@ -147,16 +146,12 @@ test(
       .dragTo(page.locator('//*[@id="react-flow-id"]'));
     await page.mouse.up();
     await page.mouse.down();
-
-    await page.getByTestId("canvas_controls_dropdown").click();
-
     await page.waitForSelector('[data-testid="fit_view"]', {
       timeout: 100000,
     });
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await page.getByTestId("playground-btn-flow-io").click({ force: true });
 
-    expect(await page.getByText("LangBuilder Chat").isVisible());
+    expect(await page.getByText("Langbuilder Chat").isVisible());
   },
 );

@@ -1,5 +1,5 @@
 from typing import Any
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from langbuilder.components.crewai import CrewAIAgentComponent, SequentialTaskComponent
@@ -9,6 +9,7 @@ from langbuilder.custom.custom_component.component import Component
 from langbuilder.custom.utils import update_component_build_config
 from langbuilder.schema import dotdict
 from langbuilder.schema.message import Message
+from langbuilder.services.database.session import NoopSession
 from langbuilder.template import Output
 
 crewai_available = False
@@ -116,21 +117,24 @@ async def test_send_message_without_database(monkeypatch):  # noqa: ARG001
     event_manager = MagicMock()
     component._event_manager = event_manager
     message = Message(text="Hello", session_id="session", flow_id=None, sender="User", sender_name="Test")
-
-    result = await component.send_message(message)
-    assert isinstance(result, Message)
-    assert result.text == "Hello"
-    assert result.sender == "User"
-    assert result.sender_name == "Test"
-    # The focus is on testing the message handling logic, not the database persistence layer
+    with (
+        patch.object(NoopSession, "add", new_callable=AsyncMock) as mock_add,
+        patch.object(NoopSession, "commit", new_callable=AsyncMock) as mock_commit,
+    ):
+        result = await component.send_message(message)
+        assert isinstance(result, Message)
+        assert result.text == "Hello"
+        assert result.sender == "User"
+        assert result.sender_name == "Test"
+        # Optionally, check that add/commit were called (if you want to enforce this)
+        assert mock_add.called
+        assert mock_commit.called
     assert event_manager.on_message.called
 
 
 @pytest.mark.usefixtures("use_noop_session")
 @pytest.mark.asyncio
-async def test_agent_component_send_message_events():
-    from unittest.mock import AsyncMock
-
+async def test_agent_component_send_message_events(monkeypatch):  # noqa: ARG001
     from langbuilder.components.agents.agent import AgentComponent
 
     event_manager = MagicMock()
@@ -143,21 +147,16 @@ async def test_agent_component_send_message_events():
     )
     agent._event_manager = event_manager
     message = Message(text="Hello", session_id="test-session", flow_id=None, sender="User", sender_name="Test")
-
-    # Mock _store_message to avoid database interaction
-    async def mock_store_message(msg):
-        # Simulate what _store_message does: add an ID and return the message
-        msg.data["id"] = "test-message-id"
-        return msg
-
-    agent._store_message = AsyncMock(side_effect=mock_store_message)
-
-    result = await agent.send_message(message)
-    assert isinstance(result, Message)
-    assert result.text == "Hello"
-    assert result.sender == "User"
-    assert result.sender_name == "Test"
-    # Verify the message was stored (mock was called)
-    agent._store_message.assert_called_once()
-    # The focus is on testing the message handling logic, not the database persistence layer
+    with (
+        patch.object(NoopSession, "add", new_callable=AsyncMock) as mock_add,
+        patch.object(NoopSession, "commit", new_callable=AsyncMock) as mock_commit,
+    ):
+        result = await agent.send_message(message)
+        assert isinstance(result, Message)
+        assert result.text == "Hello"
+        assert result.sender == "User"
+        assert result.sender_name == "Test"
+        # Optionally, check that add/commit were called (if you want to enforce this)
+        assert mock_add.called
+        assert mock_commit.called
     assert event_manager.on_message.called

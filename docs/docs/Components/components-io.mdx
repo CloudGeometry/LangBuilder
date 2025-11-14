@@ -5,7 +5,7 @@ slug: /components-io
 
 import Icon from "@site/src/components/icon";
 
-LangBuilder's **Input and Output** components define where data enters and exits your flow, but they don't have identical functionality.
+Langbuilder's **Input and Output** components define where data enters and exits your flow, but they don't have identical functionality.
 
 Specifically, **Chat Input and Output** components are designed to facilitate conversational interactions where messages are exchanged in a cumulative dialogue.
 The data handled by these components includes the message text plus additional metadata like senders, session IDs, and timestamps.
@@ -20,7 +20,7 @@ The data handled by these components is pared down to basic text strings.
 For more information, see [Test flows in the Playground](/concepts-playground).
 :::
 
-**Chat Input and Output** components are designed to handle conversational interactions in LangBuilder.
+**Chat Input and Output** components are designed to handle conversational interactions in Langbuilder.
 
 ### Chat Input
 
@@ -75,14 +75,14 @@ message = await Message.create(
 ### Chat Output
 
 The **Chat Output** component ingests `Message`, `Data`, or `DataFrame` data from other components, transforms it into `Message` data if needed, and then emits the final output as a chat message.
-For information about these data types, see [Use LangBuilder data types](/data-types).
+For information about these data types, see [Use Langbuilder data types](/data-types).
 
 In the **Playground**, chat output is limited to the parts of the `Message` object that are relevant to the chat interface, such as the text response, sender name, and file attachments.
 To see the metadata associated with a chat message, inspect the message logs in the **Playground**.
 
-When using the LangBuilder API, the API response includes the **Chat Output** `Message` object along with other response data from the flow run.
-LangBuilder API responses can be extremely verbose, so your applications must include code to extract relevant data from the response to return to the user.
-For an example, see the [LangBuilder quickstart](/get-started-quickstart).
+When using the Langbuilder API, the API response includes the **Chat Output** `Message` object along with other response data from the flow run.
+Langbuilder API responses can be extremely verbose, so your applications must include code to extract relevant data from the response to return to the user.
+For an example, see the [Langbuilder quickstart](/get-started-quickstart).
 
 #### Chat Output parameters
 
@@ -116,14 +116,14 @@ For example, the following flow connects **Chat Input** and **Chat Output** to a
 :::tip
 For detailed examples of **Chat Input and Output** components in flows, see the following:
 
-* [LangBuilder quickstart](/get-started-quickstart): Create and run a basic agent flow.
-* **Basic Prompting** template: Create an LLM-based chat flow that accepts chat input as well as a prompt with additional instructions for the LLM. Many other LangBuilder templates also use **Chat Input and Output** components.
+* [Langbuilder quickstart](/get-started-quickstart): Create and run a basic agent flow.
+* **Basic Prompting** template: Create an LLM-based chat flow that accepts chat input as well as a prompt with additional instructions for the LLM. Many other Langbuilder templates also use **Chat Input and Output** components.
 * [Connect applications to agents](/agent-tutorial): Explore more advanced concepts around agent flows and prompting, including triggering agent flows from external applications.
 :::
 
-### Send chat input with the LangBuilder API
+### Send chat input with the Langbuilder API
 
-You can use the LangBuilder API to run a flow by sending input to a **Chat Input** component:
+You can use the Langbuilder API to run a flow by sending input to a **Chat Input** component:
 
 ```bash
 curl --request POST \
@@ -137,7 +137,7 @@ curl --request POST \
 }'
 ```
 
-When triggering flows with the LangBuilder API, the payload must contain the values for the **Chat Input** component's input parameters, such as `input_value`.
+When triggering flows with the Langbuilder API, the payload must contain the values for the **Chat Input** component's input parameters, such as `input_value`.
 
 Not all parameters need to be specified in the request.
 For example, `session_id` uses the flow's default session ID if omitted.
@@ -156,7 +156,7 @@ curl --request POST \
 }'
 ```
 
-For more information, see [Trigger flows with the LangBuilder API](/concepts-publish).
+For more information, see [Trigger flows with the Langbuilder API](/concepts-publish).
 
 ## Text Input and Output {#text-io}
 

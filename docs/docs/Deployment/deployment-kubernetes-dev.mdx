@@ -1,12 +1,12 @@
 ---
-title: Deploy the LangBuilder development environment on Kubernetes
+title: Deploy the Langbuilder development environment on Kubernetes
 slug: /deployment-kubernetes-dev
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-The [LangBuilder integrated development environment (IDE) Helm chart](https://github.com/CloudGeometry/langbuilder-helm-charts/tree/main/charts/langbuilder-ide) is designed to provide a complete environment for developers to create, test, and debug their flows. It includes both the LangBuilder API and visual editor.
+The [Langbuilder integrated development environment (IDE) Helm chart](https://github.com/cloudgeometry/langbuilder-helm-charts/tree/main/charts/langbuilder-ide) is designed to provide a complete environment for developers to create, test, and debug their flows. It includes both the Langbuilder API and visual editor.
 
 ## Prerequisites
 
@@ -30,16 +30,16 @@ This example uses [Minikube](https://minikube.sigs.k8s.io/docs/start/), but you 
 	kubectl config use-context minikube
 	```
 
-## Install the LangBuilder IDE Helm chart
+## Install the Langbuilder IDE Helm chart
 
 1. Add the repository to Helm, and then update it:
 
 	```shell
-	helm repo add langbuilder https://CloudGeometry.github.io/langbuilder-helm-charts
+	helm repo add langbuilder https://langbuilder-ai.github.io/langbuilder-helm-charts
 	helm repo update
 	```
 
-2. Install LangBuilder with the default options in the `langbuilder` namespace:
+2. Install Langbuilder with the default options in the `langbuilder` namespace:
 
 	```shell
 	helm install langbuilder-ide langbuilder/langbuilder-ide -n langbuilder --create-namespace
@@ -51,11 +51,11 @@ This example uses [Minikube](https://minikube.sigs.k8s.io/docs/start/), but you 
 	kubectl get pods -n langbuilder
 	```
 
-## Access the LangBuilder IDE
+## Access the Langbuilder IDE
 
-Enable local port forwarding to access LangBuilder from your local machine:
+Enable local port forwarding to access Langbuilder from your local machine:
 
-1. Make the LangBuilder API accessible from your local machine at port 7860:
+1. Make the Langbuilder API accessible from your local machine at port 7860:
 
     ```shell
     kubectl port-forward -n langbuilder svc/langbuilder-service-backend 7860:7860
@@ -69,21 +69,21 @@ Enable local port forwarding to access LangBuilder from your local machine:
 
 Now you can do the following:
 
-- Access the LangBuilder API at `http://localhost:7860`.
+- Access the Langbuilder API at `http://localhost:7860`.
 - Access the visual editor at `http://localhost:8080`.
 
-## Modify your LangBuilder IDE deployment
+## Modify your Langbuilder IDE deployment
 
-You can modify the LangBuilder IDE Helm chart's [`values.yaml`](https://github.com/CloudGeometry/langbuilder-helm-charts/blob/main/charts/langbuilder-ide/values.yaml) file to customize your deployment.
+You can modify the Langbuilder IDE Helm chart's [`values.yaml`](https://github.com/cloudgeometry/langbuilder-helm-charts/blob/main/charts/langbuilder-ide/values.yaml) file to customize your deployment.
 The following sections describe some common modifications.
 
 If you need to set secrets, Kubernetes secrets are recommended.
 
-### Deploy a different LangBuilder version
+### Deploy a different Langbuilder version
 
-The LangBuilder IDE Helm chart deploys the latest LangBuilder version by default.
+The Langbuilder IDE Helm chart deploys the latest Langbuilder version by default.
 
-To specify a different LangBuilder version, set the `langbuilder.backend.image.tag` and `langbuilder.frontend.image.tag` values to your preferred version.
+To specify a different Langbuilder version, set the `langbuilder.backend.image.tag` and `langbuilder.frontend.image.tag` values to your preferred version.
 For example:
 
 ```yaml
@@ -96,9 +96,9 @@ langbuilder:
       tag: "1.0.0a59"
 ```
 
-### Use external storage for the LangBuilder database
+### Use external storage for the Langbuilder database
 
-The LangBuilder IDE Helm chart uses the default LangBuilder database configuration, specifically a SQLite database stored in a local persistent disk.
+The Langbuilder IDE Helm chart uses the default Langbuilder database configuration, specifically a SQLite database stored in a local persistent disk.
 
 If you want to use an [external PostgreSQL database](/configuration-custom-database), use `postgresql` chart or `externalDatabase` to configure the database connection in `values.yaml`.
 
@@ -151,7 +151,7 @@ langbuilder:
 
 ### Configure scaling
 
-To configure scaling for the LangBuilder IDE Helm chart deployment, you must set `replicaCount` (horizontal scaling) and `resources` (vertical scaling) for both the `langbuilder.backend` and `langbuilder.frontend`.
+To configure scaling for the Langbuilder IDE Helm chart deployment, you must set `replicaCount` (horizontal scaling) and `resources` (vertical scaling) for both the `langbuilder.backend` and `langbuilder.frontend`.
 
 If your flows rely on a shared state, such as [built-in chat memory](/memory), you must also set up a shared database when scaling horizontally.
 
@@ -181,6 +181,6 @@ langbuilder:
 
 ## See also
 
-* [Best practices for LangBuilder on Kubernetes](/deployment-prod-best-practices)
-* [Deploy the LangBuilder production environment on Kubernetes](/deployment-kubernetes-prod)
-* [LangBuilder Helm Charts repository](https://github.com/CloudGeometry/langbuilder-helm-charts)
+* [Best practices for Langbuilder on Kubernetes](/deployment-prod-best-practices)
+* [Deploy the Langbuilder production environment on Kubernetes](/deployment-kubernetes-prod)
+* [Langbuilder Helm Charts repository](https://github.com/cloudgeometry/langbuilder-helm-charts)

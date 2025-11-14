@@ -1,24 +1,16 @@
-import type { Dispatch, SetStateAction } from "react";
+import { useState } from "react";
 import useFlowStore from "@/stores/flowStore";
 import PublishDropdown from "./deploy-dropdown";
 import PlaygroundButton from "./playground-button";
+import PublishStatusBadge from "./publish-status-badge";
 
-type FlowToolbarOptionsProps = {
-  open: boolean;
-  setOpen: Dispatch<SetStateAction<boolean>>;
-  openApiModal: boolean;
-  setOpenApiModal: Dispatch<SetStateAction<boolean>>;
-};
-const FlowToolbarOptions = ({
-  open,
-  setOpen,
-  openApiModal,
-  setOpenApiModal,
-}: FlowToolbarOptionsProps) => {
+export default function FlowToolbarOptions() {
+  const [open, setOpen] = useState<boolean>(false);
   const hasIO = useFlowStore((state) => state.hasIO);
 
   return (
     <div className="flex items-center gap-1.5">
+      <PublishStatusBadge />
       <div className="flex h-full w-full gap-1.5 rounded-sm transition-all">
         <PlaygroundButton
           hasIO={hasIO}
@@ -27,12 +19,7 @@ const FlowToolbarOptions = ({
           canvasOpen
         />
       </div>
-      <PublishDropdown
-        openApiModal={openApiModal}
-        setOpenApiModal={setOpenApiModal}
-      />
+      <PublishDropdown />
     </div>
   );
-};
-
-export default FlowToolbarOptions;
+}

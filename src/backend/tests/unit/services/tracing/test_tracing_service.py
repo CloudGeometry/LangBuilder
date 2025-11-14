@@ -1,6 +1,6 @@
 import asyncio
 import uuid
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from langbuilder.services.settings.base import Settings
@@ -139,10 +139,6 @@ def mock_tracers():
             "langbuilder.services.tracing.service._get_opik_tracer",
             return_value=MockTracer,
         ),
-        patch(
-            "langbuilder.services.tracing.service._get_traceloop_tracer",
-            return_value=MockTracer,
-        ),
     ):
         yield
 
@@ -173,7 +169,6 @@ async def test_start_end_tracers(tracing_service):
     assert "langwatch" in trace_context.tracers
     assert "langfuse" in trace_context.tracers
     assert "arize_phoenix" in trace_context.tracers
-    assert "traceloop" in trace_context.tracers
 
     await tracing_service.end_tracers(outputs)
 
@@ -303,8 +298,7 @@ async def test_get_langchain_callbacks(tracing_service):
         assert tracer.get_langchain_callback_called
 
     # Verify returned callbacks list length
-    expected = len(trace_context_var.get().tracers)
-    assert len(callbacks) == expected
+    assert len(callbacks) == 5  # Five tracers
 
     # Cleanup
     await tracing_service.end_tracers({})
@@ -388,16 +382,13 @@ async def test_start_tracers_with_exception(tracing_service):
             "_initialize_langsmith_tracer",
             side_effect=Exception("Mock exception"),
         ),
-        patch("langbuilder.services.tracing.service.logger") as mock_logger,
+        patch("langbuilder.services.tracing.service.logger.debug") as mock_logger,
     ):
-        # Configure async mock method
-        mock_logger.adebug = AsyncMock()
-
         # start_tracers should return normally even with exception
         await tracing_service.start_tracers(run_id, run_name, user_id, session_id, project_name)
 
         # Verify exception was logged
-        mock_logger.adebug.assert_any_call("Error initializing tracers: Mock exception")
+        mock_logger.assert_any_call("Error initializing tracers: Mock exception")
 
         # Verify trace_context was set even with exception
         trace_context = trace_context_var.get()
@@ -424,10 +415,7 @@ async def test_trace_worker_with_exception(tracing_service):
         msg = "Mock trace function exception"
         raise ValueError(msg)
 
-    with patch("langbuilder.services.tracing.service.logger") as mock_logger:
-        # Configure async mock method
-        mock_logger.aexception = AsyncMock()
-
+    with patch("langbuilder.services.tracing.service.logger.exception") as mock_logger:
         # Remove incorrect context manager usage
         await tracing_service.start_tracers(run_id, run_name, user_id, session_id, project_name)
 
@@ -439,7 +427,7 @@ async def test_trace_worker_with_exception(tracing_service):
         await asyncio.sleep(0.1)
 
         # Verify exception was logged
-        mock_logger.aexception.assert_called_with("Error processing trace_func")
+        mock_logger.assert_called_with("Error processing trace_func")
 
         # Cleanup
         await tracing_service.end_tracers({})

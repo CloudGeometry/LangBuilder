@@ -4,7 +4,7 @@ services:
     name: langbuilder
     runtime: docker
     dockerfilePath: ./docker/render.Dockerfile
-    repo: https://github.com/CloudGeometry/langbuilder
+    repo: https://github.com/cloudgeometry/langbuilder
     branch: main
     plan: standard
     healthCheckPath: /health_check

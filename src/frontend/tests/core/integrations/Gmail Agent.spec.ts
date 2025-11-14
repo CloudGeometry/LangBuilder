@@ -1,8 +1,11 @@
 import { expect, test } from "@playwright/test";
 import * as dotenv from "dotenv";
+import { readFileSync } from "fs";
 import path from "path";
 import { awaitBootstrapTest } from "../../utils/await-bootstrap-test";
+import { getAllResponseMessage } from "../../utils/get-all-response-message";
 import { initialGPTsetup } from "../../utils/initialGPTsetup";
+import { waitForOpenModalWithChatInput } from "../../utils/wait-for-open-modal";
 import { withEventDeliveryModes } from "../../utils/withEventDeliveryModes";
 
 withEventDeliveryModes(
@@ -28,12 +31,10 @@ withEventDeliveryModes(
 
     await page.getByTestId("side_nav_options_all-templates").click();
     await page.getByRole("heading", { name: "Gmail Agent" }).click();
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await page.waitForSelector('[data-testid="fit_view"]', {
       timeout: 100000,
     });
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await initialGPTsetup(page);
 

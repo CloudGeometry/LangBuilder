@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import AlertDropdown from "@/alerts/alertDropDown";
 import DataStaxLogo from "@/assets/DataStaxLogo.svg?react";
-import LangBuilderLogo from "@/assets/LangBuilderLogo.svg?react";
+import LangbuilderLogo from "@/assets/LangbuilderLogo.svg?react";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import ShadTooltip from "@/components/common/shadTooltipComponent";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import CustomAccountMenu from "@/customization/components/custom-AccountMenu";
-import CustomLangBuilderCounts from "@/customization/components/custom-langbuilder-counts";
+import CustomLangbuilderCounts from "@/customization/components/custom-langbuilder-counts";
 import { CustomOrgSelector } from "@/customization/components/custom-org-selector";
 import { CustomProductSelector } from "@/customization/components/custom-product-selector";
 import { ENABLE_DATASTAX_LANGBUILDER } from "@/customization/feature-flags";
@@ -51,7 +51,7 @@ export default function AppHeader(): JSX.Element {
 
   return (
     <div
-      className={`z-10 flex h-[48px] w-full items-center justify-between border-b pr-5 pl-2.5 dark:bg-background`}
+      className={`z-10 flex h-[48px] w-full items-center justify-between border-b px-6 dark:bg-background`}
       data-testid="app-header"
     >
       {/* Left Section */}
@@ -68,7 +68,7 @@ export default function AppHeader(): JSX.Element {
           {ENABLE_DATASTAX_LANGBUILDER ? (
             <DataStaxLogo className="fill-black dark:fill-[white]" />
           ) : (
-            <LangBuilderLogo className="h-5 w-5" />
+            <LangbuilderLogo className="h-6 w-6" />
           )}
         </Button>
         {ENABLE_DATASTAX_LANGBUILDER && (
@@ -94,7 +94,7 @@ export default function AppHeader(): JSX.Element {
             unstyled
             className="hidden items-center whitespace-nowrap pr-2 lg:inline"
           >
-            <CustomLangBuilderCounts />
+            <CustomLangbuilderCounts />
           </Button>
         </>
         <AlertDropdown

@@ -1,19 +1,19 @@
 module.exports = {
   docs: [
-    "Get-Started/welcome-to-langbuilder",
+    "Get-Started/welcome-to-langflow",
     {
       type: "category",
       label: "Get started",
       items: [
         {
           type: "doc",
-          id: "Get-Started/about-langbuilder",
-          label: "About LangBuilder"
+          id: "Get-Started/about-langflow",
+          label: "About Langbuilder"
         },
         {
           type: "doc",
           id: "Get-Started/get-started-installation",
-          label: "Install LangBuilder"
+          label: "Install Langbuilder"
         },
         {
           type: "doc",
@@ -53,7 +53,7 @@ module.exports = {
             {
               type: "doc",
               id: "Concepts/concepts-publish",
-              label: "Trigger flows with the LangBuilder API"
+              label: "Trigger flows with the Langbuilder API"
             },
             {
               type: "doc",
@@ -148,7 +148,7 @@ module.exports = {
         {
           type: "doc",
           id: "Concepts/data-types",
-          label: "Use LangBuilder data types"
+          label: "Use Langbuilder data types"
         },
         {
           type: "doc",
@@ -158,7 +158,7 @@ module.exports = {
         {
           type: "doc",
           id: "Configuration/configuration-cli",
-          label: "Use the LangBuilder CLI"
+          label: "Use the Langbuilder CLI"
         },
       ],
     },
@@ -169,12 +169,12 @@ module.exports = {
         {
           type:"doc",
           id: "Deployment/deployment-overview",
-          label: "LangBuilder deployment overview"
+          label: "Langbuilder deployment overview"
         },
         {
           type: "doc",
           id: "Deployment/deployment-public-server",
-          label: "Deploy a public LangBuilder server"
+          label: "Deploy a public Langbuilder server"
         },
         {
           type: "category",
@@ -184,12 +184,12 @@ module.exports = {
             {
               type: "doc",
               id: "Deployment/deployment-docker",
-              label: "LangBuilder Docker images"
+              label: "Langbuilder Docker images"
             },
             {
               type: "doc",
               id: "Deployment/deployment-caddyfile",
-              label: "Deploy LangBuilder on a remote server"
+              label: "Deploy Langbuilder on a remote server"
             },
             {
               type: "category",
@@ -377,7 +377,7 @@ module.exports = {
         {
           type: "doc",
           id: "API-Reference/api-reference-api-examples",
-          label: "Get started with the LangBuilder API",
+          label: "Get started with the Langbuilder API",
         },
         {
           type: "doc",
@@ -426,7 +426,7 @@ module.exports = {
         },
         {
           type: "link",
-          label: "LangBuilder API specification",
+          label: "Langbuilder API specification",
           href: "/api",
         },
       ],
@@ -470,7 +470,7 @@ module.exports = {
         },
         {
           type: "doc",
-          id: "Support/luna-for-langbuilder",
+          id: "Support/luna-for-langflow",
           label: "Enterprise support",
         },
       ],
@@ -492,7 +492,7 @@ module.exports = {
           </svg>
           <div class="sidebar-ad-text-container">
             <span class="sidebar-ad-text">Get started in minutes</span>
-            <span class="sidebar-ad-text sidebar-ad-text-gradient">Download LangBuilder Desktop</span>
+            <span class="sidebar-ad-text sidebar-ad-text-gradient">Download Langbuilder Desktop</span>
           </div>
         </a>
       `,

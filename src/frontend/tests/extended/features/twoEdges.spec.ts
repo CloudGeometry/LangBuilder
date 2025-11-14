@@ -10,7 +10,6 @@ test(
     await page.getByText("Vector Store RAG", { exact: true }).last().click();
     await page.getByText("Retriever", { exact: true }).first().isVisible();
     await page.getByText("Search Results", { exact: true }).first().isVisible();
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     const focusElementsOnBoard = async ({ page }) => {
       await page.waitForSelector('[data-testid="fit_view"]', {
@@ -21,7 +20,6 @@ test(
     };
 
     await focusElementsOnBoard({ page });
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await page.getByText("Retriever", { exact: true }).first().isHidden();
     await page.getByTestId("icon-ChevronDown").last().isVisible();

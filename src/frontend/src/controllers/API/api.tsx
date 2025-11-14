@@ -107,9 +107,9 @@ function ApiInterceptor() {
 
     const isAuthorizedURL = (url) => {
       const authorizedDomains = [
-        "https://raw.githubusercontent.com/CloudGeometry/langbuilder_examples/main/examples",
-        "https://api.github.com/repos/CloudGeometry/langbuilder_examples/contents/examples",
-        "https://api.github.com/repos/CloudGeometry/langbuilder",
+        "https://raw.githubusercontent.com/cloudgeometry/langbuilder_examples/main/examples",
+        "https://api.github.com/repos/cloudgeometry/langbuilder_examples/contents/examples",
+        "https://api.github.com/repos/cloudgeometry/langbuilder",
         "auto_login",
       ];
 

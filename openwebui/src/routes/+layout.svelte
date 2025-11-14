@@ -292,9 +292,9 @@
 
 					if ($isLastActiveTab) {
 						if ($settings?.notificationEnabled ?? false) {
-							new Notification(`${title} • ActionBridge`, {
+							new Notification(`${title} • Open WebUI`, {
 								body: content,
-								icon: `favicon.png`
+								icon: `${WEBUI_BASE_URL}/static/favicon.png`
 							});
 						}
 					}
@@ -441,9 +441,9 @@
 			if (type === 'message') {
 				if ($isLastActiveTab) {
 					if ($settings?.notificationEnabled ?? false) {
-						new Notification(`${data?.user?.name} (#${event?.channel?.name}) • ActionBridge`, {
+						new Notification(`${data?.user?.name} (#${event?.channel?.name}) • Open WebUI`, {
 							body: data?.content,
-							icon: data?.user?.profile_image_url ?? `favicon.png`
+							icon: data?.user?.profile_image_url ?? `${WEBUI_BASE_URL}/static/favicon.png`
 						});
 					}
 				}
@@ -454,7 +454,7 @@
 							goto(`/channels/${event.channel_id}`);
 						},
 						content: data?.content,
-						title: event?.channel?.name
+						title: `#${event?.channel?.name}`
 					},
 					duration: 15000,
 					unstyled: true
@@ -575,11 +575,11 @@
 
 		user.subscribe((value) => {
 			if (value) {
-				$socket?.off('chat-events', chatEventHandler);
-				$socket?.off('channel-events', channelEventHandler);
+				$socket?.off('events', chatEventHandler);
+				$socket?.off('events:channel', channelEventHandler);
 
-				$socket?.on('chat-events', chatEventHandler);
-				$socket?.on('channel-events', channelEventHandler);
+				$socket?.on('events', chatEventHandler);
+				$socket?.on('events:channel', channelEventHandler);
 
 				// Set up the token expiry check
 				if (tokenTimer) {
@@ -587,8 +587,8 @@
 				}
 				tokenTimer = setInterval(checkTokenExpiry, 15000);
 			} else {
-				$socket?.off('chat-events', chatEventHandler);
-				$socket?.off('channel-events', channelEventHandler);
+				$socket?.off('events', chatEventHandler);
+				$socket?.off('events:channel', channelEventHandler);
 			}
 		});
 
@@ -693,7 +693,17 @@
 
 <svelte:head>
 	<title>{$WEBUI_NAME}</title>
-	<link crossorigin="anonymous" rel="icon" href="favicon.png" />
+	<link crossorigin="anonymous" rel="icon" href="{WEBUI_BASE_URL}/static/favicon.png" />
+
+	<meta name="apple-mobile-web-app-title" content={$WEBUI_NAME} />
+	<meta name="description" content={$WEBUI_NAME} />
+	<link
+		rel="search"
+		type="application/opensearchdescription+xml"
+		title={$WEBUI_NAME}
+		href="/opensearch.xml"
+		crossorigin="use-credentials"
+	/>
 </svelte:head>
 
 {#if showRefresh}

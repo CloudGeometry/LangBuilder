@@ -8,6 +8,5 @@ export const getPlaceholder = (
   returnMessage: string = DEFAULT_PLACEHOLDER,
 ) => {
   if (disabled) return RECEIVING_INPUT_VALUE;
-
-  return returnMessage || DEFAULT_PLACEHOLDER;
+  return returnMessage;
 };

@@ -36,7 +36,7 @@ export class Web extends Construct {
   };
 
   // CDKにて 静的WebサイトをホストするためのAmazon S3バケットを作成
-  const websiteBucket = new s3.Bucket(this, 'LangBuilderWebsiteBucket', commonBucketProps);
+  const websiteBucket = new s3.Bucket(this, 'LangbuilderWebsiteBucket', commonBucketProps);
   
   const originAccessIdentity = new cloudfront.OriginAccessIdentity(
     this,

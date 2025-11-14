@@ -13,7 +13,7 @@ GREEN=\033[0;32m
 
 log_level ?= debug
 host ?= 0.0.0.0
-port ?= 7860
+port ?= $(shell grep '^LANGBUILDER_BACKEND_PORT=' .env 2>/dev/null | cut -d '=' -f2 || echo 8765)
 env ?= .env
 open_browser ?= true
 path = src/backend/base/langbuilder/frontend
@@ -236,10 +236,10 @@ setup_env: ## set up the environment
 
 
 backend: setup_env install_backend ## run the backend in development mode
-	@-kill -9 $$(lsof -t -i:7860) || true
+	@-kill -9 $$(lsof -t -i:$(port)) || true
 ifdef login
 	@echo "Running backend autologin is $(login)";
-	LANGBUILDER_AUTO_LOGIN=$(login) uv run uvicorn \
+	PYTHONPATH=src/backend/base:$$PYTHONPATH LANGBUILDER_AUTO_LOGIN=$(login) uv run uvicorn \
 		--factory langbuilder.main:create_app \
 		--host 0.0.0.0 \
 		--port $(port) \
@@ -249,7 +249,7 @@ ifdef login
 		$(if $(workers),--workers $(workers),)
 else
 	@echo "Running backend respecting the $(env) file";
-	uv run uvicorn \
+	PYTHONPATH=src/backend/base:$$PYTHONPATH uv run uvicorn \
 		--factory langbuilder.main:create_app \
 		--host 0.0.0.0 \
 		--port $(port) \
@@ -432,8 +432,8 @@ patch: ## Update version across all projects. Usage: make patch v=1.5.0
 	LANGBUILDER_VERSION="$(v)"; \
 	LANGBUILDER_BASE_VERSION=$$(echo "$$LANGBUILDER_VERSION" | sed -E 's/^[0-9]+\.(.*)$$/0.\1/'); \
 	\
-	echo "$(GREEN)LangBuilder version: $$LANGBUILDER_VERSION$(NC)"; \
-	echo "$(GREEN)LangBuilder-base version: $$LANGBUILDER_BASE_VERSION$(NC)"; \
+	echo "$(GREEN)Langbuilder version: $$LANGBUILDER_VERSION$(NC)"; \
+	echo "$(GREEN)Langbuilder-base version: $$LANGBUILDER_BASE_VERSION$(NC)"; \
 	\
 	echo "$(GREEN)Updating main pyproject.toml...$(NC)"; \
 	python -c "import re; fname='pyproject.toml'; txt=open(fname).read(); txt=re.sub(r'^version = \".*\"', 'version = \"$$LANGBUILDER_VERSION\"', txt, flags=re.MULTILINE); txt=re.sub(r'\"langbuilder-base==.*\"', '\"langbuilder-base==$$LANGBUILDER_BASE_VERSION\"', txt); open(fname, 'w').write(txt)"; \
@@ -447,7 +447,7 @@ patch: ## Update version across all projects. Usage: make patch v=1.5.0
 	echo "$(GREEN)Validating version changes...$(NC)"; \
 	if ! grep -q "^version = \"$$LANGBUILDER_VERSION\"" pyproject.toml; then echo "$(RED)✗ Main pyproject.toml version validation failed$(NC)"; exit 1; fi; \
 	if ! grep -q "\"langbuilder-base==$$LANGBUILDER_BASE_VERSION\"" pyproject.toml; then echo "$(RED)✗ Main pyproject.toml langbuilder-base dependency validation failed$(NC)"; exit 1; fi; \
-	if ! grep -q "^version = \"$$LANGBUILDER_BASE_VERSION\"" src/backend/base/pyproject.toml; then echo "$(RED)✗ LangBuilder-base pyproject.toml version validation failed$(NC)"; exit 1; fi; \
+	if ! grep -q "^version = \"$$LANGBUILDER_BASE_VERSION\"" src/backend/base/pyproject.toml; then echo "$(RED)✗ Langbuilder-base pyproject.toml version validation failed$(NC)"; exit 1; fi; \
 	if ! grep -q "\"version\": \"$$LANGBUILDER_VERSION\"" src/frontend/package.json; then echo "$(RED)✗ Frontend package.json version validation failed$(NC)"; exit 1; fi; \
 	echo "$(GREEN)✓ All versions updated successfully$(NC)"; \
 	\

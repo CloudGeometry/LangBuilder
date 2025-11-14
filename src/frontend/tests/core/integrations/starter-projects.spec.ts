@@ -85,10 +85,11 @@ test(
       .getByRole("heading", { name: "Vector Store RAG" })
       .first()
       .click();
+    await page.waitForSelector('[data-testid="fit_view"]', {
+      timeout: 100000,
+    });
 
-    await page.getByTestId("canvas_controls_dropdown").click();
     await page.getByTestId("fit_view").click();
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     const edges = await page.locator(".react-flow__edge-interaction").count();
     const nodes = await page.getByTestId("div-generic-node").count();
@@ -97,9 +98,7 @@ test(
     const nodesFromServer = astraStarterProject?.data.nodes.length;
 
     expect(
-      edges === edgesFromServer ||
-        edges === edgesFromServer - 1 ||
-        edges === edgesFromServer - 2,
+      edges === edgesFromServer || edges === edgesFromServer - 1,
     ).toBeTruthy();
     expect(nodes).toBe(nodesFromServer);
   },
@@ -127,7 +126,9 @@ test(
 
       await page.getByTestId("text_card_container").nth(i).click();
 
-      await page.waitForSelector('[data-testid="div-generic-node"]', {
+      await page.waitForTimeout(500);
+
+      await page.waitForSelector('[data-testid="fit_view"]', {
         timeout: 5000,
       });
 
@@ -140,13 +141,9 @@ test(
         numberOfOutdatedComponents++;
       }
 
-      await Promise.all([
-        page.waitForURL((url) => url.pathname === "/", { timeout: 30000 }),
-        page.getByTestId("icon-ChevronLeft").click(),
-      ]);
-
-      await expect(page.getByTestId("mainpage_title")).toBeVisible({
-        timeout: 30000,
+      await page.getByTestId("icon-ChevronLeft").click();
+      await page.waitForSelector('[data-testid="mainpage_title"]', {
+        timeout: 5000,
       });
 
       await page.waitForTimeout(500);

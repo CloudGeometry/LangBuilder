@@ -1,15 +1,15 @@
 ---
-title: Deploy the LangBuilder production environment on Kubernetes
+title: Deploy the Langbuilder production environment on Kubernetes
 slug: /deployment-kubernetes-prod
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-The [LangBuilder runtime Helm chart](https://github.com/CloudGeometry/langbuilder-helm-charts/blob/main/charts/langbuilder-runtime) is tailored for deploying applications in a production environment. It is focused on stability, performance, isolation, and security to ensure that applications run reliably and efficiently.
+The [Langbuilder runtime Helm chart](https://github.com/cloudgeometry/langbuilder-helm-charts/blob/main/charts/langbuilder-runtime) is tailored for deploying applications in a production environment. It is focused on stability, performance, isolation, and security to ensure that applications run reliably and efficiently.
 
 :::important
-For security reasons, the default LangBuilder runtime Helm chart sets [`readOnlyRootFilesystem: true`](https://github.com/CloudGeometry/langbuilder-helm-charts/blob/main/charts/langbuilder-runtime/values.yaml#L46). This setting prevents modifications to the container's root filesystem at runtime, which is a recommended security measure in production environments.
+For security reasons, the default Langbuilder runtime Helm chart sets [`readOnlyRootFilesystem: true`](https://github.com/cloudgeometry/langbuilder-helm-charts/blob/main/charts/langbuilder-runtime/values.yaml#L46). This setting prevents modifications to the container's root filesystem at runtime, which is a recommended security measure in production environments.
 
 If `readOnlyRootFilesystem` is disabled (false), it degrades your deployment's security posture. Only disable this setting if you understand the security implications and you have implemented other security measures.
 
@@ -22,21 +22,21 @@ For more information, see the [Kubernetes documentation](https://kubernetes.io/d
 - [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl)
 - [Helm](https://helm.sh/docs/intro/install/)
 
-## Install the LangBuilder runtime Helm chart
+## Install the Langbuilder runtime Helm chart
 
 1. Add the repository to Helm:
 
     ```shell
-    helm repo add langbuilder https://CloudGeometry.github.io/langbuilder-helm-charts
+    helm repo add langbuilder https://langbuilder-ai.github.io/langbuilder-helm-charts
     helm repo update
     ```
 
-2. Install the LangBuilder app with the default options in the `langbuilder` namespace.
+2. Install the Langbuilder app with the default options in the `langbuilder` namespace.
 
     <Tabs groupId="">
     <TabItem value="Install chart with custom image" label="Install chart with custom image" default>
 
-    If you have a [custom image with packaged flows](/deployment-docker#package-your-flow-as-a-docker-image), you can deploy LangBuilder by overriding the default [`values.yaml`](https://github.com/CloudGeometry/langbuilder-helm-charts/blob/main/charts/langbuilder-runtime/values.yaml) with the `--set` flag:
+    If you have a [custom image with packaged flows](/deployment-docker#package-your-flow-as-a-docker-image), you can deploy Langbuilder by overriding the default [`values.yaml`](https://github.com/cloudgeometry/langbuilder-helm-charts/blob/main/charts/langbuilder-runtime/values.yaml) with the `--set` flag:
 
     ```shell
     helm install my-langbuilder-app langbuilder/langbuilder-runtime -n langbuilder --create-namespace --set image.repository=myuser/langbuilder-hello-world --set image.tag=1.0.0
@@ -51,11 +51,11 @@ For more information, see the [Kubernetes documentation](https://kubernetes.io/d
     helm install my-langbuilder-app-with-flow langbuilder/langbuilder-runtime \
       -n langbuilder \
       --create-namespace \
-      --set 'downloadFlows.flows[0].url=https://raw.githubusercontent.com/CloudGeometry/langbuilder/dev/tests/data/basic_example.json'
+      --set 'downloadFlows.flows[0].url=https://raw.githubusercontent.com/cloudgeometry/langbuilder/dev/tests/data/basic_example.json'
     ```
 
     If your shell requires escaping square brackets, modify the `--set` path as needed.
-    For example, `--set 'downloadFlows.flows\[0\].url=https://raw.githubusercontent.com/CloudGeometry/langbuilder/dev/tests/data/basic_example.json'`.
+    For example, `--set 'downloadFlows.flows\[0\].url=https://raw.githubusercontent.com/cloudgeometry/langbuilder/dev/tests/data/basic_example.json'`.
 
     </TabItem>
     </Tabs>
@@ -66,7 +66,7 @@ For more information, see the [Kubernetes documentation](https://kubernetes.io/d
     kubectl get pods -n langbuilder
     ```
 
-## Access the LangBuilder runtime
+## Access the Langbuilder runtime
 
 1. Get your service name:
 
@@ -76,7 +76,7 @@ For more information, see the [Kubernetes documentation](https://kubernetes.io/d
 
     The service name is your release name suffixed by `-langbuilder-runtime`. For example, if you used `helm install my-langbuilder-app-with-flow`, then the service name is `my-langbuilder-app-with-flow-langbuilder-runtime`.
 
-2. Enable port forwarding to access LangBuilder from your local machine:
+2. Enable port forwarding to access Langbuilder from your local machine:
 
     ```shell
     kubectl port-forward -n langbuilder svc/my-langbuilder-app-with-flow-langbuilder-runtime 7860:7860
@@ -110,12 +110,12 @@ The following example gets the first flow ID from the flows list, and then runs 
 
 ## Configure secrets and environment variables
 
-Use the `.env` section of the LangBuilder runtime Helm chart's [`values.yaml`](https://github.com/CloudGeometry/langbuilder-helm-charts/blob/main/charts/langbuilder-runtime/values.yaml) file to define environment variables for your LangBuilder deployment.
-This includes built-in [LangBuilder environment variables](/environment-variables), as well as [global variables](/configuration-global-variables) used by your flows.
+Use the `.env` section of the Langbuilder runtime Helm chart's [`values.yaml`](https://github.com/cloudgeometry/langbuilder-helm-charts/blob/main/charts/langbuilder-runtime/values.yaml) file to define environment variables for your Langbuilder deployment.
+This includes built-in [Langbuilder environment variables](/environment-variables), as well as [global variables](/configuration-global-variables) used by your flows.
 
-LangBuilder can source global variables from your runtime environment, such as Kubernetes secrets referenced in `values.yaml`.
-For example, the LangBuilder runtime Helm chart's [example flow JSON](https://raw.githubusercontent.com/CloudGeometry/langbuilder-helm-charts/refs/heads/main/examples/flows/basic-prompting-hello-world.json) uses a global variable that is a secret.
-If you want to run this flow in your LangBuilder deployment on Kubernetes, you need to include the secret in your runtime configuration.
+Langbuilder can source global variables from your runtime environment, such as Kubernetes secrets referenced in `values.yaml`.
+For example, the Langbuilder runtime Helm chart's [example flow JSON](https://raw.githubusercontent.com/cloudgeometry/langbuilder-helm-charts/refs/heads/main/examples/flows/basic-prompting-hello-world.json) uses a global variable that is a secret.
+If you want to run this flow in your Langbuilder deployment on Kubernetes, you need to include the secret in your runtime configuration.
 
 :::tip
 When you export flows as JSON files, it's recommended to omit secrets.
@@ -185,9 +185,9 @@ env:
 
 ## Configure scaling
 
-Use `replicaCount` and `resources` in the LangBuilder runtime Helm chart's [`values.yaml`](https://github.com/CloudGeometry/langbuilder-helm-charts/blob/main/charts/langbuilder-runtime/values.yaml) file to configure scaling:
+Use `replicaCount` and `resources` in the Langbuilder runtime Helm chart's [`values.yaml`](https://github.com/cloudgeometry/langbuilder-helm-charts/blob/main/charts/langbuilder-runtime/values.yaml) file to configure scaling:
 
-* **Horizontal scaling**: Use `replicaCount` to set the number of replicas for your LangBuilder deployment.
+* **Horizontal scaling**: Use `replicaCount` to set the number of replicas for your Langbuilder deployment.
 
     ```yaml
     replicaCount: 3
@@ -204,5 +204,5 @@ Use `replicaCount` and `resources` in the LangBuilder runtime Helm chart's [`val
 
 ## See also
 
-* [Best practices for LangBuilder on Kubernetes](/deployment-prod-best-practices)
-* [LangBuilder Helm Charts repository](https://github.com/CloudGeometry/langbuilder-helm-charts)
+* [Best practices for Langbuilder on Kubernetes](/deployment-prod-best-practices)
+* [Langbuilder Helm Charts repository](https://github.com/cloudgeometry/langbuilder-helm-charts)

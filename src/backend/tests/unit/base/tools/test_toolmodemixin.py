@@ -26,7 +26,7 @@ from pydantic import BaseModel
 
 class AllInputsComponent(Component):
     display_name = "All Inputs Component"
-    description = "A component with all input types available in LangBuilder."
+    description = "A component with all input types available in Langbuilder."
     documentation: str = "http://docs.langbuilder.org/components/all_inputs"
     icon = "code"
     name = "AllInputsComponent"

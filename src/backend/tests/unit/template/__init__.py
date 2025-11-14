@@ -1,1 +1,1 @@
-"""Template testing module for LangBuilder."""
+"""Template testing module for Langbuilder."""

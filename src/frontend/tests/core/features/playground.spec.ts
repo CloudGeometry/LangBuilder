@@ -33,10 +33,8 @@ test(
         await page.getByTestId("add-component-button-chat-output").click();
       });
 
-    await page.getByTestId("canvas_controls_dropdown").click();
     await page.getByTestId("zoom_out").click();
     await page.getByTestId("zoom_out").click();
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await page.getByTestId("sidebar-search-input").click();
     await page.getByTestId("sidebar-search-input").fill("chat input");

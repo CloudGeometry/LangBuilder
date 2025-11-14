@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   langbuilder:
-    image: cloudgeometry/langbuilder:1.0-alpha
+    image: nickchasecg/langbuilder:1.0-alpha
     ports:
       - "7860:7860"
     depends_on:

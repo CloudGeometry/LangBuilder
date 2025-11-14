@@ -34,3 +34,8 @@ Dockerfile text
 *.csv binary
 *.wav binary
 *.raw binary
+*.ttf binary
+*.woff binary
+*.woff2 binary
+*.otf binary
+*.eot binary

@@ -717,9 +717,12 @@ async def signout(request: Request, response: Response):
                             raise Exception("Failed to fetch OpenID configuration")
 
             except Exception as e:
-                log.warning(f"OpenID signout error (non-critical): {str(e)}")
-                # Don't raise an error, just continue with normal signout
-                pass
+                log.error(f"OpenID signout error: {str(e)}")
+                raise HTTPException(
+                    status_code=500,
+                    detail="Failed to sign out from the OpenID provider.",
+                    headers=response.headers,
+                )
 
     if WEBUI_AUTH_SIGNOUT_REDIRECT_URL:
         return JSONResponse(

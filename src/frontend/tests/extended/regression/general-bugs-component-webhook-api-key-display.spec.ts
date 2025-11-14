@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { adjustScreenView } from "../../utils/adjust-screen-view";
 import { awaitBootstrapTest } from "../../utils/await-bootstrap-test";
 import { extractAndCleanCode } from "../../utils/extract-and-clean-code";
-import { loginLangBuilder } from "../../utils/login-langbuilder";
+import { loginLangbuilder } from "../../utils/login-langbuilder";
 
 test(
   "user must be able to see api key in webhook component when auto login is disabled",
@@ -18,7 +18,7 @@ test(
       });
     });
 
-    await loginLangBuilder(page);
+    await loginLangbuilder(page);
 
     await awaitBootstrapTest(page, { skipGoto: true });
 

@@ -2,8 +2,8 @@ import os
 from unittest.mock import MagicMock, patch
 
 import pytest
-from langchain_openai import ChatOpenAI
 from langbuilder.components.openai.openai_chat_model import OpenAIModelComponent
+from langchain_openai import ChatOpenAI
 
 from tests.base import ComponentTestBaseWithoutClient
 
@@ -74,7 +74,7 @@ class TestOpenAIModelComponent(ComponentTestBaseWithoutClient):
         assert model == mock_instance
 
         # Verify that temperature and seed are not in the parameters
-        _args, kwargs = mock_chat_openai.call_args
+        args, kwargs = mock_chat_openai.call_args
         assert "temperature" not in kwargs
         assert "seed" not in kwargs
 
@@ -102,7 +102,7 @@ class TestOpenAIModelComponent(ComponentTestBaseWithoutClient):
         component.build_model()
 
         # When api_key is None, it should be passed as None to ChatOpenAI
-        _args, kwargs = mock_chat_openai.call_args
+        args, kwargs = mock_chat_openai.call_args
         assert kwargs["api_key"] is None
 
     @patch("langbuilder.components.openai.openai_chat_model.ChatOpenAI")
@@ -114,7 +114,7 @@ class TestOpenAIModelComponent(ComponentTestBaseWithoutClient):
         component.build_model()
 
         # When max_tokens is 0, it should be passed as None to ChatOpenAI
-        _args, kwargs = mock_chat_openai.call_args
+        args, kwargs = mock_chat_openai.call_args
         assert kwargs["max_tokens"] is None
 
     async def test_get_exception_message_bad_request_error(self, component_class, default_kwargs):

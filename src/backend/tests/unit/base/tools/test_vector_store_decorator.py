@@ -1,7 +1,7 @@
 from typing import Any
 
 import pytest
-from langbuilder.components.datastax import AstraDBVectorStoreComponent
+from langbuilder.components.vectorstores import AstraDBVectorStoreComponent
 
 from tests.base import ComponentTestBaseWithoutClient, VersionComponentMapping
 

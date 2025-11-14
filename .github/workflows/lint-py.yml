@@ -2,11 +2,6 @@ name: Lint Python
 
 on:
   workflow_call:
-    inputs:
-      branch:
-        description: "(Optional) Branch to checkout"
-        required: false
-        type: string
   workflow_dispatch:
     inputs:
       branch:

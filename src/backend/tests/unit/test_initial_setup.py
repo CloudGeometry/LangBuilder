@@ -2,13 +2,13 @@ import asyncio
 import os
 import tempfile
 import uuid
-from copy import deepcopy
 from datetime import datetime
 from unittest.mock import AsyncMock, patch
 
 import pytest
 from anyio import Path
 from httpx import AsyncClient
+from langbuilder.custom.directory_reader.utils import abuild_custom_component_list_from_path
 from langbuilder.initial_setup.constants import STARTER_FOLDER_NAME
 from langbuilder.initial_setup.setup import (
     detect_github_url,
@@ -17,7 +17,7 @@ from langbuilder.initial_setup.setup import (
     load_starter_projects,
     update_projects_components_with_latest_component_versions,
 )
-from langbuilder.interface.components import get_and_cache_all_types_dict
+from langbuilder.interface.components import aget_all_types_dict
 from langbuilder.services.auth.utils import create_super_user
 from langbuilder.services.database.models import Flow
 from langbuilder.services.database.models.folder.model import Folder
@@ -141,11 +141,11 @@ def add_edge(source, target, from_output, to_input):
 
 
 async def test_refresh_starter_projects():
-    all_types = await get_and_cache_all_types_dict(get_settings_service())
-    copy_all_types = deepcopy(all_types)
+    data_path = str(await Path(__file__).parent.parent.parent.absolute() / "base" / "langbuilder" / "components")
+    components = await abuild_custom_component_list_from_path(data_path)
 
-    chat_input = find_component_by_name(copy_all_types, "ChatInput")
-    chat_output = find_component_by_name(copy_all_types, "ChatOutput")
+    chat_input = find_component_by_name(components, "ChatInput")
+    chat_output = find_component_by_name(components, "ChatOutput")
     chat_output["template"]["code"]["value"] = "changed !"
     del chat_output["template"]["should_store_message"]
     graph_data = {
@@ -155,7 +155,7 @@ async def test_refresh_starter_projects():
         ],
         "edges": [add_edge("ChatInput" + "chat-input-1", "ChatOutput" + "chat-output-1", "message", "input_value")],
     }
-
+    all_types = await aget_all_types_dict([data_path])
     new_change = update_projects_components_with_latest_component_versions(graph_data, all_types)
     assert graph_data["nodes"][1]["data"]["node"]["template"]["code"]["value"] == "changed !"
     assert new_change["nodes"][1]["data"]["node"]["template"]["code"]["value"] != "changed !"
@@ -168,48 +168,48 @@ async def test_refresh_starter_projects():
     ("url", "expected"),
     [
         (
-            "https://github.com/CloudGeometry/langbuilder-bundles",
-            "https://github.com/CloudGeometry/langbuilder-bundles/archive/refs/heads/main.zip",
+            "https://github.com/cloudgeometry/langbuilder-bundles",
+            "https://github.com/cloudgeometry/langbuilder-bundles/archive/refs/heads/main.zip",
         ),
         (
-            "https://github.com/CloudGeometry/langbuilder-bundles/",
-            "https://github.com/CloudGeometry/langbuilder-bundles/archive/refs/heads/main.zip",
+            "https://github.com/cloudgeometry/langbuilder-bundles/",
+            "https://github.com/cloudgeometry/langbuilder-bundles/archive/refs/heads/main.zip",
         ),
         (
-            "https://github.com/CloudGeometry/langbuilder-bundles.git",
-            "https://github.com/CloudGeometry/langbuilder-bundles/archive/refs/heads/main.zip",
+            "https://github.com/cloudgeometry/langbuilder-bundles.git",
+            "https://github.com/cloudgeometry/langbuilder-bundles/archive/refs/heads/main.zip",
         ),
         (
-            "https://github.com/CloudGeometry/langbuilder-bundles/tree/some.branch-0_1",
-            "https://github.com/CloudGeometry/langbuilder-bundles/archive/refs/heads/some.branch-0_1.zip",
+            "https://github.com/cloudgeometry/langbuilder-bundles/tree/some.branch-0_1",
+            "https://github.com/cloudgeometry/langbuilder-bundles/archive/refs/heads/some.branch-0_1.zip",
         ),
         (
-            "https://github.com/CloudGeometry/langbuilder-bundles/tree/some/branch",
-            "https://github.com/CloudGeometry/langbuilder-bundles/archive/refs/heads/some/branch.zip",
+            "https://github.com/cloudgeometry/langbuilder-bundles/tree/some/branch",
+            "https://github.com/cloudgeometry/langbuilder-bundles/archive/refs/heads/some/branch.zip",
         ),
         (
-            "https://github.com/CloudGeometry/langbuilder-bundles/tree/some/branch/",
-            "https://github.com/CloudGeometry/langbuilder-bundles/archive/refs/heads/some/branch.zip",
+            "https://github.com/cloudgeometry/langbuilder-bundles/tree/some/branch/",
+            "https://github.com/cloudgeometry/langbuilder-bundles/archive/refs/heads/some/branch.zip",
         ),
         (
-            "https://github.com/CloudGeometry/langbuilder-bundles/releases/tag/v1.0.0-0_1",
-            "https://github.com/CloudGeometry/langbuilder-bundles/archive/refs/tags/v1.0.0-0_1.zip",
+            "https://github.com/cloudgeometry/langbuilder-bundles/releases/tag/v1.0.0-0_1",
+            "https://github.com/cloudgeometry/langbuilder-bundles/archive/refs/tags/v1.0.0-0_1.zip",
         ),
         (
-            "https://github.com/CloudGeometry/langbuilder-bundles/releases/tag/foo/v1.0.0",
-            "https://github.com/CloudGeometry/langbuilder-bundles/archive/refs/tags/foo/v1.0.0.zip",
+            "https://github.com/cloudgeometry/langbuilder-bundles/releases/tag/foo/v1.0.0",
+            "https://github.com/cloudgeometry/langbuilder-bundles/archive/refs/tags/foo/v1.0.0.zip",
         ),
         (
-            "https://github.com/CloudGeometry/langbuilder-bundles/releases/tag/foo/v1.0.0/",
-            "https://github.com/CloudGeometry/langbuilder-bundles/archive/refs/tags/foo/v1.0.0.zip",
+            "https://github.com/cloudgeometry/langbuilder-bundles/releases/tag/foo/v1.0.0/",
+            "https://github.com/cloudgeometry/langbuilder-bundles/archive/refs/tags/foo/v1.0.0.zip",
         ),
         (
-            "https://github.com/CloudGeometry/langbuilder-bundles/commit/68428ce16729a385fe1bcc0f1ec91fd5f5f420b9",
-            "https://github.com/CloudGeometry/langbuilder-bundles/archive/68428ce16729a385fe1bcc0f1ec91fd5f5f420b9.zip",
+            "https://github.com/cloudgeometry/langbuilder-bundles/commit/68428ce16729a385fe1bcc0f1ec91fd5f5f420b9",
+            "https://github.com/cloudgeometry/langbuilder-bundles/archive/68428ce16729a385fe1bcc0f1ec91fd5f5f420b9.zip",
         ),
         (
-            "https://github.com/CloudGeometry/langbuilder-bundles/commit/68428ce16729a385fe1bcc0f1ec91fd5f5f420b9/",
-            "https://github.com/CloudGeometry/langbuilder-bundles/archive/68428ce16729a385fe1bcc0f1ec91fd5f5f420b9.zip",
+            "https://github.com/cloudgeometry/langbuilder-bundles/commit/68428ce16729a385fe1bcc0f1ec91fd5f5f420b9/",
+            "https://github.com/cloudgeometry/langbuilder-bundles/archive/68428ce16729a385fe1bcc0f1ec91fd5f5f420b9.zip",
         ),
         ("https://example.com/myzip.zip", "https://example.com/myzip.zip"),
     ],
@@ -235,7 +235,7 @@ async def test_detect_github_url(url, expected):
 async def test_load_bundles_from_urls():
     settings_service = get_settings_service()
     settings_service.settings.bundle_urls = [
-        "https://github.com/CloudGeometry/langbuilder-bundles/commit/68428ce16729a385fe1bcc0f1ec91fd5f5f420b9"
+        "https://github.com/cloudgeometry/langbuilder-bundles/commit/68428ce16729a385fe1bcc0f1ec91fd5f5f420b9"
     ]
     settings_service.auth_settings.AUTO_LOGIN = True
 
@@ -243,11 +243,7 @@ async def test_load_bundles_from_urls():
     async with session_scope() as session:
         await create_super_user(
             username=settings_service.auth_settings.SUPERUSER,
-            password=(
-                settings_service.auth_settings.SUPERUSER_PASSWORD.get_secret_value()
-                if hasattr(settings_service.auth_settings.SUPERUSER_PASSWORD, "get_secret_value")
-                else settings_service.auth_settings.SUPERUSER_PASSWORD
-            ),
+            password=settings_service.auth_settings.SUPERUSER_PASSWORD,
             db=session,
         )
 

@@ -22,7 +22,7 @@ test(
 
     await page.getByTestId("side_nav_options_all-templates").click();
     await page.getByRole("heading", { name: "Basic Prompting" }).click();
-    await page.waitForSelector('[data-testid="canvas_controls_dropdown"]', {
+    await page.waitForSelector('[data-testid="fit_view"]', {
       timeout: 100000,
     });
 

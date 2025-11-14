@@ -1,7 +1,7 @@
 /**
  * In Honor of Otávio Anovazzi (@anovazzi1)
  *
- * This file contains the highest number of commits by Otávio in the entire LangBuilder project,
+ * This file contains the highest number of commits by Otávio in the entire Langbuilder project,
  * reflecting his unmatched dedication, expertise, and innovative spirit. Each line of code
  * is a testament to his relentless pursuit of excellence and his significant impact on this
  * project's evolution.
@@ -138,19 +138,23 @@ export function cleanEdges(nodes: AllNodeType[], edges: EdgeType[]) {
       const parsedSourceHandle = scapeJSONParse(sourceHandle);
       const name = parsedSourceHandle.name;
 
-      if (sourceNode.type === "genericNode") {
-        const output = sourceNode.data.node.outputs?.find(
-          (output) =>
-            output.name === name && // if output name is the same as the source handle name
-            (((output.group_outputs ?? false) === false && output.selected) || // if output is grouped and it's selected (visible)
-              (output.group_outputs ?? false) === true), // if output is not grouped (visible)
-        );
+      if (sourceNode.type == "genericNode") {
+        const output =
+          sourceNode.data.node!.outputs?.find(
+            (output) => output.name === sourceNode.data.selected_output,
+          ) ??
+          sourceNode.data.node!.outputs?.find(
+            (output) =>
+              (output.selected ||
+                (sourceNode.data.node!.outputs?.filter(
+                  (output) => !output.group_outputs,
+                )?.length ?? 0) <= 1) &&
+              output.name === name,
+          );
 
         if (output) {
           const outputTypes =
-            output.types.length === 1
-              ? output.types
-              : [output.selected ?? output.types[0]];
+            output!.types.length === 1 ? output!.types : [output!.selected!];
 
           const id: sourceHandleType = {
             id: sourceNode.data.id,
@@ -1817,84 +1821,6 @@ export function templatesGenerator(data: APIObjectType) {
   }, {});
 }
 
-/**
- * Determines if a field is a SecretStr field type
- */
-function isSecretField(fieldData: any): boolean {
-  // Check if field type is specifically SecretStr
-  if (fieldData?.type === "SecretStr") {
-    return true;
-  }
-
-  // Also check for fields that have both password=true and load_from_db=true
-  // which are characteristics of SecretStrInput fields
-  if (fieldData?.password === true && fieldData?.load_from_db === true) {
-    return true;
-  }
-
-  return false;
-}
-
-/**
- * Extract only SecretStr type fields from components for global variables
- */
-export function extractSecretFieldsFromComponents(data: APIObjectType) {
-  const fields = new Set<string>();
-
-  // Check if data exists
-  if (!data) {
-    console.warn(
-      "[Types] Data is undefined in extractSecretFieldsFromComponents",
-    );
-    return fields;
-  }
-
-  Object.keys(data).forEach((key) => {
-    // Check if data[key] exists
-    if (!data[key]) {
-      console.warn(
-        `[Types] data["${key}"] is undefined in extractSecretFieldsFromComponents`,
-      );
-      return;
-    }
-
-    Object.keys(data[key]).forEach((kind) => {
-      // Check if data[key][kind] exists
-      if (!data[key][kind]) {
-        console.warn(
-          `[Types] data["${key}"]["${kind}"] is undefined in extractSecretFieldsFromComponents`,
-        );
-        return;
-      }
-
-      // Skip legacy components
-      if (data[key][kind].legacy === true) {
-        return;
-      }
-
-      // Check if template exists
-      if (!data[key][kind].template) {
-        console.warn(
-          `[Types] data["${key}"]["${kind}"].template is undefined in extractSecretFieldsFromComponents`,
-        );
-        return;
-      }
-
-      Object.keys(data[key][kind].template).forEach((field) => {
-        const fieldData = data[key][kind].template[field];
-        if (
-          fieldData?.display_name &&
-          fieldData?.show &&
-          isSecretField(fieldData)
-        )
-          fields.add(fieldData.display_name!);
-      });
-    });
-  });
-
-  return fields;
-}
-
 export function extractFieldsFromComponenents(data: APIObjectType) {
   const fields = new Set<string>();
 
@@ -1921,6 +1847,7 @@ export function extractFieldsFromComponenents(data: APIObjectType) {
         );
         return;
       }
+
       // Check if template exists
       if (!data[key][kind].template) {
         console.warn(

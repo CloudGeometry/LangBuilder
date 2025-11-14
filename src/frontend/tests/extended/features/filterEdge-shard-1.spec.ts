@@ -59,6 +59,7 @@ test(
       "disclosure-data",
       "disclosure-models",
       "disclosure-helpers",
+      "disclosure-vector stores",
       "disclosure-agents",
       "disclosure-logic",
       "disclosure-tools",
@@ -70,6 +71,7 @@ test(
     const elementTestIds = [
       "input_outputChat Output",
       "dataAPI Request",
+      "vectorstoresAstra DB",
       "langchain_utilitiesTool Calling Agent",
       "langchain_utilitiesConversationChain",
       "mem0Mem0 Chat Memory",
@@ -88,11 +90,10 @@ test(
     );
 
     await Promise.all(
-      elementTestIds.map(async (id) => {
+      elementTestIds.map((id) => {
         if (!expect(page.getByTestId(id).first()).toBeVisible()) {
           console.error(`${id} is not visible`);
         }
-        return expect(page.getByTestId(id).first()).toBeVisible();
       }),
     );
 
@@ -103,6 +104,7 @@ test(
       "groqGroq",
       "lmstudioLM Studio",
       "maritalkMariTalk",
+      "mistralMistralAI",
       "perplexityPerplexity",
       "baiduQianfan",
       "sambanovaSambaNova",

@@ -24,8 +24,8 @@ export default function FooterWrapper(props) {
       onMouseLeave={() => setIsHovered(false)}
       style={{
         position: 'fixed',
-        right: '21px',
-        bottom: '21px',
+        right: '20px',
+        bottom: '20px',
         zIndex: 100,
         display: 'flex',
         alignItems: 'center',

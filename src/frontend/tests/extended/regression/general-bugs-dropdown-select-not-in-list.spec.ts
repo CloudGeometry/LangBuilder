@@ -24,10 +24,8 @@ test(
       .then(async () => {
         await page.getByTestId("add-component-button-openai").last().click();
       });
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await page.getByTestId("fit_view").click();
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await page.getByTestId("dropdown_str_model_name").click();
     await page.getByTestId("dropdown_search_input").click();
@@ -41,6 +39,7 @@ test(
     let value = await page
       .getByTestId("value-dropdown-dropdown_str_model_name")
       .textContent();
+    expect(value?.trim()).toBe("this is a test langbuilder");
 
     await page.getByTestId("generic-node-title-arrangement").click();
     await page.keyboard.press("Delete");
@@ -49,10 +48,8 @@ test(
 
     await page.getByTestId("agentsAgent").hover();
     await page.getByTestId("add-component-button-agent").click();
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await page.getByTestId("fit_view").click();
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await page.getByTestId("dropdown_str_model_name").click();
     await page.getByTestId("dropdown_search_input").click();
@@ -66,11 +63,13 @@ test(
     value = await page
       .getByTestId("value-dropdown-dropdown_str_model_name")
       .textContent();
+    expect(value?.trim()).toBe("this is a test langbuilder");
 
     await page.getByTestId("dropdown_str_model_name").click();
 
     expect(await page.getByText("ollama").count()).toBe(0);
     expect(await page.getByText("claude").count()).toBe(0);
+    expect(await page.getByText("this is a test langbuilder").count()).toBe(2);
     expect(await page.getByText("gpt").count()).toBeGreaterThanOrEqual(1);
 
     await page.waitForTimeout(500);
@@ -82,18 +81,39 @@ test(
     await page.getByText("Anthropic").click();
 
     await page.waitForTimeout(500);
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await page.getByTestId("fit_view").click();
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await page.getByTestId("dropdown_str_model_name").click();
     await page.getByTestId("dropdown_search_input").click();
 
     expect(await page.getByText("llama").count()).toBe(0);
     expect(await page.getByText("claude").count()).toBeGreaterThanOrEqual(1);
+    expect(
+      await page.getByText("this is a test langbuilder", { exact: true }).count(),
+    ).toBe(0);
     expect(await page.getByText("gpt").count()).toBe(0);
 
     await page.waitForTimeout(500);
+
+    await page.getByTestId("value-dropdown-dropdown_str_agent_llm").click();
+
+    await page.waitForTimeout(500);
+
+    await page.getByText("Groq").click();
+
+    await page.waitForTimeout(500);
+
+    await page.getByTestId("fit_view").click();
+
+    await page.getByTestId("dropdown_str_model_name").click();
+    await page.getByTestId("dropdown_search_input").click();
+
+    expect(await page.getByText("llama").count()).toBeGreaterThanOrEqual(0);
+    expect(await page.getByText("claude").count()).toBe(0);
+    expect(
+      await page.getByText("this is a test langbuilder", { exact: true }).count(),
+    ).toBe(0);
+    expect(await page.getByText("gpt").count()).toBe(0);
   },
 );

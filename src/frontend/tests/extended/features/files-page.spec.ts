@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import fs from "fs";
 import path from "path";
-import { addFlowToTestOnEmptyLangBuilder } from "../../utils/add-flow-to-test-on-empty-langbuilder";
+import { addFlowToTestOnEmptyLangbuilder } from "../../utils/add-flow-to-test-on-empty-langbuilder";
 import { awaitBootstrapTest } from "../../utils/await-bootstrap-test";
 import { generateRandomFilename } from "../../utils/generate-filename";
 
@@ -12,12 +12,12 @@ test(
   async ({ page }) => {
     await awaitBootstrapTest(page, { skipModal: true });
 
-    const firstRunLangBuilder = await page
+    const firstRunLangbuilder = await page
       .getByTestId("empty-project-description")
       .count();
 
-    if (firstRunLangBuilder > 0) {
-      await addFlowToTestOnEmptyLangBuilder(page);
+    if (firstRunLangbuilder > 0) {
+      await addFlowToTestOnEmptyLangbuilder(page);
     }
 
     await page.waitForSelector('[data-testid="mainpage_title"]', {
@@ -30,7 +30,7 @@ test(
     // Check if we're on the files page
     await page.waitForSelector('[data-testid="mainpage_title"]');
     const title = await page.getByTestId("mainpage_title");
-    expect(await title.textContent()).toContain("Files");
+    expect(await title.textContent()).toContain("My Files");
 
     // Check for empty state when no files are present
     const noFilesText = await page.getByText("No files");
@@ -57,12 +57,12 @@ test(
 
     await awaitBootstrapTest(page, { skipModal: true });
 
-    const firstRunLangBuilder = await page
+    const firstRunLangbuilder = await page
       .getByTestId("empty-project-description")
       .count();
 
-    if (firstRunLangBuilder > 0) {
-      await addFlowToTestOnEmptyLangBuilder(page);
+    if (firstRunLangbuilder > 0) {
+      await addFlowToTestOnEmptyLangbuilder(page);
     }
 
     await page.waitForSelector('[data-testid="mainpage_title"]', {
@@ -100,12 +100,12 @@ test(
 
     await awaitBootstrapTest(page, { skipModal: true });
 
-    const firstRunLangBuilder = await page
+    const firstRunLangbuilder = await page
       .getByTestId("empty-project-description")
       .count();
 
-    if (firstRunLangBuilder > 0) {
-      await addFlowToTestOnEmptyLangBuilder(page);
+    if (firstRunLangbuilder > 0) {
+      await addFlowToTestOnEmptyLangbuilder(page);
     }
 
     await page.waitForSelector('[data-testid="mainpage_title"]', {
@@ -168,12 +168,12 @@ test(
 
     await awaitBootstrapTest(page, { skipModal: true });
 
-    const firstRunLangBuilder = await page
+    const firstRunLangbuilder = await page
       .getByTestId("empty-project-description")
       .count();
 
-    if (firstRunLangBuilder > 0) {
-      await addFlowToTestOnEmptyLangBuilder(page);
+    if (firstRunLangbuilder > 0) {
+      await addFlowToTestOnEmptyLangbuilder(page);
     }
 
     await page.waitForSelector('[data-testid="mainpage_title"]', {
@@ -240,12 +240,12 @@ test(
 
     await awaitBootstrapTest(page, { skipModal: true });
 
-    const firstRunLangBuilder = await page
+    const firstRunLangbuilder = await page
       .getByTestId("empty-project-description")
       .count();
 
-    if (firstRunLangBuilder > 0) {
-      await addFlowToTestOnEmptyLangBuilder(page);
+    if (firstRunLangbuilder > 0) {
+      await addFlowToTestOnEmptyLangbuilder(page);
     }
 
     await page.waitForSelector('[data-testid="mainpage_title"]', {
@@ -339,12 +339,12 @@ test(
 
     await awaitBootstrapTest(page, { skipModal: true });
 
-    const firstRunLangBuilder = await page
+    const firstRunLangbuilder = await page
       .getByTestId("empty-project-description")
       .count();
 
-    if (firstRunLangBuilder > 0) {
-      await addFlowToTestOnEmptyLangBuilder(page);
+    if (firstRunLangbuilder > 0) {
+      await addFlowToTestOnEmptyLangbuilder(page);
     }
 
     await page.waitForSelector('[data-testid="mainpage_title"]', {

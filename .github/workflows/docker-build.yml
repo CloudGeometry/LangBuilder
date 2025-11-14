@@ -51,7 +51,7 @@ on:
 
 env:
   PYTHON_VERSION: "3.13"
-  TEST_TAG: "cloudgeometry/langbuilder:test"
+  TEST_TAG: "langbuilderai/langbuilder:test"
 
 jobs:
   get-version:
@@ -153,29 +153,29 @@ jobs:
 
           if [[ "${{ inputs.release_type }}" == "base" || "${{ inputs.release_type }}" == "nightly-base" ]]; then
             # LANGBUILDER-BASE RELEASE
-            echo "docker_tags=cloudgeometry/langbuilder${nightly_suffix}:base-${{ needs.get-version.outputs.version }},cloudgeometry/langbuilder${nightly_suffix}:base-latest" >> $GITHUB_OUTPUT
-            echo "ghcr_tags=ghcr.io/CloudGeometry/langbuilder${nightly_suffix}:base-${{ needs.get-version.outputs.version }},ghcr.io/CloudGeometry/langbuilder${nightly_suffix}:base-latest" >> $GITHUB_OUTPUT
+            echo "docker_tags=langbuilderai/langbuilder${nightly_suffix}:base-${{ needs.get-version.outputs.version }},langbuilderai/langbuilder${nightly_suffix}:base-latest" >> $GITHUB_OUTPUT
+            echo "ghcr_tags=ghcr.io/cloudgeometry/langbuilder${nightly_suffix}:base-${{ needs.get-version.outputs.version }},ghcr.io/cloudgeometry/langbuilder${nightly_suffix}:base-latest" >> $GITHUB_OUTPUT
             echo "file=./docker/build_and_push_base.Dockerfile" >> $GITHUB_OUTPUT
           else
             if [[ "${{ inputs.pre_release }}" == "true" ]]; then
               # LANGBUILDER-MAIN PRE-RELEASE
-              echo "docker_tags=cloudgeometry/langbuilder${nightly_suffix}:${{ needs.get-version.outputs.version }}" >> $GITHUB_OUTPUT
-              echo "ghcr_tags=ghcr.io/CloudGeometry/langbuilder${nightly_suffix}:${{ needs.get-version.outputs.version }}" >> $GITHUB_OUTPUT
+              echo "docker_tags=langbuilderai/langbuilder${nightly_suffix}:${{ needs.get-version.outputs.version }}" >> $GITHUB_OUTPUT
+              echo "ghcr_tags=ghcr.io/cloudgeometry/langbuilder${nightly_suffix}:${{ needs.get-version.outputs.version }}" >> $GITHUB_OUTPUT
               echo "file=./docker/build_and_push.Dockerfile" >> $GITHUB_OUTPUT
             elif [[ "${{ inputs.release_type }}" == "main-ep" ]]; then
               # LANGBUILDER-MAIN (ENTRYPOINT) RELEASE
-              echo "docker_tags=cloudgeometry/langbuilder-ep${nightly_suffix}:${{ needs.get-version.outputs.version }},cloudgeometry/langbuilder-ep${nightly_suffix}:latest" >> $GITHUB_OUTPUT
-              echo "ghcr_tags=ghcr.io/CloudGeometry/langbuilder-ep${nightly_suffix}:${{ needs.get-version.outputs.version }},ghcr.io/CloudGeometry/langbuilder-ep${nightly_suffix}:latest" >> $GITHUB_OUTPUT
+              echo "docker_tags=langbuilderai/langbuilder-ep${nightly_suffix}:${{ needs.get-version.outputs.version }},langbuilderai/langbuilder-ep${nightly_suffix}:latest" >> $GITHUB_OUTPUT
+              echo "ghcr_tags=ghcr.io/cloudgeometry/langbuilder-ep${nightly_suffix}:${{ needs.get-version.outputs.version }},ghcr.io/cloudgeometry/langbuilder-ep${nightly_suffix}:latest" >> $GITHUB_OUTPUT
               echo "file=./docker/build_and_push_ep.Dockerfile" >> $GITHUB_OUTPUT
             elif [[ "${{ inputs.release_type }}" == "main" || "${{ inputs.release_type }}" == "nightly-main" ]]; then
               # LANGBUILDER-MAIN RELEASE
-              echo "docker_tags=cloudgeometry/langbuilder${nightly_suffix}:${{ needs.get-version.outputs.version }},cloudgeometry/langbuilder${nightly_suffix}:latest" >> $GITHUB_OUTPUT
-              echo "ghcr_tags=ghcr.io/CloudGeometry/langbuilder${nightly_suffix}:${{ needs.get-version.outputs.version }},ghcr.io/CloudGeometry/langbuilder${nightly_suffix}:latest" >> $GITHUB_OUTPUT
+              echo "docker_tags=langbuilderai/langbuilder${nightly_suffix}:${{ needs.get-version.outputs.version }},langbuilderai/langbuilder${nightly_suffix}:latest" >> $GITHUB_OUTPUT
+              echo "ghcr_tags=ghcr.io/cloudgeometry/langbuilder${nightly_suffix}:${{ needs.get-version.outputs.version }},ghcr.io/cloudgeometry/langbuilder${nightly_suffix}:latest" >> $GITHUB_OUTPUT
               echo "file=./docker/build_and_push.Dockerfile" >> $GITHUB_OUTPUT
             elif [[ "${{ inputs.release_type }}" == "main-all" || "${{ inputs.release_type }}" == "nightly-main-all" ]]; then
               # LANGBUILDER-MAIN (ALL OPTIONAL DEPS) RELEASE
-              echo "docker_tags=cloudgeometry/langbuilder-all${nightly_suffix}:${{ needs.get-version.outputs.version }},cloudgeometry/langbuilder-all${nightly_suffix}:latest" >> $GITHUB_OUTPUT
-              echo "ghcr_tags=ghcr.io/CloudGeometry/langbuilder-all${nightly_suffix}:${{ needs.get-version.outputs.version }},ghcr.io/CloudGeometry/langbuilder-all${nightly_suffix}:latest" >> $GITHUB_OUTPUT
+              echo "docker_tags=langbuilderai/langbuilder-all${nightly_suffix}:${{ needs.get-version.outputs.version }},langbuilderai/langbuilder-all${nightly_suffix}:latest" >> $GITHUB_OUTPUT
+              echo "ghcr_tags=ghcr.io/cloudgeometry/langbuilder-all${nightly_suffix}:${{ needs.get-version.outputs.version }},ghcr.io/cloudgeometry/langbuilder-all${nightly_suffix}:latest" >> $GITHUB_OUTPUT
               echo "file=./docker/build_and_push_with_extras.Dockerfile" >> $GITHUB_OUTPUT
             else
               echo "Invalid release type. Exiting the workflow."
@@ -215,24 +215,24 @@ jobs:
             image=moby/buildkit:v0.22.0
             network=host
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      # - name: Login to Docker Hub
+      #   uses: docker/login-action@v3
+      #   with:
+      #     username: ${{ secrets.DOCKERHUB_USERNAME }}
+      #     password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and Push to Docker Hub
-        uses: Wandalen/wretry.action@master
-        with:
-          action: docker/build-push-action@v6
-          with: |
-            context: .
-            push: true
-            file: ${{ needs.setup.outputs.file }}
-            tags: ${{ needs.setup.outputs.docker_tags }}
-            platforms: linux/amd64,linux/arm64
-            cache-from: type=gha
-            cache-to: type=gha,mode=max
+      # - name: Build and Push to Docker Hub
+      #   uses: Wandalen/wretry.action@master
+      #   with:
+      #     action: docker/build-push-action@v6
+      #     with: |
+      #       context: .
+      #       push: true
+      #       file: ${{ needs.setup.outputs.file }}
+      #       tags: ${{ needs.setup.outputs.docker_tags }}
+      #       platforms: linux/amd64,linux/arm64
+      #       cache-from: type=gha
+      #       cache-to: type=gha,mode=max
 
       - name: Login to Github Container Registry
         uses: docker/login-action@v3
@@ -266,20 +266,20 @@ jobs:
         include:
           - component: docker-backend
             dockerfile: ./docker/build_and_push_backend.Dockerfile
-            tags: cloudgeometry/langbuilder-backend:${{ needs.get-version.outputs.version }},cloudgeometry/langbuilder-backend:latest
-            langbuilder_image: cloudgeometry/langbuilder:${{ needs.get-version.outputs.version }}
+            tags: langbuilderai/langbuilder-backend:${{ needs.get-version.outputs.version }},langbuilderai/langbuilder-backend:latest
+            langbuilder_image: langbuilderai/langbuilder:${{ needs.get-version.outputs.version }}
           - component: docker-frontend
             dockerfile: ./docker/frontend/build_and_push_frontend.Dockerfile
-            tags: cloudgeometry/langbuilder-frontend:${{ needs.get-version.outputs.version }},cloudgeometry/langbuilder-frontend:latest
-            langbuilder_image: cloudgeometry/langbuilder:${{ needs.get-version.outputs.version }}
+            tags: langbuilderai/langbuilder-frontend:${{ needs.get-version.outputs.version }},langbuilderai/langbuilder-frontend:latest
+            langbuilder_image: langbuilderai/langbuilder:${{ needs.get-version.outputs.version }}
           - component: ghcr-backend
             dockerfile: ./docker/build_and_push_backend.Dockerfile
-            tags: ghcr.io/CloudGeometry/langbuilder-backend:${{ needs.get-version.outputs.version }},ghcr.io/CloudGeometry/langbuilder-backend:latest
-            langbuilder_image: ghcr.io/CloudGeometry/langbuilder:${{ needs.get-version.outputs.version }}
+            tags: ghcr.io/cloudgeometry/langbuilder-backend:${{ needs.get-version.outputs.version }},ghcr.io/cloudgeometry/langbuilder-backend:latest
+            langbuilder_image: ghcr.io/cloudgeometry/langbuilder:${{ needs.get-version.outputs.version }}
           - component: ghcr-frontend
             dockerfile: ./docker/frontend/build_and_push_frontend.Dockerfile
-            tags: ghcr.io/CloudGeometry/langbuilder-frontend:${{ needs.get-version.outputs.version }},ghcr.io/CloudGeometry/langbuilder-frontend:latest
-            langbuilder_image: ghcr.io/CloudGeometry/langbuilder:${{ needs.get-version.outputs.version }}
+            tags: ghcr.io/cloudgeometry/langbuilder-frontend:${{ needs.get-version.outputs.version }},ghcr.io/cloudgeometry/langbuilder-frontend:latest
+            langbuilder_image: ghcr.io/cloudgeometry/langbuilder:${{ needs.get-version.outputs.version }}
     steps:
       - name: Check out the code at a specific ref
         uses: actions/checkout@v4
@@ -296,12 +296,12 @@ jobs:
             network=host
 
 
-      - name: Login to Docker Hub
-        if: ${{ matrix.component == 'docker-backend' }} || ${{ matrix.component == 'docker-frontend' }}
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      # - name: Login to Docker Hub
+      #   if: ${{ matrix.component == 'docker-backend' }} || ${{ matrix.component == 'docker-frontend' }}
+      #   uses: docker/login-action@v3
+      #   with:
+      #     username: ${{ secrets.DOCKERHUB_USERNAME }}
+      #     password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Login to Github Container Registry
         if: ${{ matrix.component == 'ghcr-backend' }} || ${{ matrix.component == 'ghcr-frontend' }}
@@ -352,7 +352,7 @@ jobs:
 
       - name: Restart HuggingFace Spaces Build
         run: |
-          uv run ./scripts/factory_restart_space.py --space "LangBuilder/LangBuilder" --token ${{ secrets.HUGGINGFACE_API_TOKEN }}
+          uv run ./scripts/factory_restart_space.py --space "Langbuilder/Langbuilder" --token ${{ secrets.HUGGINGFACE_API_TOKEN }}
 
 
 

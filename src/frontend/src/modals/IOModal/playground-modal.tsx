@@ -1,18 +1,22 @@
-//import LangBuilderLogoColor from "@/assets/LangBuilderLogocolor.svg?react";
+//import LangbuilderLogoColor from "@/assets/LangbuilderLogocolor.svg?react";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { v5 as uuidv5 } from "uuid";
 import { useShallow } from "zustand/react/shallow";
 import ThemeButtons from "@/components/core/appHeaderComponent/components/ThemeButtons";
-import { useGetMessagesQuery } from "@/controllers/API/queries/messages";
+import {
+  useDeleteMessages,
+  useGetMessagesQuery,
+} from "@/controllers/API/queries/messages";
 import { useDeleteSession } from "@/controllers/API/queries/messages/use-delete-sessions";
 import { useGetSessionsFromFlowQuery } from "@/controllers/API/queries/messages/use-get-sessions-from-flow";
 import { ENABLE_PUBLISH } from "@/customization/feature-flags";
 import { track } from "@/customization/utils/analytics";
 import { customOpenNewTab } from "@/customization/utils/custom-open-new-tab";
-import { LangBuilderButtonRedirectTarget } from "@/customization/utils/urls";
+import { LangbuilderButtonRedirectTarget } from "@/customization/utils/urls";
 import { useUtilityStore } from "@/stores/utilityStore";
 import { swatchColors } from "@/utils/styleUtils";
-import LangBuilderLogoColor from "../../assets/LangBuilderLogoColor.svg?react";
+import LangbuilderLogoColor from "../../assets/LangbuilderLogoColor.svg?react";
 import IconComponent from "../../components/common/genericIconComponent";
 import ShadTooltip from "../../components/common/shadTooltipComponent";
 import { Button } from "../../components/ui/button";
@@ -27,7 +31,6 @@ import { ChatViewWrapper } from "./components/chat-view-wrapper";
 import { createNewSessionName } from "./components/chatView/chatInput/components/voice-assistant/helpers/create-new-session-name";
 import { SelectedViewField } from "./components/selected-view-field";
 import { SidebarOpenView } from "./components/sidebar-open-view";
-import { useGetFlowId } from "./hooks/useGetFlowId";
 
 export default function IOModal({
   children,
@@ -75,7 +78,11 @@ export default function IOModal({
   const setErrorData = useAlertStore((state) => state.setErrorData);
   const setSuccessData = useAlertStore((state) => state.setSuccessData);
   const deleteSession = useMessagesStore((state) => state.deleteSession);
-  const currentFlowId = useGetFlowId();
+  const clientId = useUtilityStore((state) => state.clientId);
+  const realFlowId = useFlowsManagerStore((state) => state.currentFlowId);
+  const currentFlowId = playgroundPage
+    ? uuidv5(`${clientId}_${realFlowId}`, uuidv5.DNS)
+    : realFlowId;
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const { mutate: deleteSessionFunction } = useDeleteSession();
@@ -228,9 +235,6 @@ export default function IOModal({
   );
 
   useEffect(() => {
-    if (playgroundPage && messages.length > 0) {
-      window.sessionStorage.setItem(currentFlowId, JSON.stringify(messages));
-    }
     if (newChatOnPlayground && !sessionsLoading) {
       const handleRefetchAndSetSession = async () => {
         try {
@@ -248,7 +252,7 @@ export default function IOModal({
       handleRefetchAndSetSession();
       setNewChatOnPlayground(false);
     }
-  }, [messages, playgroundPage]);
+  }, [messages]);
 
   useEffect(() => {
     if (!visibleSession) {
@@ -300,10 +304,16 @@ export default function IOModal({
 
   const showPublishOptions = playgroundPage && ENABLE_PUBLISH;
 
-  const LangBuilderButtonClick = () => {
-    track("LangBuilderButtonClick");
-    customOpenNewTab(LangBuilderButtonRedirectTarget());
+  const LangbuilderButtonClick = () => {
+    track("LangbuilderButtonClick");
+    customOpenNewTab(LangbuilderButtonRedirectTarget());
   };
+
+  useEffect(() => {
+    if (playgroundPage && messages.length > 0) {
+      window.sessionStorage.setItem(currentFlowId, JSON.stringify(messages));
+    }
+  }, [playgroundPage, messages]);
 
   const swatchIndex =
     (flowGradient && !isNaN(parseInt(flowGradient))
@@ -424,12 +434,12 @@ export default function IOModal({
                       <ThemeButtons />
                     </div>
                     <Button
-                      onClick={LangBuilderButtonClick}
+                      onClick={LangbuilderButtonClick}
                       variant="primary"
                       className="w-full !rounded-xl shadow-lg"
                     >
-                      <LangBuilderLogoColor />
-                      <div className="text-sm">Built with LangBuilder</div>
+                      <LangbuilderLogoColor />
+                      <div className="text-sm">Built with Langbuilder</div>
                     </Button>
                   </div>
                 )}
@@ -440,14 +450,14 @@ export default function IOModal({
                 <ShadTooltip
                   styleClasses="z-50"
                   side="right"
-                  content="Built with LangBuilder"
+                  content="Built with Langbuilder"
                 >
                   <Button
                     variant="primary"
                     className="h-12 w-12 !rounded-xl !p-4 shadow-lg"
-                    onClick={LangBuilderButtonClick}
+                    onClick={LangbuilderButtonClick}
                   >
-                    <LangBuilderLogoColor className="h-[18px] w-[18px] scale-150" />
+                    <LangbuilderLogoColor className="h-[18px] w-[18px] scale-150" />
                   </Button>
                 </ShadTooltip>
               </div>

@@ -10,7 +10,15 @@ from langbuilder.base.models.openai_constants import (
 )
 from langbuilder.field_typing import LanguageModel
 from langbuilder.field_typing.range_spec import RangeSpec
-from langbuilder.inputs.inputs import BoolInput, DictInput, DropdownInput, IntInput, SecretStrInput, SliderInput, StrInput
+from langbuilder.inputs.inputs import (
+    BoolInput,
+    DictInput,
+    DropdownInput,
+    IntInput,
+    SecretStrInput,
+    SliderInput,
+    StrInput,
+)
 from langbuilder.logging import logger
 
 

@@ -30,12 +30,10 @@ test(
     await page
       .getByText("OpenAI Embeddings", { exact: true })
       .dragTo(page.locator('//*[@id="react-flow-id"]'), {
-        targetPosition: { x: 100, y: 100 },
+        targetPosition: { x: 0, y: 0 },
       });
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await zoomOut(page, 5);
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await page.getByTestId("sidebar-search-input").click();
     await page.getByTestId("sidebar-search-input").fill("text embedder");
@@ -113,10 +111,7 @@ test(
 
     await updateOldComponents(page);
 
-    await page.getByTestId("canvas_controls_dropdown").click();
-
     await page.getByTestId("fit_view").click();
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await page
       .getByTestId("textarea_str_template")
@@ -155,17 +150,12 @@ test(
       .nth(0)
       .fill("similarity_score");
 
-    await page.getByTestId("canvas_controls_dropdown").click();
     await page.getByTestId("fit_view").click();
-    await page.getByTestId("canvas_controls_dropdown").click();
-
     await page.mouse.wheel(0, 500);
 
     await page.locator(".react-flow__pane").click();
 
-    await page.getByTestId("canvas_controls_dropdown").click();
     await page.getByTestId("fit_view").click();
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     //connection 1
     const openAiEmbeddingOutput_0 = await page

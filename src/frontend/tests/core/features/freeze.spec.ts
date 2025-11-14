@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { addFlowToTestOnEmptyLangBuilder } from "../../utils/add-flow-to-test-on-empty-langbuilder";
+import { addFlowToTestOnEmptyLangbuilder } from "../../utils/add-flow-to-test-on-empty-langbuilder";
 import { addLegacyComponents } from "../../utils/add-legacy-components";
 import { awaitBootstrapTest } from "../../utils/await-bootstrap-test";
 
@@ -10,12 +10,12 @@ test(
   async ({ page }) => {
     await awaitBootstrapTest(page);
 
-    const firstRunLangBuilder = await page
+    const firstRunLangbuilder = await page
       .getByTestId("empty-project-description")
       .count();
 
-    if (firstRunLangBuilder > 0) {
-      await addFlowToTestOnEmptyLangBuilder(page);
+    if (firstRunLangbuilder > 0) {
+      await addFlowToTestOnEmptyLangbuilder(page);
     }
 
     await page.getByTestId("blank-flow").click();

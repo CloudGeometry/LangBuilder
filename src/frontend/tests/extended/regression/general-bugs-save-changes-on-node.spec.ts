@@ -50,13 +50,11 @@ test(
 
     await awaitBootstrapTest(page);
     await page.getByTestId("blank-flow").click();
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await page.waitForSelector('[data-testid="fit_view"]', {
       timeout: 10000,
       state: "visible",
     });
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await renameFlow(page, { flowName: randomFlowName });
 

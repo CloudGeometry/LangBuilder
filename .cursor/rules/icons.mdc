@@ -1,5 +1,5 @@
 ---
-description: "Rules for creating and implementing component icons in LangBuilder, covering both backend Python component icon attributes and frontend React icon implementation."
+description: "Rules for creating and implementing component icons in Langbuilder, covering both backend Python component icon attributes and frontend React icon implementation."
 globs:
   - "src/frontend/src/icons/**/*"
   - "src/frontend/src/icons/lazyIconImports.ts"

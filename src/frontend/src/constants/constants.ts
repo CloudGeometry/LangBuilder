@@ -145,7 +145,7 @@ export const EDIT_DIALOG_SUBTITLE =
  * @constant
  */
 export const CODE_PROMPT_DIALOG_SUBTITLE =
-  "Edit your Python code snippet. Refer to the LangBuilder documentation for more information on how to write your own component.";
+  "Edit your Python code snippet. Refer to the Langbuilder documentation for more information on how to write your own component.";
 
 export const CODE_DICT_DIALOG_SUBTITLE =
   "Customize your dictionary, adding or editing key-value pairs as needed. Supports adding new objects {} or arrays [].";
@@ -241,13 +241,13 @@ export const DESCRIPTIONS: string[] = [
   "Your Hub for Text Generation.",
   "Promptly Ingenious!",
   "Building Linguistic Labyrinths.",
-  "LangBuilder: Create, Chain, Communicate.",
+  "Langbuilder: Create, Chain, Communicate.",
   "Connect the Dots, Craft Language.",
   "Interactive Language Weaving.",
   "Generate, Innovate, Communicate.",
   "Conversation Catalyst Engine.",
   "Language Chainlink Master.",
-  "Design Dialogues with LangBuilder.",
+  "Design Dialogues with Langbuilder.",
   "Nurture NLP Nodes Here.",
   "Conversational Cartography Unlocked.",
   "Design, Develop, Dialogize.",
@@ -639,7 +639,7 @@ export const TIMEOUT_ERROR_DESCRIPION = "Server is busy.";
 export const SIGN_UP_SUCCESS = "Account created! Await admin activation. ";
 
 export const API_PAGE_PARAGRAPH =
-  "Your secret LangBuilder API keys are listed below. Do not share your API key with others, or expose it in the browser or other client-side code.";
+  "Your secret Langbuilder API keys are listed below. Do not share your API key with others, or expose it in the browser or other client-side code.";
 
 export const API_PAGE_USER_KEYS =
   "This user does not have any keys assigned at the moment.";
@@ -720,7 +720,7 @@ export const INPUT_HANDLER_HOVER = "Avaliable input components:";
 export const OUTPUT_HANDLER_HOVER = "Avaliable output components:";
 export const TEXT_INPUT_MODAL_TITLE = "Inputs";
 export const OUTPUTS_MODAL_TITLE = "Outputs";
-export const LANGBUILDER_CHAT_TITLE = "LangBuilder Chat";
+export const LANGBUILDER_CHAT_TITLE = "Langbuilder Chat";
 export const CHAT_INPUT_PLACEHOLDER =
   "No chat input variables found. Click to run your flow.";
 export const CHAT_INPUT_PLACEHOLDER_SEND = "Send a message...";
@@ -728,9 +728,9 @@ export const EDIT_CODE_TITLE = "Edit Code";
 export const MY_COLLECTION_DESC =
   "Manage your projects. Download and upload entire collections.";
 export const STORE_DESC = "Explore community-shared flows and components.";
-export const STORE_TITLE = "LangBuilder Store";
+export const STORE_TITLE = "Langbuilder Store";
 export const NO_API_KEY = "You don't have an API key.";
-export const INSERT_API_KEY = "Insert your LangBuilder API key.";
+export const INSERT_API_KEY = "Insert your Langbuilder API key.";
 export const INVALID_API_KEY = "Your API key is not valid. ";
 export const CREATE_API_KEY = `Don't have an API key? Sign up at`;
 export const STATUS_BUILD = "Build to validate status.";
@@ -763,21 +763,6 @@ export const BUNDLES_SIDEBAR_FOLDER_NAMES = [
   "langwatch",
   "YouTube",
   "youtube",
-  "pinecone",
-  "weaviate",
-  "qdrant",
-  "mongodb",
-  "elastic",
-  "supabase",
-  "milvus",
-  "chroma",
-  "clickhouse",
-  "couchbase",
-  "upstash",
-  "vectara",
-  "cassandra",
-  "FAISS",
-  "pgvector",
 ];
 
 export const AUTHORIZED_DUPLICATE_REQUESTS = [
@@ -1099,12 +1084,10 @@ export const DEFAULT_POLLING_INTERVAL = 5000;
 export const DEFAULT_TIMEOUT = 30000;
 export const DEFAULT_FILE_PICKER_TIMEOUT = 60000;
 export const DISCORD_URL = "https://discord.com/invite/EqksyE2EX9";
-export const GITHUB_URL = "https://github.com/CloudGeometry/langbuilder";
-export const TWITTER_URL = "https://x.com/CloudGeometry";
+export const GITHUB_URL = "https://github.com/cloudgeometry/langbuilder";
+export const TWITTER_URL = "https://x.com/langbuilder_ai";
 export const DOCS_URL = "https://docs.langbuilder.org";
 export const DATASTAX_DOCS_URL =
   "https://docs.datastax.com/en/langbuilder/index.html";
-export const DESKTOP_URL = "https://www.langbuilder.org/desktop";
-export const BUG_REPORT_URL = "https://github.com/CloudGeometry/langbuilder/issues";
 
 export const UUID_PARSING_ERROR = "uuid_parsing";

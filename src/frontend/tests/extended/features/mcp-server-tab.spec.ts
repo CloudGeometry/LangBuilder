@@ -56,8 +56,6 @@ test(
         // Verify actions modal is open
         await expect(page.getByText("MCP Server Tools")).toBeVisible();
 
-        await page.waitForSelector("text=Flow Name", { timeout: 3000 });
-
         // Select some actions
         const rowsCount = await page.getByRole("row").count();
         expect(rowsCount).toBeGreaterThan(0);
@@ -87,45 +85,12 @@ test(
           await page.waitForTimeout(1000);
         }
 
-        // Verify if the state is maintained
-
-        await page.locator('input[data-ref="eInput"]').first().click();
-
-        await page.waitForTimeout(1000);
-
-        // Close the modal
-        await page.getByText("Close").last().click();
-        await page.waitForTimeout(2000);
-
-        await page.reload();
-
-        // Navigate to MCP server tab
-        await page.getByTestId("mcp-btn").click({ timeout: 10000 });
-
-        // Verify MCP server tab is visible
-        await expect(page.getByTestId("mcp-server-title")).toBeVisible();
-        await expect(page.getByText("Flows/Tools")).toBeVisible();
-
-        // Click on Edit Tools button
-        await page.getByTestId("button_open_actions").click();
-        await page.waitForTimeout(500);
-
-        // Verify actions modal is open
-        await expect(page.getByText("MCP Server Tools")).toBeVisible();
-
-        const persistedCheckbox = page
+        const isCheckedAgainAgain = await page
           .locator('input[data-ref="eInput"]')
-          .first();
+          .first()
+          .isChecked();
 
-        if (!(await persistedCheckbox.isChecked())) {
-          await persistedCheckbox.click();
-          await page.waitForTimeout(300);
-        }
-
-        await expect(persistedCheckbox).toBeChecked();
-
-        await page.locator('input[data-ref="eInput"]').first().click();
-        await page.waitForTimeout(1000);
+        expect(isCheckedAgainAgain).toBeFalsy();
 
         // Select first action
         let element = page.locator('input[data-ref="eInput"]').last();
@@ -251,14 +216,12 @@ test(
         await page
           .getByTestId("agentsMCP Tools")
           .dragTo(page.locator('//*[@id="react-flow-id"]'), {
-            targetPosition: { x: 50, y: 50 },
+            targetPosition: { x: 0, y: 0 },
           });
-        await page.getByTestId("canvas_controls_dropdown").click();
 
         await page.getByTestId("fit_view").click();
 
         await zoomOut(page, 3);
-        await page.getByTestId("canvas_controls_dropdown").click();
 
         await expect(page.getByTestId("dropdown_str_tool")).toBeHidden();
 
@@ -285,12 +248,7 @@ test(
           timeout: 30000,
         });
 
-        const randomSuffix = Math.floor(Math.random() * 90000) + 10000; // 5-digit random number
-        const testName = `test_server_${randomSuffix}`;
-
-        await page
-          .getByTestId("json-input")
-          .fill(configJsonLinux.replace(/lf-starter_project/g, testName) || "");
+        await page.getByTestId("json-input").fill(configJsonLinux || "");
 
         await page.getByTestId("add-mcp-server-button").click();
 

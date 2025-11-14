@@ -8,62 +8,62 @@ import TabItem from '@theme/TabItem';
 import Icon from "@site/src/components/icon";
 
 :::warning
-Never expose LangBuilder ports directly to the internet without proper security measures.
-Set `LANGBUILDER_AUTO_LOGIN=False`, use a non-default `LANGBUILDER_SECRET_KEY`, and deploy your LangBuilder server behind a reverse proxy with authentication enabled.
-For more information, see [Start a LangBuilder server with authentication enabled](#start-a-langbuilder-server-with-authentication-enabled).
+Never expose Langbuilder ports directly to the internet without proper security measures.
+Set `LANGBUILDER_AUTO_LOGIN=False`, use a non-default `LANGBUILDER_SECRET_KEY`, and deploy your Langbuilder server behind a reverse proxy with authentication enabled.
+For more information, see [Start a Langbuilder server with authentication enabled](#start-a-langbuilder-server-with-authentication-enabled).
 :::
 
-Authentication credentials help prevent unauthorized access to your LangBuilder server, flows, and services connected through components.
+Authentication credentials help prevent unauthorized access to your Langbuilder server, flows, and services connected through components.
 
-There are three types of credentials that you use in LangBuilder:
+There are three types of credentials that you use in Langbuilder:
 
-* [LangBuilder API keys](#langbuilder-api-keys): For authentication with the LangBuilder API and authorizing server-side LangBuilder actions like running flows and uploading files.
-* [Component API keys](#component-api-keys): For authentication between LangBuilder and a service connected through a component, such as a model provider or third-party API.
-* [Authentication environment variables](#authentication-environment-variables): These environment variables configure how LangBuilder handles user authentication and authorization.
+* [Langbuilder API keys](#langbuilder-api-keys): For authentication with the Langbuilder API and authorizing server-side Langbuilder actions like running flows and uploading files.
+* [Component API keys](#component-api-keys): For authentication between Langbuilder and a service connected through a component, such as a model provider or third-party API.
+* [Authentication environment variables](#authentication-environment-variables): These environment variables configure how Langbuilder handles user authentication and authorization.
 
-## LangBuilder API keys {#langbuilder-api-keys}
+## Langbuilder API keys {#langbuilder-api-keys}
 
-You can use LangBuilder API keys to interact with LangBuilder programmatically.
+You can use Langbuilder API keys to interact with Langbuilder programmatically.
 
-In LangBuilder version 1.5 and later, most API endpoints require a LangBuilder API key, even when `LANGBUILDER_AUTO_LOGIN` is `True`.
+In Langbuilder version 1.5 and later, most API endpoints require a Langbuilder API key, even when `LANGBUILDER_AUTO_LOGIN` is `True`.
 For more information, see [`LANGBUILDER_AUTO_LOGIN`](#langbuilder-auto-login).
 
-### LangBuilder API key permissions
+### Langbuilder API key permissions
 
-A LangBuilder API key adopts the privileges of the user who created it.
-This means that API keys you create have the same permissions and access that you do, including access to your flows, components, and LangBuilder database.
-A LangBuilder API key cannot be used to access resources outside of your own LangBuilder server.
+A Langbuilder API key adopts the privileges of the user who created it.
+This means that API keys you create have the same permissions and access that you do, including access to your flows, components, and Langbuilder database.
+A Langbuilder API key cannot be used to access resources outside of your own Langbuilder server.
 
-In single-user environments, you are always a superuser, and your LangBuilder API keys always have superuser privileges.
+In single-user environments, you are always a superuser, and your Langbuilder API keys always have superuser privileges.
 
 In multi-user environments, users who aren't superusers cannot use their API keys to access other users' resources.
-You must [start your LangBuilder server with authentication enabled](#start-a-langbuilder-server-with-authentication-enabled) to allow user management and creation of non-superuser accounts.
+You must [start your Langbuilder server with authentication enabled](#start-a-langbuilder-server-with-authentication-enabled) to allow user management and creation of non-superuser accounts.
 
-### Create a LangBuilder API key
+### Create a Langbuilder API key
 
-You can generate a LangBuilder API key in your LangBuilder **Settings** or with the LangBuilder CLI.
+You can generate a Langbuilder API key in your Langbuilder **Settings** or with the Langbuilder CLI.
 
-The CLI option is required if your LangBuilder server is running in `--backend-only` mode.
+The CLI option is required if your Langbuilder server is running in `--backend-only` mode.
 
 <Tabs>
-<TabItem value="settings" label="LangBuilder Settings" default>
+<TabItem value="settings" label="Langbuilder Settings" default>
 
-1. In the LangBuilder header, click your profile icon, and then select **Settings**.
-2. Click **LangBuilder API Keys**, and then click **Add New**.
+1. In the Langbuilder header, click your profile icon, and then select **Settings**.
+2. Click **Langbuilder API Keys**, and then click **Add New**.
 3. Name your key, and then click **Create API Key**.
 4. Copy the API key and store it securely.
 
 </TabItem>
-<TabItem value="LangBuilder CLI" label="LangBuilder CLI">
+<TabItem value="Langbuilder CLI" label="Langbuilder CLI">
 
-If you're serving your flow with `--backend-only=true`, you can't create API keys in your LangBuilder **Settings** because the frontend isn't running.
-In this case, you must create API keys with the LangBuilder CLI.
+If you're serving your flow with `--backend-only=true`, you can't create API keys in your Langbuilder **Settings** because the frontend isn't running.
+In this case, you must create API keys with the Langbuilder CLI.
 
-1. Recommended: [Start your LangBuilder server with authentication enabled](#start-a-langbuilder-server-with-authentication-enabled).
+1. Recommended: [Start your Langbuilder server with authentication enabled](#start-a-langbuilder-server-with-authentication-enabled).
 
     This configuration is recommended for security reasons to prevent unauthorized API key and superuser creation, especially in production environments.
 
-    However, if authentication isn't enabled (`LANGBUILDER_AUTO_LOGIN=True`), all users are effectively superusers, and they can create API keys with the LangBuilder CLI.
+    However, if authentication isn't enabled (`LANGBUILDER_AUTO_LOGIN=True`), all users are effectively superusers, and they can create API keys with the Langbuilder CLI.
 
 2. Create an API key with [`langbuilder api-key`](/configuration-cli#langbuilder-api-key):
 
@@ -71,14 +71,14 @@ In this case, you must create API keys with the LangBuilder CLI.
     uv run langbuilder api-key
     ```
 
-    All API keys created with the LangBuilder CLI have superuser privileges because the command requires superuser authentication, and LangBuilder API keys adopt the privileges of the user who created them.
+    All API keys created with the Langbuilder CLI have superuser privileges because the command requires superuser authentication, and Langbuilder API keys adopt the privileges of the user who created them.
 
 </TabItem>
 </Tabs>
 
-### Use a LangBuilder API key
+### Use a Langbuilder API key
 
-To authenticate LangBuilder API requests, pass your LangBuilder API key an `x-api-key` header or query parameter.
+To authenticate Langbuilder API requests, pass your Langbuilder API key an `x-api-key` header or query parameter.
 
 <Tabs>
 <TabItem value="header" label="HTTP header" default>
@@ -104,14 +104,14 @@ curl -X POST \
 </TabItem>
 </Tabs>
 
-For more information about forming LangBuilder API requests, see [Get started with the LangBuilder API](/api-reference-api-examples) and [Trigger flows with the LangBuilder API](/concepts-publish).
+For more information about forming Langbuilder API requests, see [Get started with the Langbuilder API](/api-reference-api-examples) and [Trigger flows with the Langbuilder API](/concepts-publish).
 
 ### Revoke an API key
 
 To revoke and delete an API key, do the following:
 
-1. In the LangBuilder header, click your profile icon, and then select **Settings**.
-2. Click **LangBuilder API Keys**.
+1. In the Langbuilder header, click your profile icon, and then select **Settings**.
+2. Click **Langbuilder API Keys**.
 3. Select the keys you want to delete, and then click <Icon name="Trash2" aria-hidden="true"/> **Delete**.
 
 This action immediately invalidates the key and prevents it from being used again.
@@ -119,49 +119,49 @@ This action immediately invalidates the key and prevents it from being used agai
 ## Component API keys
 
 Component API keys authorize access to external services that are called by components in your flows, such as model providers, databases, or third-party APIs.
-These aren't LangBuilder API keys or general application credentials.
+These aren't Langbuilder API keys or general application credentials.
 
-In LangBuilder, you can store component API keys in global variables in your **Settings** or import them from your LangBuilder `.env` file.
+In Langbuilder, you can store component API keys in global variables in your **Settings** or import them from your Langbuilder `.env` file.
 When creating global variables, use the **Credential** type for secure handling of sensitive information.
 For more information, see [Global variables](/configuration-global-variables).
 
 You create and manage component API keys within the service provider's platform.
-LangBuilder only stores the encrypted key value or a secure reference to a key stored elsewhere; it doesn't manage the actual credentials at the source.
-This means that deleting a global variable from LangBuilder doesn't delete or invalidate the actual API key in the service provider's system.
+Langbuilder only stores the encrypted key value or a secure reference to a key stored elsewhere; it doesn't manage the actual credentials at the source.
+This means that deleting a global variable from Langbuilder doesn't delete or invalidate the actual API key in the service provider's system.
 You must delete or rotate component API keys directly using the service provider's interface or API.
 
 ## Authentication environment variables
 
 This section describes the available authentication configuration variables.
 
-You can use the [`.env.example`](https://github.com/CloudGeometry/langbuilder/blob/main/.env.example) file in the LangBuilder repository as a template for your own `.env` file.
+You can use the [`.env.example`](https://github.com/cloudgeometry/langbuilder/blob/main/.env.example) file in the Langbuilder repository as a template for your own `.env` file.
 
 ### LANGBUILDER_AUTO_LOGIN {#langbuilder-auto-login}
 
-This variable controls whether authentication is required to access your LangBuilder server, including the visual editor and API:
+This variable controls whether authentication is required to access your Langbuilder server, including the visual editor and API:
 
-* If `LANGBUILDER_AUTO_LOGIN=False`, automatic login is disabled. Users must sign in to the visual editor and use a LangBuilder API key for LangBuilder API requests.
+* If `LANGBUILDER_AUTO_LOGIN=False`, automatic login is disabled. Users must sign in to the visual editor and use a Langbuilder API key for Langbuilder API requests.
 If false, you must also set [`LANGBUILDER_SUPERUSER` and `LANGBUILDER_SUPERUSER_PASSWORD`](#langbuilder-superuser).
 
-* If `LANGBUILDER_AUTO_LOGIN=True`, LangBuilder bypasses authentication for the visual editor and API requests.
+* If `LANGBUILDER_AUTO_LOGIN=True`, Langbuilder bypasses authentication for the visual editor and API requests.
 All users can access the same environment without password protection.
 If you don't have user management enabled, all users are effectively superusers.
 
-LangBuilder doesn't allow users to simultaneously edit the same flow in real time.
-If two users edit the same flow, LangBuilder saves only the work of the most recent editor based on the state of that user's [workspace](/concepts-overview#workspace). Any changes made by the other user in the interim are overwritten.
+Langbuilder doesn't allow users to simultaneously edit the same flow in real time.
+If two users edit the same flow, Langbuilder saves only the work of the most recent editor based on the state of that user's [workspace](/concepts-overview#workspace). Any changes made by the other user in the interim are overwritten.
 
 #### AUTO_LOGIN and API authentication in version 1.5 and later
 
-In LangBuilder versions 1.5 and later, most API endpoints require a LangBuilder API key, even when `AUTO_LOGIN` is true.
+In Langbuilder versions 1.5 and later, most API endpoints require a Langbuilder API key, even when `AUTO_LOGIN` is true.
 The only exceptions are the MCP endpoints `/v1/mcp`, `/v1/mcp-projects`, and `/v2/mcp`, which never require authentication.
 
 <details>
 <summary>LANGBUILDER_AUTO_LOGIN and LANGBUILDER_SKIP_AUTH_AUTO_LOGIN options</summary>
 
-In LangBuilder versions earlier than 1.5, if `LANGBUILDER_AUTO_LOGIN=True`, then LangBuilder automatically logs users in as a superuser without requiring authentication.
-In this case, API requests don't require a LangBuilder API key.
+In Langbuilder versions earlier than 1.5, if `LANGBUILDER_AUTO_LOGIN=True`, then Langbuilder automatically logs users in as a superuser without requiring authentication.
+In this case, API requests don't require a Langbuilder API key.
 
-In LangBuilder version 1.5, you can set `LANGBUILDER_SKIP_AUTH_AUTO_LOGIN=True` _and_ `LANGBUILDER_AUTO_LOGIN=True` to skip authentication for API requests _and_ allow automatic login as a superuser for all users.
+In Langbuilder version 1.5, you can set `LANGBUILDER_SKIP_AUTH_AUTO_LOGIN=True` _and_ `LANGBUILDER_AUTO_LOGIN=True` to skip authentication for API requests _and_ allow automatic login as a superuser for all users.
 This is a temporary bypass for backwards compatibility, and the `LANGBUILDER_SKIP_AUTH_AUTO_LOGIN` option will be removed in a future release.
 
 If either `LANGBUILDER_AUTO_LOGIN` or `LANGBUILDER_SKIP_AUTH_AUTO_LOGIN` are false, then authentication is required.
@@ -169,13 +169,13 @@ If either `LANGBUILDER_AUTO_LOGIN` or `LANGBUILDER_SKIP_AUTH_AUTO_LOGIN` are fal
 
 ### LANGBUILDER_ENABLE_SUPERUSER_CLI {#langbuilder-enable-superuser-cli}
 
-Controls the availability of the `langbuilder superuser` command in the LangBuilder CLI.
+Controls the availability of the `langbuilder superuser` command in the Langbuilder CLI.
 The default is true, but false is recommended to prevent unrestricted superuser creation.
 For more information, see [`langbuilder superuser`](/configuration-cli#langbuilder-superuser).
 
 ### LANGBUILDER_SUPERUSER and LANGBUILDER_SUPERUSER_PASSWORD {#langbuilder-superuser}
 
-These variables specify the username and password for the LangBuilder server's superuser.
+These variables specify the username and password for the Langbuilder server's superuser.
 
 ```text
 LANGBUILDER_SUPERUSER=administrator
@@ -185,15 +185,15 @@ LANGBUILDER_SUPERUSER_PASSWORD=securepassword
 They are required if `LANGBUILDER_AUTO_LOGIN=False`.
 Otherwise, they aren't relevant.
 
-If required and not set in when you [start a LangBuilder server with authentication enabled](#start-a-langbuilder-server-with-authentication-enabled), then the default values are `langbuilder` and `langbuilder` for system auto-login behavior.
-These defaults don't apply when using the LangBuilder CLI command [`langbuilder superuser`](/configuration-cli#langbuilder-superuser).
+If required and not set in when you [start a Langbuilder server with authentication enabled](#start-a-langbuilder-server-with-authentication-enabled), then the default values are `langbuilder` and `langbuilder` for system auto-login behavior.
+These defaults don't apply when using the Langbuilder CLI command [`langbuilder superuser`](/configuration-cli#langbuilder-superuser).
 
 ### LANGBUILDER_SECRET_KEY {#langbuilder-secret-key}
 
 This environment variable stores a secret key used for encrypting sensitive data like API keys.
-LangBuilder uses the [Fernet](https://pypi.org/project/cryptography/) library for secret key encryption.
+Langbuilder uses the [Fernet](https://pypi.org/project/cryptography/) library for secret key encryption.
 
-If no secret key is provided, LangBuilder automatically generates one.
+If no secret key is provided, Langbuilder automatically generates one.
 
 However, you should generate and explicitly set your own key in production environments.
 This is particularly important for multi-instance deployments like Kubernetes to ensure consistent encryption across instances.
@@ -260,20 +260,20 @@ When `LANGBUILDER_NEW_USER_IS_ACTIVE=True`, new user accounts are automatically 
 LANGBUILDER_NEW_USER_IS_ACTIVE=False
 ```
 
-Only superusers can manage user accounts for a LangBuilder server, but user management only matters if your server has authentication enabled.
-For more information, see [Start a LangBuilder server with authentication enabled](#start-a-langbuilder-server-with-authentication-enabled).
+Only superusers can manage user accounts for a Langbuilder server, but user management only matters if your server has authentication enabled.
+For more information, see [Start a Langbuilder server with authentication enabled](#start-a-langbuilder-server-with-authentication-enabled).
 
-## Start a LangBuilder server with authentication enabled
+## Start a Langbuilder server with authentication enabled
 
-This section shows you how to use the [authentication environment variables](/api-keys-and-authentication#authentication-environment-variables) to deploy a LangBuilder server with authentication enabled.
+This section shows you how to use the [authentication environment variables](/api-keys-and-authentication#authentication-environment-variables) to deploy a Langbuilder server with authentication enabled.
 This involves disabling automatic login, setting superuser credentials, generating a secret encryption key, and enabling user management.
 
-This configuration is recommended for any deployment where LangBuilder is exposed to a shared or public network, or where multiple users access the same LangBuilder server.
+This configuration is recommended for any deployment where Langbuilder is exposed to a shared or public network, or where multiple users access the same Langbuilder server.
 
-With authentication enabled, all users must sign in to the visual editor with valid credentials, and API requests require authentication with a LangBuilder API key.
-Additionally, you must sign in as a superuser to manage users and [create a LangBuilder API key](#create-a-langbuilder-api-key) with superuser privileges.
+With authentication enabled, all users must sign in to the visual editor with valid credentials, and API requests require authentication with a Langbuilder API key.
+Additionally, you must sign in as a superuser to manage users and [create a Langbuilder API key](#create-a-langbuilder-api-key) with superuser privileges.
 
-### Start the LangBuilder server
+### Start the Langbuilder server
 
 1. Create a `.env` file with the following variables:
 
@@ -296,7 +296,7 @@ Additionally, you must sign in as a superuser to manage users and [create a Lang
 
 3. Recommended: Generate and set a `LANGBUILDER_SECRET_KEY` for encrypting sensitive data.
 
-    If you don't set a secret key, LangBuilder generates one automatically, but this isn't recommended for production environments.
+    If you don't set a secret key, Langbuilder generates one automatically, but this isn't recommended for production environments.
 
     For instructions on generating at setting a secret key, see [`LANGBUILDER_SECRET_KEY`](#langbuilder-secret-key).
 
@@ -311,18 +311,18 @@ Additionally, you must sign in as a superuser to manage users and [create a Lang
     LANGBUILDER_ENABLE_SUPERUSER_CLI=False
     ```
 
-5. Start LangBuilder with the configuration from your `.env` file:
+5. Start Langbuilder with the configuration from your `.env` file:
 
     ```text
     uv run langbuilder run --env-file .env
     ```
 
-    Starting LangBuilder with a `.env` file automatically authenticates you as the superuser set in `LANGBUILDER_SUPERUSER` and `LANGBUILDER_SUPERUSER_PASSWORD`.
+    Starting Langbuilder with an `.env` file automatically authenticates you as the superuser set in `LANGBUILDER_SUPERUSER` and `LANGBUILDER_SUPERUSER_PASSWORD`.
     If you don't explicitly set these variables, the default values are `langbuilder` and `langbuilder` for system auto-login.
 
 6. Verify the server is running. The default location is `http://localhost:7860`.
 
-Next, you can add users to your LangBuilder server to collaborate with others on flows.
+Next, you can add users to your Langbuilder server to collaborate with others on flows.
 
 ### Manage users as an administrator
 
@@ -343,7 +343,7 @@ Next, you can add users to your LangBuilder server to collaborate with others on
     3. Deselect **Superuser** if you don't want the user to have full administrative privileges.
     4. Click **Save**. The new user appears in the **Admin Page**.
 
-5. To test the new user's access, sign out of LangBuilder, and then sign in with the new user's credentials.
+5. To test the new user's access, sign out of Langbuilder, and then sign in with the new user's credentials.
 
     Try to access the `/admin` page.
     You are redirected to the `/flows` page if the new user isn't a superuser.

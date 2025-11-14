@@ -24,7 +24,7 @@
 			console.log('Version is lower than required');
 			toast.error(
 				$i18n.t(
-					'ActionBridge version (v{{OPEN_WEBUI_VERSION}}) is lower than required version (v{{REQUIRED_VERSION}})',
+					'Open WebUI version (v{{OPEN_WEBUI_VERSION}}) is lower than required version (v{{REQUIRED_VERSION}})',
 					{
 						OPEN_WEBUI_VERSION: WEBUI_VERSION,
 						REQUIRED_VERSION: manifest?.required_open_webui_version ?? '0.0.0'
@@ -91,15 +91,17 @@
 
 {#if mounted}
 	{#key func?.content}
-		<FunctionEditor
-			id={func?.id ?? ''}
-			name={func?.name ?? ''}
-			meta={func?.meta ?? { description: '' }}
-			content={func?.content ?? ''}
-			{clone}
-			onSave={(value) => {
-				saveHandler(value);
-			}}
-		/>
+		<div class="px-[16px] h-full">
+			<FunctionEditor
+				id={func?.id ?? ''}
+				name={func?.name ?? ''}
+				meta={func?.meta ?? { description: '' }}
+				content={func?.content ?? ''}
+				{clone}
+				onSave={(value) => {
+					saveHandler(value);
+				}}
+			/>
+		</div>
 	{/key}
 {/if}

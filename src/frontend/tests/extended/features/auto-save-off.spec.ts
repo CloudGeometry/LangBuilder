@@ -40,14 +40,12 @@ test(
       .dragTo(page.locator('//*[@id="react-flow-id"]'));
     await page.mouse.up();
     await page.mouse.down();
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await page.waitForSelector('[data-testid="fit_view"]', {
       timeout: 5000,
     });
 
     await page.getByTestId("fit_view").click();
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     expect(await page.getByTestId("save-flow-button").isEnabled()).toBeTruthy();
 
@@ -108,7 +106,6 @@ test(
       console.error("Failed to hover or find add component button:", error);
       throw error;
     }
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     // Wait for fit view button
     await page.waitForSelector('[data-testid="fit_view"]', {
@@ -116,7 +113,6 @@ test(
     });
 
     await page.getByTestId("fit_view").click();
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await page.getByTestId("icon-ChevronLeft").last().click();
 
@@ -149,14 +145,12 @@ test(
       .dragTo(page.locator('//*[@id="react-flow-id"]'));
     await page.mouse.up();
     await page.mouse.down();
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await page.waitForSelector('[data-testid="fit_view"]', {
       timeout: 5000,
     });
 
     await page.getByTestId("fit_view").click();
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await page.getByTestId("save-flow-button").click();
     await page.getByTestId("icon-ChevronLeft").last().click();

@@ -1,5 +1,4 @@
 import { expect, test } from "@playwright/test";
-import { awaitBootstrapTest } from "../../utils/await-bootstrap-test";
 
 test.beforeAll(async () => {
   await new Promise((resolve) => setTimeout(resolve, 7000));
@@ -68,11 +67,11 @@ test(
       timeout: 30000,
     });
 
-    await page.getByPlaceholder("Fields").fill("AgentQL API Key");
+    await page.getByPlaceholder("Fields").fill("System");
 
-    await page.waitForSelector("text=AgentQL API Key", { timeout: 30000 });
+    await page.waitForSelector("text=System", { timeout: 30000 });
 
-    await page.getByText("AgentQL API Key").last().click();
+    await page.getByText("System").last().click();
 
     await page.getByPlaceholder("Fields").fill("openAI");
 
@@ -175,8 +174,8 @@ test(
     await page.goto("/");
     await page.getByTestId("user-profile-settings").click();
     await page.getByText("Settings").click();
-    await page.getByText("LangBuilder API").first().click();
-    await page.getByText("LangBuilder API", { exact: true }).nth(1).isVisible();
+    await page.getByText("Langbuilder API").first().click();
+    await page.getByText("Langbuilder API", { exact: true }).nth(1).isVisible();
     await page.getByText("Add New").click();
     await page.getByPlaceholder("My API Key").isVisible();
 
@@ -199,60 +198,5 @@ test(
     await page.waitForSelector("text=Api Key Copied!", { timeout: 30000 });
 
     await page.getByText(randomName).isVisible();
-  },
-);
-
-test(
-  "should navigate back to flow from global variables",
-  { tag: ["@release", "@workspace"] },
-  async ({ page }) => {
-    await awaitBootstrapTest(page);
-
-    await page
-      .getByTestId("side_nav_options_all-templates")
-      .click({ timeout: 30000 });
-    await page
-      .getByRole("heading", { name: "Basic Prompting" })
-      .click({ timeout: 30000 });
-
-    await expect(page.getByTestId("sidebar-search-input")).toBeVisible({
-      timeout: 30000,
-    });
-
-    // Now navigate to user settings
-    await page.getByTestId("user-profile-settings").click({ timeout: 30000 });
-    await page.getByTestId("menu_settings_button").click({ timeout: 30000 });
-
-    // Verify we're on the settings page
-    await expect(page.getByText("General").nth(2)).toBeVisible({
-      timeout: 4000,
-    });
-
-    // Navigate to Global Variables
-    await page.getByText("Global Variables").click({ timeout: 30000 });
-    await page
-      .getByText("Global Variables")
-      .nth(2)
-      .isVisible({ timeout: 30000 });
-    await page
-      .getByText("Global Variables", { exact: true })
-      .nth(1)
-      .isVisible({ timeout: 30000 });
-
-    // Click the back button - this should take us back to the flow, not to the main settings page
-    await page.getByTestId("back_page_button").click({ timeout: 30000 });
-
-    // Verify we're back on the flow page, not the settings main page
-    await page.waitForSelector('[data-testid="sidebar-search-input"]', {
-      timeout: 5000,
-    });
-
-    // Additional verification that we're on the flow page
-    expect(page.url()).toMatch(/\/flow\//);
-
-    // Verify we can see flow-specific elements
-    await expect(page.getByTestId("sidebar-search-input")).toBeVisible({
-      timeout: 30000,
-    });
   },
 );

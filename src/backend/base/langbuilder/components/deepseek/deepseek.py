@@ -5,7 +5,15 @@ from typing_extensions import override
 from langbuilder.base.models.model import LCModelComponent
 from langbuilder.field_typing import LanguageModel
 from langbuilder.field_typing.range_spec import RangeSpec
-from langbuilder.inputs.inputs import BoolInput, DictInput, DropdownInput, IntInput, SecretStrInput, SliderInput, StrInput
+from langbuilder.inputs.inputs import (
+    BoolInput,
+    DictInput,
+    DropdownInput,
+    IntInput,
+    SecretStrInput,
+    SliderInput,
+    StrInput,
+)
 
 DEEPSEEK_MODELS = ["deepseek-chat"]
 

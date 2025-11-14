@@ -12,7 +12,13 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from langbuilder.base.mcp import util
-from langbuilder.base.mcp.util import MCPSessionManager, MCPSseClient, MCPStdioClient, _process_headers, validate_headers
+from langbuilder.base.mcp.util import (
+    MCPSessionManager,
+    MCPSseClient,
+    MCPStdioClient,
+    _process_headers,
+    validate_headers,
+)
 
 
 class TestMCPSessionManager:
@@ -280,7 +286,7 @@ class TestMCPUtilityFunctions:
         if shutil.which("node"):
             assert util._validate_node_installation("npx something") == "npx something"
         else:
-            with pytest.raises(ValueError, match=r"Node.js is not installed"):
+            with pytest.raises(ValueError, match="Node.js is not installed"):
                 util._validate_node_installation("npx something")
         assert util._validate_node_installation("echo test") == "echo test"
 
@@ -594,11 +600,6 @@ class TestMCPSseClientWithDeepWikiServer:
         # Test valid URL
         valid_url = "https://mcp.deepwiki.com/sse"
         is_valid, error = await sse_client.validate_url(valid_url)
-        # Either valid or accessible, or rate-limited (429) which indicates server is reachable
-        if not is_valid and "429" in error:
-            # Rate limiting indicates the server is accessible but limiting requests
-            # This is a transient network issue, not a test failure
-            pytest.skip(f"DeepWiki server is rate limiting requests: {error}")
         assert is_valid or error == ""  # Either valid or accessible
 
         # Test invalid URL

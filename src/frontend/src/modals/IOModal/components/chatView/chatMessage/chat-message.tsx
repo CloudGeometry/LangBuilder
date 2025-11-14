@@ -132,7 +132,7 @@ export default function ChatMessage({
     updateMessageMutation(
       {
         message: {
-          id: chat.id,
+          ...chat,
           files: convertFiles(chat.files),
           sender_name: chat.sender_name ?? "AI",
           text: message,
@@ -205,7 +205,7 @@ export default function ChatMessage({
 
   return (
     <>
-      <div className="w-full py-4 word-break-break-word">
+      <div className="w-5/6 max-w-[768px] py-4 word-break-break-word">
         <div
           className={cn(
             "group relative flex w-full gap-4 rounded-md p-2",
@@ -418,9 +418,8 @@ export default function ChatMessage({
                   onCopy={() => {
                     navigator.clipboard.writeText(chatMessage);
                   }}
-                  onEdit={
-                    playgroundPage ? undefined : () => setEditMessage(true)
-                  }
+                  onDelete={() => {}}
+                  onEdit={() => setEditMessage(true)}
                   className="h-fit group-hover:visible"
                   isBotMessage={!chat.isSend}
                   onEvaluate={handleEvaluateAnswer}

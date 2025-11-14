@@ -7,16 +7,16 @@ import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
 :::important
-The `/build` endpoints are used by LangBuilder's frontend visual editor code.
-These endpoints are part of the internal LangBuilder codebase.
+The `/build` endpoints are used by Langbuilder's frontend visual editor code.
+These endpoints are part of the internal Langbuilder codebase.
 
-Don't use these endpoints to run flows in applications that use your LangBuilder flows.
+Don't use these endpoints to run flows in applications that use your Langbuilder flows.
 To run flows in your apps, see [Flow trigger endpoints](/api-flows-run).
 :::
 
-The `/build` endpoints support LangBuilder's frontend code for building flows in the LangBuilder visual editor.
+The `/build` endpoints support Langbuilder's frontend code for building flows in the Langbuilder visual editor.
 You can use these endpoints to build vertices and flows, as well as execute flows with streaming event responses.
-You might need to use or understand these endpoints when contributing to the LangBuilder codebase.
+You might need to use or understand these endpoints when contributing to the Langbuilder codebase.
 
 ## Build flow and stream events
 
@@ -97,8 +97,8 @@ curl -X GET \
 | inputs | object | Optional. Input values for flow components. |
 | data | object | Optional. Flow data to override stored configuration. |
 | files | array[string] | Optional. List of file paths to use. |
-| start_component_id | string | Optional. ID of the component where the execution should start. Component `id` values can be found in [LangBuilder JSON files](/concepts-flows-import#langbuilder-json-file-contents) |
-| stop_component_id | string | Optional. ID of the component where the execution should stop. Component `id` values can be found in [LangBuilder JSON files](/concepts-flows-import#langbuilder-json-file-contents).|
+| start_component_id | string | Optional. ID of the component where the execution should start. Component `id` values can be found in [Langbuilder JSON files](/concepts-flows-import#langbuilder-json-file-contents) |
+| stop_component_id | string | Optional. ID of the component where the execution should stop. Component `id` values can be found in [Langbuilder JSON files](/concepts-flows-import#langbuilder-json-file-contents).|
 | log_builds | Boolean | Whether to record build logs. Default: Enabled (true). |
 
 ### Set start and stop points
@@ -119,7 +119,7 @@ curl -X POST \
 
 ### Override flow parameters
 
-The `/build` endpoint also accepts inputs for `data` directly, instead of using the values stored in the LangBuilder database.
+The `/build` endpoint also accepts inputs for `data` directly, instead of using the values stored in the Langbuilder database.
 This is useful for running flows without having to pass custom values through the visual editor.
 
 ```shell

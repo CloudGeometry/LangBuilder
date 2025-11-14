@@ -15,8 +15,6 @@ test(
 
     await page.getByTestId("blank-flow").click();
 
-    await page.getByTestId("canvas_controls_dropdown").click();
-
     await page.waitForSelector('[data-testid="fit_view"]', {
       timeout: 5000,
       state: "visible",
@@ -26,8 +24,6 @@ test(
       timeout: 5000,
       state: "visible",
     });
-
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await page.getByTestId("sidebar-search-input").click();
     await page.getByTestId("sidebar-search-input").fill("ollama");
@@ -43,11 +39,9 @@ test(
           .getByTestId("add-component-button-ollama-embeddings")
           .click();
       });
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await page.getByTestId("fit_view").click();
     await zoomOut(page, 3);
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await page.waitForSelector('[data-testid="div-generic-node"]', {
       timeout: 5000,

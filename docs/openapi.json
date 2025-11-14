@@ -1,8 +1,8 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "LangBuilder",
-    "version": "1.5.0.post2"
+    "title": "Langbuilder",
+    "version": "1.5.0.post1"
   },
   "paths": {
     "/api/v1/build/{flow_id}/vertices": {

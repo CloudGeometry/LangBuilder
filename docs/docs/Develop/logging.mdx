@@ -5,19 +5,19 @@ slug: /logging
 
 import Icon from "@site/src/components/icon";
 
-This page provides information about LangBuilder logs, including logs for individual flows and the LangBuilder application itself.
+This page provides information about Langbuilder logs, including logs for individual flows and the Langbuilder application itself.
 
-LangBuilder uses the `loguru` library for logging.
+Langbuilder uses the `loguru` library for logging.
 
 The default logfile is named `langbuilder.log`.
-LangBuilder also produces logfiles for flows.
+Langbuilder also produces logfiles for flows.
 
 ## Log storage
 
 The default logfile storage location depends on your operating system:
 
 - **macOS Desktop**:`/Users/<username>/.langbuilder/cache`
-- **Windows Desktop**:`C:\Users\<username>\AppData\Roaming\com.LangBuilder\cache`
+- **Windows Desktop**:`C:\Users\<username>\AppData\Roaming\com.Langbuilder\cache`
 - **OSS macOS/Windows/Linux/WSL (`uv pip install`)**: `<path_to_venv>/lib/python3.12/site-packages/langbuilder/cache`
 - **OSS macOS/Windows/Linux/WSL (`git clone`)**: `<path_to_clone>/src/backend/base/langbuilder/cache`
 
@@ -25,7 +25,7 @@ To customize log storage, see [Configure log options](#configure-log-options).
 
 ## Configure log options
 
-Use [LangBuilder environment variables](/environment-variables) to configure logging options in your LangBuilder `.env` file, and then start LangBuilder with `uv run langbuilder run --env-file .env`.
+Use [Langbuilder environment variables](/environment-variables) to configure logging options in your Langbuilder `.env` file, and then start Langbuilder with `uv run langbuilder run --env-file .env`.
 
 The following environment variables are available to configure logging:
 
@@ -46,7 +46,7 @@ For example, `LANGBUILDER_LOG_FILE=path/to/logfile.log`.
     * Size-based rotation: "10 MB", "1 GB"
     * Disable rotation: "None" (log files will grow without limit)
 
-A complete example `.env` file is available in the [LangBuilder repository](https://github.com/CloudGeometry/langbuilder/blob/main/.env.example).
+A complete example `.env` file is available in the [Langbuilder repository](https://github.com/cloudgeometry/langbuilder/blob/main/.env.example).
 
 ## Flow and component logs
 
@@ -80,7 +80,7 @@ For example, the following `Message` data could be the output from a **Chat Inpu
 In the case of Input/Output components, the original input might not be structured as a `Message` object.
 For example, a **Language Model** component might pass a raw text response to a **Chat Output** component that is then transformed into a `Message` object.
 
-You can find `.log` files for flows at your LangBuilder installation's log storage location.
+You can find `.log` files for flows at your Langbuilder installation's log storage location.
 For filepaths, see [Log storage](#log-storage).
 
 ### View chat logs

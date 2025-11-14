@@ -1,17 +1,17 @@
 @echo off
-echo Starting LangBuilder build and run process...
+echo Starting Langbuilder build and run process...
 
-REM Check if .env file exists and set env file flag
-set "USE_ENV_FILE="
+REM Check if .env file exists and set env file parameter
+set "ENV_FILE_PARAM="
 REM Get the script directory and resolve project root
 for %%I in ("%~dp0..\..") do set "PROJECT_ROOT=%%~fI"
 set "ENV_PATH=%PROJECT_ROOT%\.env"
 if exist "%ENV_PATH%" (
     echo Found .env file at: %ENV_PATH%
-    set "USE_ENV_FILE=1"
+    set "ENV_FILE_PARAM=--env-file \"%ENV_PATH%\""
 ) else (
     echo .env file not found at: %ENV_PATH%
-    echo LangBuilder will use default configuration
+    echo Langbuilder will use default configuration
 )
 
 echo.
@@ -81,12 +81,12 @@ if errorlevel 1 (
 echo Build files copied successfully!
 
 echo.
-echo Step 4: Running LangBuilder...
+echo Step 4: Running Langbuilder...
 echo.
 echo Attention: Wait until uvicorn is running before opening the browser
 echo.
-if defined USE_ENV_FILE (
-    uv run --env-file "%ENV_PATH%" langbuilder run
+if defined ENV_FILE_PARAM (
+    uv run langbuilder run %ENV_FILE_PARAM%
 ) else (
     uv run langbuilder run
 )
@@ -97,5 +97,5 @@ if errorlevel 1 (
 )
 
 echo.
-echo LangBuilder build and run process completed!
+echo Langbuilder build and run process completed!
 pause

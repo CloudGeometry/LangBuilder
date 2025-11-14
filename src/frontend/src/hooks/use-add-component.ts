@@ -11,8 +11,6 @@ import { getNodeRenderType } from "@/utils/utils";
 export function useAddComponent() {
   const store = useStoreApi();
   const paste = useFlowStore((state) => state.paste);
-  const filterEdge = useFlowStore((state) => state.getFilterEdge);
-  const filterType = useFlowStore((state) => state.filterType);
 
   const addComponent = useCallback(
     (
@@ -52,12 +50,6 @@ export function useAddComponent() {
 
       const newId = getNodeId(type);
 
-      const outputType = filterType?.type;
-
-      const outputToFilter = component.outputs?.find(
-        (output) => outputType && output.types.includes(outputType),
-      );
-
       const newNode: AllNodeType = {
         id: newId,
         type: getNodeRenderType("genericnode"),
@@ -67,13 +59,12 @@ export function useAddComponent() {
           showNode: !component.minimized,
           type: type,
           id: newId,
-          ...(outputToFilter && { selected_output: outputToFilter.name }),
         },
       };
 
       paste({ nodes: [newNode], edges: [] }, pos);
     },
-    [store, paste, filterEdge],
+    [store, paste],
   );
 
   return addComponent;
