@@ -1,6 +1,6 @@
 import pytest
-from langflow.components.data.web_search import WebSearchComponent
-from langflow.schema import DataFrame
+from langbuilder.components.data.web_search import WebSearchComponent
+from langbuilder.schema import DataFrame
 
 from tests.base import ComponentTestBaseWithoutClient
 

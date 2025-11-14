@@ -1,19 +1,19 @@
 ---
-title: Contribute to Langflow
+title: Contribute to LangBuilder
 slug: /contributing-how-to-contribute
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-This guide is intended to help you start contributing to Langflow.
-As an open-source codebase in a rapidly developing field, Langflow welcomes contributions, whether it be in the form of a new feature, improved infrastructure, or better documentation.
+This guide is intended to help you start contributing to LangBuilder.
+As an open-source codebase in a rapidly developing field, LangBuilder welcomes contributions, whether it be in the form of a new feature, improved infrastructure, or better documentation.
 
-To contribute code or documentation to Langflow, follow the [fork and pull request quickstart](https://docs.github.com/en/get-started/quickstart/contributing-to-projects).
+To contribute code or documentation to LangBuilder, follow the [fork and pull request quickstart](https://docs.github.com/en/get-started/quickstart/contributing-to-projects).
 
-## Install Langflow from source
+## Install LangBuilder from source
 
-Install Langflow from source by forking the repository, and then set up your development environment using Make.
+Install LangBuilder from source by forking the repository, and then set up your development environment using Make.
 
 ### Prerequisites
 
@@ -21,26 +21,26 @@ Install Langflow from source by forking the repository, and then set up your dev
 * [Node.js](https://nodejs.org/en/download/package-manager)
 * [Make](https://www.gnu.org/software/make/#documentation) (Linux and macOS only)
 
-### Clone the Langflow repository
+### Clone the LangBuilder repository
 
-1. Fork the [Langflow GitHub repository](https://github.com/langflow-ai/langflow).
+1. Fork the [LangBuilder GitHub repository](https://github.com/CloudGeometry/langbuilder).
 
 2. Add the new remote to your local repository on your local machine:
 ```bash
-git remote add FORK_NAME https://github.com/GIT_USERNAME/langflow.git
+git remote add FORK_NAME https://github.com/GIT_USERNAME/langbuilder.git
 ```
 Replace the following:
 * `FORK_NAME`: A name for your fork of the repository
 * `GIT_USERNAME`: Your Git username
 
-### Run Langflow from source
+### Run LangBuilder from source
 
-You can run Langflow from source after cloning the repository, even if you aren't contributing to the codebase.
+You can run LangBuilder from source after cloning the repository, even if you aren't contributing to the codebase.
 
 <details>
 <summary>Run from source on macOS/Linux</summary>
 
-In your terminal, navigate to the root of the Langflow directory, and then run `make run_cli`.
+In your terminal, navigate to the root of the LangBuilder directory, and then run `make run_cli`.
 
 This command does the following:
 
@@ -48,51 +48,51 @@ This command does the following:
 - Builds the frontend static files
 - Starts the application with default settings
 
-The Langflow frontend is served at `http://localhost:7860`.
+The LangBuilder frontend is served at `http://localhost:7860`.
 
 </details>
 
 <details>
 <summary>Run from source with Windows CMD</summary>
 
-To run Langflow from source on Windows, you can use the Langflow repository's included scripts, or run the commands in the terminal.
+To run LangBuilder from source on Windows, you can use the LangBuilder repository's included scripts, or run the commands in the terminal.
 
 Do one of the following:
 
-* To install and run Langflow with the included Windows Batch file, navigate to the `scripts/windows` directory, and then run the `build_and_run.bat` file.
+* To install and run LangBuilder with the included Windows Batch file, navigate to the `scripts/windows` directory, and then run the `build_and_run.bat` file.
 
-* To run Langflow from the Windows Command Line:
+* To run LangBuilder from the Windows Command Line:
 
-    1. Build the Langflow frontend:
+    1. Build the LangBuilder frontend:
 
         ```
         cd src/frontend && npm install && npm run build && npm run start
         ```
 
-    2. Copy the contents of the built `src/frontend/build` directory to `src/backend/base/langflow/frontend`.
+    2. Copy the contents of the built `src/frontend/build` directory to `src/backend/base/langbuilder/frontend`.
 
-    3. Start Langflow:
+    3. Start LangBuilder:
 
         ```
-        uv run langflow run
+        uv run langbuilder run
         ```
 
-The Langflow frontend is served at `http://localhost:7860`.
+The LangBuilder frontend is served at `http://localhost:7860`.
 
 </details>
 
 <details>
 <summary>Run from source with Powershell</summary>
 
-To run Langflow from source on Windows, you can use the Langflow repository's included scripts, or run the commands in the terminal.
+To run LangBuilder from source on Windows, you can use the LangBuilder repository's included scripts, or run the commands in the terminal.
 
 Do one of the following:
 
-* To install and run Langflow with the included scripts, navigate to the `scripts/windows` directory, and then run the `build_and_run.ps1` file.
+* To install and run LangBuilder with the included scripts, navigate to the `scripts/windows` directory, and then run the `build_and_run.ps1` file.
 
-* To run Langflow from a Powershell terminal:
+* To run LangBuilder from a Powershell terminal:
 
-    1. Run the following commands separately to build the Langflow frontend:
+    1. Run the following commands separately to build the LangBuilder frontend:
 
         ```
         cd src/frontend
@@ -101,24 +101,24 @@ Do one of the following:
         npm run start
         ```
 
-    2. Copy the contents of the built `src/frontend/build` directory to `src/backend/base/langflow/frontend`.
+    2. Copy the contents of the built `src/frontend/build` directory to `src/backend/base/langbuilder/frontend`.
 
-    3. Start Langflow:
+    3. Start LangBuilder:
 
         ```
-        uv run langflow run
+        uv run langbuilder run
         ```
 
-The Langflow frontend is served at `http://localhost:7860`.
+The LangBuilder frontend is served at `http://localhost:7860`.
 
 </details>
 
-### Set up your Langflow development environment
+### Set up your LangBuilder development environment
 
 <Tabs>
 <TabItem value="linux-macos" label="Linux or macOS" default>
 
-1. Set up the Langflow development environment:
+1. Set up the LangBuilder development environment:
 
     ```bash
     make init
@@ -163,9 +163,9 @@ To run all tests, including coverage, unit, and integration, tests, run `make te
 </TabItem>
 <TabItem value="Windows" label="Windows">
 
-Since Windows doesn't include `make`, building and running Langflow from source uses `npm` and `uv`.
+Since Windows doesn't include `make`, building and running LangBuilder from source uses `npm` and `uv`.
 
-To set up the Langflow development environment, run the frontend and backend in separate terminals:
+To set up the LangBuilder development environment, run the frontend and backend in separate terminals:
 
 1. To run the frontend, run the following commands:
 
@@ -178,7 +178,7 @@ To set up the Langflow development environment, run the frontend and backend in 
 2. In a separate terminal, run the following command to run the backend:
 
     ```bash
-    uv run langflow run --backend-only
+    uv run langbuilder run --backend-only
     ```
 
 The frontend is served at `http://localhost:7860`.
@@ -188,7 +188,7 @@ The frontend is served at `http://localhost:7860`.
 
 ### Debug
 
-The repo includes a `.vscode/launch.json` file for debugging the backend in VSCode, which is faster than debugging with Docker Compose. To debug Langflow with the `launch.json` file in VSCode:
+The repo includes a `.vscode/launch.json` file for debugging the backend in VSCode, which is faster than debugging with Docker Compose. To debug LangBuilder with the `launch.json` file in VSCode:
 
 For more information, see the [VSCode documentation](https://code.visualstudio.com/docs/debugtest/debugging#_start-a-debugging-session).
 
@@ -206,12 +206,12 @@ For style guidance, see the [Google Developer Documentation Style Guide](https:/
 
 1. Install [Node.js](https://nodejs.org/en/download/package-manager) and [Yarn](https://yarnpkg.com/)
 
-2. Fork the [Langflow GitHub repository](https://github.com/langflow-ai/langflow).
+2. Fork the [LangBuilder GitHub repository](https://github.com/CloudGeometry/langbuilder).
 
 3. Add the new remote to your local repository on your local machine:
 
     ```bash
-    git remote add FORK_NAME https://github.com/GIT_USERNAME/langflow.git
+    git remote add FORK_NAME https://github.com/GIT_USERNAME/langbuilder.git
     ```
 
     Replace the following:
@@ -219,7 +219,7 @@ For style guidance, see the [Google Developer Documentation Style Guide](https:/
     * `FORK_NAME`: A name for your fork of the repository
     * `GIT_USERNAME`: Your Git username
 
-4. From the root of your local Langflow fork, change to the `/docs` directory:
+4. From the root of your local LangBuilder fork, change to the `/docs` directory:
 
     ```bash
     cd docs
@@ -234,11 +234,11 @@ For style guidance, see the [Google Developer Documentation Style Guide](https:/
 
     The documentation is served at `localhost:3000`.
 
-6. To edit and create content, work with the `.mdx` files in the `langflow/docs/docs` directory.
+6. To edit and create content, work with the `.mdx` files in the `langbuilder/docs/docs` directory.
 
     Create new files in `.mdx` format.
 
-    Navigation is defined in `langflow/docs/sidebars.js`.
+    Navigation is defined in `langbuilder/docs/sidebars.js`.
 
     Most pages use a `slug` for shorthand cross-referencing, rather than supplying the full or relative directory path.
     For example, if a page has a `slug` of `/cool-page`, you can link to it with `[Cool page](/cool-page)` from any other `/docs` page.
@@ -255,9 +255,9 @@ To submit a pull request, do the following:
 
 Some additional guidance on pull request titles:
 * Ensure the pull request description clearly describes the problem and solution. If the PR fixes an issue, include a link to the fixed issue in the PR description with `Fixes #1234`.
-* Pull request titles appear in Langflow's release notes, so they should explain what the PR does as explicitly as possible.
+* Pull request titles appear in LangBuilder's release notes, so they should explain what the PR does as explicitly as possible.
 * Pull requests should strive to fix one thing **only**, and should contain a good description of what is being fixed.
 
-3. A Langflow maintainer will review your pull request and may request changes, so ensure you pay attention to your PRs. Thanks for your contribution!
+3. A LangBuilder maintainer will review your pull request and may request changes, so ensure you pay attention to your PRs. Thanks for your contribution!
 
 For more information, see the [Python Developer's Guide](https://devguide.python.org/getting-started/pull-request-lifecycle/index.html#making-good-commits).

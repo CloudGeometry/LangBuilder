@@ -5,8 +5,8 @@ from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from langflow.base.knowledge_bases.knowledge_base_utils import get_knowledge_bases
-from langflow.components.knowledge_bases.retrieval import KnowledgeRetrievalComponent
+from langbuilder.base.knowledge_bases.knowledge_base_utils import get_knowledge_bases
+from langbuilder.components.knowledge_bases.retrieval import KnowledgeRetrievalComponent
 from pydantic import SecretStr
 
 from tests.base import ComponentTestBaseWithoutClient
@@ -21,13 +21,13 @@ class TestKnowledgeRetrievalComponent(ComponentTestBaseWithoutClient):
     @pytest.fixture(autouse=True)
     def mock_knowledge_base_path(self, tmp_path):
         """Mock the knowledge base root path directly."""
-        with patch("langflow.components.knowledge_bases.retrieval._KNOWLEDGE_BASES_ROOT_PATH", tmp_path):
+        with patch("langbuilder.components.knowledge_bases.retrieval._KNOWLEDGE_BASES_ROOT_PATH", tmp_path):
             yield
 
     class MockUser:
         def __init__(self, user_id):
             self.id = user_id
-            self.username = "langflow"
+            self.username = "langbuilder"
 
     @pytest.fixture
     def mock_user_data(self):
@@ -42,12 +42,12 @@ class TestKnowledgeRetrievalComponent(ComponentTestBaseWithoutClient):
         with (
             patch.object(KnowledgeRetrievalComponent, "user_id", mock_user_data["user_id"]),
             patch(
-                "langflow.components.knowledge_bases.retrieval.get_user_by_id",
+                "langbuilder.components.knowledge_bases.retrieval.get_user_by_id",
                 new_callable=AsyncMock,
                 return_value=mock_user_data["user_obj"],
             ),
             patch(
-                "langflow.base.knowledge_bases.knowledge_base_utils.get_user_by_id",
+                "langbuilder.base.knowledge_bases.knowledge_base_utils.get_user_by_id",
                 new_callable=AsyncMock,
                 return_value=mock_user_data["user_obj"],
             ),
@@ -138,7 +138,7 @@ class TestKnowledgeRetrievalComponent(ComponentTestBaseWithoutClient):
         component = component_class(**default_kwargs)
         kb_path = Path(default_kwargs["kb_root_path"]) / mock_user_id["user"] / default_kwargs["knowledge_base"]
 
-        with patch("langflow.components.knowledge_bases.retrieval.decrypt_api_key") as mock_decrypt:
+        with patch("langbuilder.components.knowledge_bases.retrieval.decrypt_api_key") as mock_decrypt:
             mock_decrypt.return_value = "decrypted_key"
 
             metadata = component._get_kb_metadata(kb_path)
@@ -185,7 +185,7 @@ class TestKnowledgeRetrievalComponent(ComponentTestBaseWithoutClient):
         }
         (kb_path / "embedding_metadata.json").write_text(json.dumps(metadata))
 
-        with patch("langflow.components.knowledge_bases.retrieval.decrypt_api_key") as mock_decrypt:
+        with patch("langbuilder.components.knowledge_bases.retrieval.decrypt_api_key") as mock_decrypt:
             mock_decrypt.side_effect = ValueError("Decryption failed")
 
             result = component._get_kb_metadata(kb_path)

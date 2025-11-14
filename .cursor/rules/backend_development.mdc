@@ -1,5 +1,5 @@
 ---
-description: "Guidelines for backend development in Langflow, focusing on Python components, FastAPI services, and backend testing."
+description: "Guidelines for backend development in LangBuilder, focusing on Python components, FastAPI services, and backend testing."
 globs:
   - "src/backend/**/*.py"
   - "tests/**/*.py"
@@ -13,7 +13,7 @@ alwaysApply: false
 # Backend Development Guidelines
 
 ## Purpose
-Guidelines for backend development in Langflow, focusing on Python components, FastAPI services, and backend testing.
+Guidelines for backend development in LangBuilder, focusing on Python components, FastAPI services, and backend testing.
 
 ---
 
@@ -30,7 +30,7 @@ make backend  # Start FastAPI backend on port 7860
 ```
 - Auto-reloads on file changes
 - Health check: http://localhost:7860/health
-- Backend components: `src/backend/base/langflow/`
+- Backend components: `src/backend/base/langbuilder/`
 
 ---
 
@@ -38,7 +38,7 @@ make backend  # Start FastAPI backend on port 7860
 
 ### Component Structure
 ```
-src/backend/base/langflow/components/
+src/backend/base/langbuilder/components/
 ├── agents/           # Agent components
 ├── data/            # Data processing components
 ├── embeddings/      # Embedding components
@@ -51,7 +51,7 @@ src/backend/base/langflow/components/
 ```
 
 ### Adding New Components
-1. **Location:** Add to appropriate subdirectory under `src/backend/base/langflow/components/`
+1. **Location:** Add to appropriate subdirectory under `src/backend/base/langbuilder/components/`
 2. **Import:** Update `__init__.py` with alphabetical imports:
    ```python
    from .my_component import MyComponent
@@ -107,7 +107,7 @@ make unit_tests  # Run backend unit tests
 
 ### API Structure
 ```
-src/backend/base/langflow/api/
+src/backend/base/langbuilder/api/
 ├── v1/              # API version 1
 │   ├── chat.py      # Chat endpoints
 │   ├── flows.py     # Flow management
@@ -136,7 +136,7 @@ src/backend/base/langflow/api/
 
 ### Models Location
 ```
-src/backend/base/langflow/services/database/models/
+src/backend/base/langbuilder/services/database/models/
 ├── api_key/         # API key models
 ├── flow/            # Flow models
 ├── folder/          # Folder models
@@ -251,7 +251,7 @@ async def test_with_real_api(self):
 - Context variables may not propagate correctly in `asyncio.to_thread` - test both patterns
 
 ### File Changes
-- Starter project files auto-format after `langflow run`
+- Starter project files auto-format after `langbuilder run`
 - These formatting changes can be committed or ignored
 
 ---

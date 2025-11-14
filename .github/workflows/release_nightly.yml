@@ -1,21 +1,21 @@
-name: Langflow Nightly Build
-run-name: Langflow Nightly Release by @${{ github.actor }}
+name: LangBuilder Nightly Build
+run-name: LangBuilder Nightly Release by @${{ github.actor }}
 
 on:
   workflow_dispatch:
     inputs:
       build_docker_base:
-        description: "Build Docker Image for Langflow Nightly Base"
+        description: "Build Docker Image for LangBuilder Nightly Base"
         required: true
         type: boolean
         default: false
       build_docker_main:
-        description: "Build Docker Image for Langflow Nightly"
+        description: "Build Docker Image for LangBuilder Nightly"
         required: true
         type: boolean
         default: false
       build_docker_ep:
-        description: "Build Docker Image for Langflow Nightly with Entrypoint"
+        description: "Build Docker Image for LangBuilder Nightly with Entrypoint"
         required: false
         type: boolean
         default: false
@@ -30,17 +30,17 @@ on:
   workflow_call:
     inputs:
       build_docker_base:
-        description: "Build Docker Image for Langflow Nightly Base"
+        description: "Build Docker Image for LangBuilder Nightly Base"
         required: true
         type: boolean
         default: false
       build_docker_main:
-        description: "Build Docker Image for Langflow Nightly"
+        description: "Build Docker Image for LangBuilder Nightly"
         required: true
         type: boolean
         default: false
       build_docker_ep:
-        description: "Build Docker Image for Langflow Nightly with Entrypoint"
+        description: "Build Docker Image for LangBuilder Nightly with Entrypoint"
         required: false
         type: boolean
         default: false
@@ -59,7 +59,7 @@ env:
 
 jobs:
   build-nightly-base:
-    name: Build Langflow Nightly Base
+    name: Build LangBuilder Nightly Base
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -86,10 +86,10 @@ jobs:
       - name: Verify Nightly Name and Version
         id: verify
         run: |
-          name=$(uv tree | grep 'langflow-base' | awk '{print $2}' | head -n 1)
-          version=$(uv tree | grep 'langflow-base' | awk '{print $3}' | head -n 1)
-          if [ "$name" != "langflow-base-nightly" ]; then
-            echo "Name $name does not match langflow-base-nightly. Exiting the workflow."
+          name=$(uv tree | grep 'langbuilder-base' | awk '{print $2}' | head -n 1)
+          version=$(uv tree | grep 'langbuilder-base' | awk '{print $3}' | head -n 1)
+          if [ "$name" != "langbuilder-base-nightly" ]; then
+            echo "Name $name does not match langbuilder-base-nightly. Exiting the workflow."
             exit 1
           fi
           if [ "$version" != "${{ inputs.nightly_tag_base }}" ]; then
@@ -112,7 +112,7 @@ jobs:
           mkdir src/backend/base/dist
           mv dist/*.whl src/backend/base/dist/
           uv pip install src/backend/base/dist/*.whl
-          uv run python -m langflow run --host localhost --port 7860 --backend-only &
+          uv run python -m langbuilder run --host localhost --port 7860 --backend-only &
           SERVER_PID=$!
           # Wait for the server to start
           timeout 120 bash -c 'until curl -f http://localhost:7860/api/v1/auto_login; do sleep 2; done' || (echo "Server did not start in time" && kill $SERVER_PID && exit 1)
@@ -136,7 +136,7 @@ jobs:
           path: src/backend/base/dist
 
   build-nightly-main:
-    name: Build Langflow Nightly Main
+    name: Build LangBuilder Nightly Main
     needs: [build-nightly-base]
     runs-on: ubuntu-latest
     outputs:
@@ -163,10 +163,10 @@ jobs:
       - name: Verify Nightly Name and Version
         id: verify
         run: |
-          name=$(uv tree | grep 'langflow' | grep -v 'langflow-base' | awk '{print $1}')
-          version=$(uv tree | grep 'langflow' | grep -v 'langflow-base' | awk '{print $2}')
-          if [ "$name" != "langflow-nightly" ]; then
-            echo "Name $name does not match langflow-nightly. Exiting the workflow."
+          name=$(uv tree | grep 'langbuilder' | grep -v 'langbuilder-base' | awk '{print $1}')
+          version=$(uv tree | grep 'langbuilder' | grep -v 'langbuilder-base' | awk '{print $2}')
+          if [ "$name" != "langbuilder-nightly" ]; then
+            echo "Name $name does not match langbuilder-nightly. Exiting the workflow."
             exit 1
           fi
           if [ "$version" != "${{ inputs.nightly_tag_main }}" ]; then
@@ -185,7 +185,7 @@ jobs:
       - name: Test CLI
         run: |
           uv pip install dist/*.whl
-          uv run python -m langflow run --host localhost --port 7860 --backend-only &
+          uv run python -m langbuilder run --host localhost --port 7860 --backend-only &
           SERVER_PID=$!
           # Wait for the server to start
           timeout 120 bash -c 'until curl -f http://localhost:7860/health_check; do sleep 2; done' || (echo "Server did not start in time" && kill $SERVER_PID && exit 1)
@@ -217,7 +217,7 @@ jobs:
       main-artifact-name: "dist-nightly-main"
 
   publish-nightly-base:
-    name: Publish Langflow Base Nightly to PyPI
+    name: Publish LangBuilder Base Nightly to PyPI
     needs: [build-nightly-base, test-cross-platform]
     runs-on: ubuntu-latest
     steps:
@@ -242,7 +242,7 @@ jobs:
           make publish base=true
 
   publish-nightly-main:
-    name: Publish Langflow Main Nightly to PyPI
+    name: Publish LangBuilder Main Nightly to PyPI
     needs: [build-nightly-main, test-cross-platform, publish-nightly-base]
     runs-on: ubuntu-latest
     steps:
@@ -266,7 +266,7 @@ jobs:
           make publish main=true
 
   call_docker_build_base:
-    name: Call Docker Build Workflow for Langflow Base
+    name: Call Docker Build Workflow for LangBuilder Base
     if: always() && ${{ inputs.build_docker_base == 'true' }}
     needs: [build-nightly-base, build-nightly-main]
     uses: ./.github/workflows/docker-build.yml
@@ -277,7 +277,7 @@ jobs:
     secrets: inherit
 
   call_docker_build_main:
-    name: Call Docker Build Workflow for Langflow
+    name: Call Docker Build Workflow for LangBuilder
     if: always() && ${{ inputs.build_docker_main == 'true' }}
     needs: [build-nightly-main, call_docker_build_base]
     uses: ./.github/workflows/docker-build.yml
@@ -288,7 +288,7 @@ jobs:
 
   # TODO: Uncomment this when our runner can fit the builds that contain pytorch (and other large dependencies)
   # call_docker_build_main_all:
-  #   name: Call Docker Build Workflow for langflow-all
+  #   name: Call Docker Build Workflow for langbuilder-all
   #   if: always() && ${{ inputs.build_docker_main == 'true' }}
   #   needs: [build-nightly-main]
   #   uses: ./.github/workflows/docker-build.yml
@@ -298,7 +298,7 @@ jobs:
   #   secrets: inherit
 
   call_docker_build_main_ep:
-    name: Call Docker Build Workflow for Langflow with Entrypoint
+    name: Call Docker Build Workflow for LangBuilder with Entrypoint
     if: always() && ${{ inputs.build_docker_ep == 'true' }}
     needs: [build-nightly-main, call_docker_build_main]
     uses: ./.github/workflows/docker-build.yml

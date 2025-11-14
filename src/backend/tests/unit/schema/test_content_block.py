@@ -1,6 +1,6 @@
 import pytest
-from langflow.schema.content_block import ContentBlock
-from langflow.schema.content_types import CodeContent, ErrorContent, JSONContent, MediaContent, TextContent, ToolContent
+from langbuilder.schema.content_block import ContentBlock
+from langbuilder.schema.content_types import CodeContent, ErrorContent, JSONContent, MediaContent, TextContent, ToolContent
 
 
 class TestContentBlock:

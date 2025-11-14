@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { addFlowToTestOnEmptyLangflow } from "../../utils/add-flow-to-test-on-empty-langflow";
+import { addFlowToTestOnEmptyLangBuilder } from "../../utils/add-flow-to-test-on-empty-langbuilder";
 import { adjustScreenView } from "../../utils/adjust-screen-view";
 import { awaitBootstrapTest } from "../../utils/await-bootstrap-test";
 
@@ -77,7 +77,7 @@ test(
       .getByTestId("new_project_btn_empty_page")
       .count();
     if (countEmptyButton > 0) {
-      await addFlowToTestOnEmptyLangflow(page);
+      await addFlowToTestOnEmptyLangBuilder(page);
     }
     await page.getByTestId("upload-project-button").last().click();
   },

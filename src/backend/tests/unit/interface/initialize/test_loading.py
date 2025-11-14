@@ -2,7 +2,7 @@ import os
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from langflow.interface.initialize.loading import update_params_with_load_from_db_fields
+from langbuilder.interface.initialize.loading import update_params_with_load_from_db_fields
 
 
 @pytest.mark.asyncio
@@ -23,7 +23,7 @@ async def test_update_params_fallback_to_env_when_variable_not_found():
     load_from_db_fields = ["api_key"]
 
     # Call the function with fallback enabled
-    with patch("langflow.interface.initialize.loading.session_scope") as mock_session_scope:
+    with patch("langbuilder.interface.initialize.loading.session_scope") as mock_session_scope:
         mock_session_scope.return_value.__aenter__.return_value = MagicMock()
 
         result = await update_params_with_load_from_db_fields(
@@ -52,7 +52,7 @@ async def test_update_params_raises_when_variable_not_found_and_no_fallback():
     load_from_db_fields = ["api_key"]
 
     # Call the function with fallback disabled
-    with patch("langflow.interface.initialize.loading.session_scope") as mock_session_scope:
+    with patch("langbuilder.interface.initialize.loading.session_scope") as mock_session_scope:
         mock_session_scope.return_value.__aenter__.return_value = MagicMock()
 
         with pytest.raises(ValueError, match="TEST_API_KEY variable not found"):
@@ -79,7 +79,7 @@ async def test_update_params_uses_database_variable_when_found():
     load_from_db_fields = ["api_key"]
 
     # Call the function
-    with patch("langflow.interface.initialize.loading.session_scope") as mock_session_scope:
+    with patch("langbuilder.interface.initialize.loading.session_scope") as mock_session_scope:
         mock_session_scope.return_value.__aenter__.return_value = MagicMock()
 
         result = await update_params_with_load_from_db_fields(
@@ -112,7 +112,7 @@ async def test_update_params_sets_none_when_no_env_var_and_fallback_enabled():
     load_from_db_fields = ["api_key"]
 
     # Call the function with fallback enabled
-    with patch("langflow.interface.initialize.loading.session_scope") as mock_session_scope:
+    with patch("langbuilder.interface.initialize.loading.session_scope") as mock_session_scope:
         mock_session_scope.return_value.__aenter__.return_value = MagicMock()
 
         result = await update_params_with_load_from_db_fields(
@@ -135,7 +135,7 @@ async def test_update_params_raises_on_user_id_not_set():
     load_from_db_fields = ["api_key"]
 
     # Should raise with fallback enabled
-    with patch("langflow.interface.initialize.loading.session_scope") as mock_session_scope:
+    with patch("langbuilder.interface.initialize.loading.session_scope") as mock_session_scope:
         mock_session_scope.return_value.__aenter__.return_value = MagicMock()
 
         with pytest.raises(ValueError, match="User id is not set"):
@@ -144,7 +144,7 @@ async def test_update_params_raises_on_user_id_not_set():
             )
 
     # Should also raise with fallback disabled
-    with patch("langflow.interface.initialize.loading.session_scope") as mock_session_scope:
+    with patch("langbuilder.interface.initialize.loading.session_scope") as mock_session_scope:
         mock_session_scope.return_value.__aenter__.return_value = MagicMock()
 
         with pytest.raises(ValueError, match="User id is not set"):
@@ -165,7 +165,7 @@ async def test_update_params_skips_empty_fields():
     load_from_db_fields = ["api_key", "another_key", "valid_key"]
 
     # Call the function
-    with patch("langflow.interface.initialize.loading.session_scope") as mock_session_scope:
+    with patch("langbuilder.interface.initialize.loading.session_scope") as mock_session_scope:
         mock_session_scope.return_value.__aenter__.return_value = MagicMock()
 
         result = await update_params_with_load_from_db_fields(
@@ -209,7 +209,7 @@ async def test_update_params_handles_multiple_fields():
     load_from_db_fields = ["field1", "field2", "field3"]
 
     # Call the function
-    with patch("langflow.interface.initialize.loading.session_scope") as mock_session_scope:
+    with patch("langbuilder.interface.initialize.loading.session_scope") as mock_session_scope:
         mock_session_scope.return_value.__aenter__.return_value = MagicMock()
 
         result = await update_params_with_load_from_db_fields(

@@ -4,9 +4,9 @@ import json
 import tempfile
 from pathlib import Path
 
-from langflow.base.data.base_file import BaseFileComponent
-from langflow.schema.data import Data
-from langflow.schema.message import Message
+from langbuilder.base.data.base_file import BaseFileComponent
+from langbuilder.schema.data import Data
+from langbuilder.schema.message import Message
 
 
 class TestFileComponent(BaseFileComponent):

@@ -11,8 +11,8 @@ import sys
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from langflow.base.mcp import util
-from langflow.base.mcp.util import MCPSessionManager, MCPSseClient, MCPStdioClient, _process_headers, validate_headers
+from langbuilder.base.mcp import util
+from langbuilder.base.mcp.util import MCPSessionManager, MCPSseClient, MCPStdioClient, _process_headers, validate_headers
 
 
 class TestMCPSessionManager:

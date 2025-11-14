@@ -3,8 +3,8 @@ name: Cross-Platform Installation Test
 on:
   workflow_dispatch:
     inputs:
-      langflow-version:
-        description: "Langflow version to test from PyPI (leave empty to test from source)"
+      langbuilder-version:
+        description: "LangBuilder version to test from PyPI (leave empty to test from source)"
         required: false
         type: string
         default: ""
@@ -23,7 +23,7 @@ jobs:
   build-if-needed:
     name: Build Packages (if no artifacts provided)
     runs-on: ubuntu-latest
-    if: inputs.langflow-version == '' && contains(github.workflow_ref, 'cross-platform-test.yml')
+    if: inputs.langbuilder-version == '' && contains(github.workflow_ref, 'cross-platform-test.yml')
     outputs:
       base-artifact-name: ${{ steps.set-names.outputs.base-artifact-name }}
       main-artifact-name: ${{ steps.set-names.outputs.main-artifact-name }}
@@ -43,14 +43,14 @@ jobs:
       - name: Build frontend
         run: make build_frontend
       - name: Build base package
-        run: make build_langflow_base args="--wheel"
+        run: make build_langbuilder_base args="--wheel"
       - name: Move base package to correct directory
         run: |
           # Base package builds to dist/ but should be in src/backend/base/dist/
           mkdir -p src/backend/base/dist
-          mv dist/langflow_base*.whl src/backend/base/dist/
+          mv dist/langbuilder_base*.whl src/backend/base/dist/
       - name: Build main package
-        run: make build_langflow args="--wheel"
+        run: make build_langbuilder args="--wheel"
       - name: Upload base artifact
         uses: actions/upload-artifact@v4
         with:
@@ -118,7 +118,7 @@ jobs:
         id: install-method
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            if [ -n "${{ inputs.langflow-version }}" ]; then
+            if [ -n "${{ inputs.langbuilder-version }}" ]; then
               echo "method=pypi" >> $GITHUB_OUTPUT
             else
               echo "method=wheel" >> $GITHUB_OUTPUT
@@ -219,23 +219,23 @@ jobs:
         shell: bash
 
       # PyPI installation steps
-      - name: Install langflow from PyPI (Windows)
+      - name: Install langbuilder from PyPI (Windows)
         if: steps.install-method.outputs.method == 'pypi' && matrix.os == 'windows'
         run: |
-          if [ -n "${{ inputs.langflow-version }}" ]; then
-            uv pip install --python ./test-env/Scripts/python.exe langflow==${{ inputs.langflow-version }}
+          if [ -n "${{ inputs.langbuilder-version }}" ]; then
+            uv pip install --python ./test-env/Scripts/python.exe langbuilder==${{ inputs.langbuilder-version }}
           else
-            uv pip install --python ./test-env/Scripts/python.exe langflow
+            uv pip install --python ./test-env/Scripts/python.exe langbuilder
           fi
         shell: bash
 
-      - name: Install langflow from PyPI (Unix)
+      - name: Install langbuilder from PyPI (Unix)
         if: steps.install-method.outputs.method == 'pypi' && matrix.os != 'windows'
         run: |
-          if [ -n "${{ inputs.langflow-version }}" ]; then
-            uv pip install --python ./test-env/bin/python langflow==${{ inputs.langflow-version }}
+          if [ -n "${{ inputs.langbuilder-version }}" ]; then
+            uv pip install --python ./test-env/bin/python langbuilder==${{ inputs.langbuilder-version }}
           else
-            uv pip install --python ./test-env/bin/python langflow
+            uv pip install --python ./test-env/bin/python langbuilder
           fi
         shell: bash
 
@@ -257,13 +257,13 @@ jobs:
         if: matrix.os == 'windows'
         run: |
           call test-env\Scripts\activate.bat
-          python -m langflow --help
+          python -m langbuilder --help
         shell: cmd
 
       - name: Test CLI help command (Unix)
         if: matrix.os != 'windows'
         run: |
-          ./test-env/bin/python -m langflow --help
+          ./test-env/bin/python -m langbuilder --help
         shell: bash
 
       - name: Test server startup (Windows)
@@ -271,7 +271,7 @@ jobs:
         timeout-minutes: 5
         run: |
           # Start server in background
-          $serverProcess = Start-Process -FilePath ".\test-env\Scripts\python.exe" -ArgumentList "-m", "langflow", "run", "--host", "localhost", "--port", "7860", "--backend-only" -PassThru -WindowStyle Hidden
+          $serverProcess = Start-Process -FilePath ".\test-env\Scripts\python.exe" -ArgumentList "-m", "langbuilder", "run", "--host", "localhost", "--port", "7860", "--backend-only" -PassThru -WindowStyle Hidden
 
           # Wait for server to be ready (GitHub Actions will timeout after 5 minutes)
           do {
@@ -295,7 +295,7 @@ jobs:
         timeout-minutes: 5
         run: |
           # Start server in background
-          ./test-env/bin/python -m langflow run --host localhost --port 7860 --backend-only &
+          ./test-env/bin/python -m langbuilder run --host localhost --port 7860 --backend-only &
           SERVER_PID=$!
 
           # Wait for server to be ready (GitHub Actions will timeout after 5 minutes)
@@ -317,10 +317,10 @@ jobs:
         run: |
           test-env\Scripts\python.exe -c "
           try:
-              import langflow
-              print('✅ langflow import successful on ${{ matrix.os }}-${{ matrix.arch }}')
+              import langbuilder
+              print('✅ langbuilder import successful on ${{ matrix.os }}-${{ matrix.arch }}')
           except Exception as e:
-              print(f'❌ langflow import failed on ${{ matrix.os }}-${{ matrix.arch }}: {e}')
+              print(f'❌ langbuilder import failed on ${{ matrix.os }}-${{ matrix.arch }}: {e}')
               exit(1)
           "
         shell: cmd
@@ -330,10 +330,10 @@ jobs:
         run: |
           ./test-env/bin/python -c "
           try:
-              import langflow
-              print('✅ langflow import successful on ${{ matrix.os }}-${{ matrix.arch }}')
+              import langbuilder
+              print('✅ langbuilder import successful on ${{ matrix.os }}-${{ matrix.arch }}')
           except Exception as e:
-              print(f'❌ langflow import failed on ${{ matrix.os }}-${{ matrix.arch }}: {e}')
+              print(f'❌ langbuilder import failed on ${{ matrix.os }}-${{ matrix.arch }}: {e}')
               exit(1)
           "
         shell: bash
@@ -371,7 +371,7 @@ jobs:
         id: install-method
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            if [ -n "${{ inputs.langflow-version }}" ]; then
+            if [ -n "${{ inputs.langbuilder-version }}" ]; then
               echo "method=pypi" >> $GITHUB_OUTPUT
             else
               echo "method=wheel" >> $GITHUB_OUTPUT
@@ -472,23 +472,23 @@ jobs:
         shell: bash
 
       # PyPI installation steps
-      - name: Install langflow from PyPI (Windows)
+      - name: Install langbuilder from PyPI (Windows)
         if: steps.install-method.outputs.method == 'pypi' && matrix.os == 'windows'
         run: |
-          if [ -n "${{ inputs.langflow-version }}" ]; then
-            uv pip install --python ./test-env/Scripts/python.exe langflow==${{ inputs.langflow-version }}
+          if [ -n "${{ inputs.langbuilder-version }}" ]; then
+            uv pip install --python ./test-env/Scripts/python.exe langbuilder==${{ inputs.langbuilder-version }}
           else
-            uv pip install --python ./test-env/Scripts/python.exe langflow
+            uv pip install --python ./test-env/Scripts/python.exe langbuilder
           fi
         shell: bash
 
-      - name: Install langflow from PyPI (Unix)
+      - name: Install langbuilder from PyPI (Unix)
         if: steps.install-method.outputs.method == 'pypi' && matrix.os != 'windows'
         run: |
-          if [ -n "${{ inputs.langflow-version }}" ]; then
-            uv pip install --python ./test-env/bin/python langflow==${{ inputs.langflow-version }}
+          if [ -n "${{ inputs.langbuilder-version }}" ]; then
+            uv pip install --python ./test-env/bin/python langbuilder==${{ inputs.langbuilder-version }}
           else
-            uv pip install --python ./test-env/bin/python langflow
+            uv pip install --python ./test-env/bin/python langbuilder
           fi
         shell: bash
 
@@ -510,13 +510,13 @@ jobs:
         if: matrix.os == 'windows'
         run: |
           call test-env\Scripts\activate.bat
-          python -m langflow --help
+          python -m langbuilder --help
         shell: cmd
 
       - name: Test CLI help command (Unix)
         if: matrix.os != 'windows'
         run: |
-          ./test-env/bin/python -m langflow --help
+          ./test-env/bin/python -m langbuilder --help
         shell: bash
 
       - name: Test server startup (Windows)
@@ -524,7 +524,7 @@ jobs:
         timeout-minutes: 5
         run: |
           # Start server in background
-          $serverProcess = Start-Process -FilePath ".\test-env\Scripts\python.exe" -ArgumentList "-m", "langflow", "run", "--host", "localhost", "--port", "7860", "--backend-only" -PassThru -WindowStyle Hidden
+          $serverProcess = Start-Process -FilePath ".\test-env\Scripts\python.exe" -ArgumentList "-m", "langbuilder", "run", "--host", "localhost", "--port", "7860", "--backend-only" -PassThru -WindowStyle Hidden
 
           # Wait for server to be ready (GitHub Actions will timeout after 5 minutes)
           do {
@@ -548,7 +548,7 @@ jobs:
         timeout-minutes: 5
         run: |
           # Start server in background
-          ./test-env/bin/python -m langflow run --host localhost --port 7860 --backend-only &
+          ./test-env/bin/python -m langbuilder run --host localhost --port 7860 --backend-only &
           SERVER_PID=$!
 
           # Wait for server to be ready (GitHub Actions will timeout after 5 minutes)
@@ -570,10 +570,10 @@ jobs:
         run: |
           test-env\Scripts\python.exe -c "
           try:
-              import langflow
-              print('✅ langflow import successful on ${{ matrix.os }}-${{ matrix.arch }}')
+              import langbuilder
+              print('✅ langbuilder import successful on ${{ matrix.os }}-${{ matrix.arch }}')
           except Exception as e:
-              print(f'❌ langflow import failed on ${{ matrix.os }}-${{ matrix.arch }}: {e}')
+              print(f'❌ langbuilder import failed on ${{ matrix.os }}-${{ matrix.arch }}: {e}')
               exit(1)
           "
         shell: cmd
@@ -583,10 +583,10 @@ jobs:
         run: |
           ./test-env/bin/python -c "
           try:
-              import langflow
-              print('✅ langflow import successful on ${{ matrix.os }}-${{ matrix.arch }}')
+              import langbuilder
+              print('✅ langbuilder import successful on ${{ matrix.os }}-${{ matrix.arch }}')
           except Exception as e:
-              print(f'❌ langflow import failed on ${{ matrix.os }}-${{ matrix.arch }}: {e}')
+              print(f'❌ langbuilder import failed on ${{ matrix.os }}-${{ matrix.arch }}: {e}')
               exit(1)
           "
         shell: bash
@@ -609,7 +609,7 @@ jobs:
           if [ "$stable_result" = "success" ]; then
             if [ "$experimental_result" = "success" ]; then
               if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-                if [ -n "${{ inputs.langflow-version }}" ]; then
+                if [ -n "${{ inputs.langbuilder-version }}" ]; then
                   echo "✅ All PyPI installation tests passed (including Python 3.13)"
                 else
                   echo "✅ All source build and installation tests passed (including Python 3.13)"
@@ -619,7 +619,7 @@ jobs:
               fi
             else
               if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-                if [ -n "${{ inputs.langflow-version }}" ]; then
+                if [ -n "${{ inputs.langbuilder-version }}" ]; then
                   echo "✅ PyPI installation tests passed (Python 3.13 experimental failures are acceptable)"
                 else
                   echo "✅ Source build and installation tests passed (Python 3.13 experimental failures are acceptable)"

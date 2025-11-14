@@ -1,5 +1,5 @@
 ---
-description: "Guidelines for frontend development in Langflow, focusing on React/TypeScript UI components, build processes, and frontend testing."
+description: "Guidelines for frontend development in LangBuilder, focusing on React/TypeScript UI components, build processes, and frontend testing."
 globs:
   - "src/frontend/**/*.{ts,tsx,js,jsx}"
   - "src/frontend/**/*.{css,scss,json}"

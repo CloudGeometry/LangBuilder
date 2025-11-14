@@ -1,39 +1,39 @@
 ---
-title: Langflow release notes
+title: LangBuilder release notes
 slug: /release-notes
 ---
 
-This page summarizes significant changes to Langflow in each release.
-For all changes, see the [Changelog](https://github.com/langflow-ai/langflow/releases/latest).
+This page summarizes significant changes to LangBuilder in each release.
+For all changes, see the [Changelog](https://github.com/CloudGeometry/langbuilder/releases/latest).
 
-Due to strict SemVer requirements, Langflow Desktop can have different patch versions than the core Langflow OSS Python package, but the major and minor versions are aligned.
+Due to strict SemVer requirements, LangBuilder Desktop can have different patch versions than the core LangBuilder OSS Python package, but the major and minor versions are aligned.
 
 ## Prepare to upgrade
 
 :::important
-Whenever possible, the Langflow team recommends installing new Langflow versions in a new virtual environment or VM before upgrading your primary installation.
+Whenever possible, the LangBuilder team recommends installing new LangBuilder versions in a new virtual environment or VM before upgrading your primary installation.
 This allows you to [import flows](/concepts-flows-import#import-a-flow) from your existing installation and test them in the new version without disrupting your existing installation.
 In the event of breaking changes or bugs, your existing installation is preserved in a stable state.
 :::
 
-To avoid the impact of potential breaking changes and test new versions, the Langflow team recommends the following upgrade process:
+To avoid the impact of potential breaking changes and test new versions, the LangBuilder team recommends the following upgrade process:
 
 1. Recommended: [Export your projects](/api-projects#export-a-project) to create backups of your flows:
 
     ```bash
     curl -X GET \
-    "$LANGFLOW_SERVER_URL/api/v1/projects/download/$PROJECT_ID" \
+    "$LANGBUILDER_SERVER_URL/api/v1/projects/download/$PROJECT_ID" \
       -H "accept: application/json" \
-      -H "x-api-key: $LANGFLOW_API_KEY"
+      -H "x-api-key: $LANGBUILDER_API_KEY"
     ```
 
    To export flows from the visual editor, see [Import and export flows](/concepts-flows-import).
 
 2. Install the new version:
 
-   * **Langflow OSS Python package**: Install the new version in a new virtual environment. For instructions, see [Install and run the Langflow OSS Python package](/get-started-installation#install-and-run-the-langflow-oss-python-package).
-   * **Langflow Docker image**: Run the new image in a separate container.
-   * **Langflow Desktop**: To upgrade in place, open Langflow Desktop, and then click **Upgrade Available** in the Langflow header. If you want to isolate the new version, you must install Langflow Desktop on a separate physical or virtual machine, and then [import your flows](/concepts-flows-import) to the new installation.
+   * **LangBuilder OSS Python package**: Install the new version in a new virtual environment. For instructions, see [Install and run the LangBuilder OSS Python package](/get-started-installation#install-and-run-the-langbuilder-oss-python-package).
+   * **LangBuilder Docker image**: Run the new image in a separate container.
+   * **LangBuilder Desktop**: To upgrade in place, open LangBuilder Desktop, and then click **Upgrade Available** in the LangBuilder header. If you want to isolate the new version, you must install LangBuilder Desktop on a separate physical or virtual machine, and then [import your flows](/concepts-flows-import) to the new installation.
 
 3. [Import your flows](/concepts-flows-import) to test them in the new version, [upgrading components](/concepts-components#component-versions) as needed.
 
@@ -46,13 +46,13 @@ To avoid the impact of potential breaking changes and test new versions, the Lan
 ## 1.5.0
 
 Highlights of this release include the following changes.
-For all changes, see the [Changelog](https://github.com/langflow-ai/langflow/releases).
+For all changes, see the [Changelog](https://github.com/CloudGeometry/langbuilder/releases).
 
 ### New features and enhancements
 
 - Authentication changes
 
-    To enhance security and ensure proper authentication for automatic login features, most API endpoints now require authentication with a Langflow API key, regardless of the `AUTO_LOGIN` setting.
+    To enhance security and ensure proper authentication for automatic login features, most API endpoints now require authentication with a LangBuilder API key, regardless of the `AUTO_LOGIN` setting.
     The only exceptions are the MCP endpoints `/v1/mcp`, `/v1/mcp-projects`, and `/v2/mcp`, which never require authentication.
     For more information, see [API keys and authentication](/api-keys-and-authentication).
 
@@ -65,14 +65,14 @@ For all changes, see the [Changelog](https://github.com/langflow-ai/langflow/rel
 
 - MCP server one-click installation
 
-    On your Langflow project's **MCP server** page, click **Auto install** to install your Langflow MCP server to MCP clients with just one click.
+    On your LangBuilder project's **MCP server** page, click **Auto install** to install your LangBuilder MCP server to MCP clients with just one click.
     The option to install with a JSON configuration file is available for macOS, Windows, and WSL.
-    For more information, see [Use Langflow as an MCP server](/mcp-server).
+    For more information, see [Use LangBuilder as an MCP server](/mcp-server).
 
 - MCP server management
 
-    You can now add, remove, and edit your MCP servers in the **MCP Tools** components and through your Langflow **Settings** page.
-    For more information, see [Use Langflow as an MCP client](/mcp-client).
+    You can now add, remove, and edit your MCP servers in the **MCP Tools** components and through your LangBuilder **Settings** page.
+    For more information, see [Use LangBuilder as an MCP client](/mcp-client).
 
 - Input schema replaces temporary overrides
 
@@ -91,7 +91,7 @@ For all changes, see the [Changelog](https://github.com/langflow-ai/langflow/rel
 - Stability improvements
 
     General stability improvements and bug fixes for enhanced reliability.
-    See an issue? [Raise it on GitHub](https://github.com/langflow-ai/langflow/issues).
+    See an issue? [Raise it on GitHub](https://github.com/CloudGeometry/langbuilder/issues).
 
 - New integrations and bundles
 
@@ -100,7 +100,7 @@ For all changes, see the [Changelog](https://github.com/langflow-ai/langflow/rel
 ## 1.4.2
 
 Highlights of this release include the following changes.
-For all changes, see the [Changelog](https://github.com/langflow-ai/langflow/releases).
+For all changes, see the [Changelog](https://github.com/CloudGeometry/langbuilder/releases).
 
 ### New features and enhancements
 
@@ -116,20 +116,20 @@ For all changes, see the [Changelog](https://github.com/langflow-ai/langflow/rel
 ## 1.4.1
 
 Highlights of this release include the following changes.
-For all changes, see the [Changelog](https://github.com/langflow-ai/langflow/releases).
+For all changes, see the [Changelog](https://github.com/CloudGeometry/langbuilder/releases).
 
 ### New features and enhancements
 
-- Added an enhanced **Breaking Changes** feature to help update components without breaking flows after updating Langflow.
+- Added an enhanced **Breaking Changes** feature to help update components without breaking flows after updating LangBuilder.
 
 ## 1.4.0
 
 Highlights of this release include the following changes.
-For all changes, see the [Changelog](https://github.com/langflow-ai/langflow/releases).
+For all changes, see the [Changelog](https://github.com/CloudGeometry/langbuilder/releases).
 
 ### New features and enhancements
 
-- Introduced MCP server functionality to serve Langflow tools to MCP-compatible clients.
+- Introduced MCP server functionality to serve LangBuilder tools to MCP-compatible clients.
 - Renamed **Folders** to **Projects** in the visual editor.
 - The `/folders` endpoints now redirect to `/projects`.
 
@@ -140,4 +140,4 @@ For alternatives, see the [**Google** bundle](/bundles-google).
 
 ## Earlier releases
 
-See the [Changelog](https://github.com/langflow-ai/langflow/releases).
+See the [Changelog](https://github.com/CloudGeometry/langbuilder/releases).

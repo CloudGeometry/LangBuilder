@@ -1,6 +1,6 @@
-from langflow.components.input_output import ChatOutput
-from langflow.memory import aget_messages
-from langflow.schema.message import Message
+from langbuilder.components.input_output import ChatOutput
+from langbuilder.memory import aget_messages
+from langbuilder.schema.message import Message
 
 from tests.integration.utils import run_single_component
 

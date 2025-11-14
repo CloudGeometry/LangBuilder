@@ -1,7 +1,7 @@
-from langflow.components.input_output import ChatInput, ChatOutput
-from langflow.components.processing import PromptComponent
-from langflow.graph import Graph
-from langflow.schema.message import Message
+from langbuilder.components.input_output import ChatInput, ChatOutput
+from langbuilder.components.processing import PromptComponent
+from langbuilder.graph import Graph
+from langbuilder.schema.message import Message
 
 from tests.integration.utils import pyleak_marker, run_flow
 

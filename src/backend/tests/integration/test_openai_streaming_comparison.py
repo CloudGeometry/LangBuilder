@@ -34,7 +34,7 @@ load_env_vars()
 
 
 async def create_global_variable(client: AsyncClient, headers, name, value, variable_type="credential"):
-    """Create a global variable in Langflow."""
+    """Create a global variable in LangBuilder."""
     payload = {"name": name, "value": value, "type": variable_type, "default_fields": []}
 
     response = await client.post("/api/v1/variables/", json=payload, headers=headers)
@@ -61,7 +61,7 @@ async def load_and_prepare_flow(client: AsyncClient, created_api_key):
     template_path = (
         pathlib.Path(__file__).resolve().parent.parent.parent
         / "base"
-        / "langflow"
+        / "langbuilder"
         / "initial_setup"
         / "starter_projects"
         / "Simple Agent.json"

@@ -1,5 +1,5 @@
 import pytest
-from langflow.base.data.utils import format_directory_path
+from langbuilder.base.data.utils import format_directory_path
 
 
 @pytest.mark.parametrize(

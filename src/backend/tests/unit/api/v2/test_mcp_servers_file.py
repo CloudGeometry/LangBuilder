@@ -7,11 +7,11 @@ import pytest
 from fastapi import UploadFile
 
 # Module under test
-from langflow.api.v2.files import upload_user_file
-from langflow.api.v2.mcp import get_mcp_file
+from langbuilder.api.v2.files import upload_user_file
+from langbuilder.api.v2.mcp import get_mcp_file
 
 if TYPE_CHECKING:
-    from langflow.services.database.models.file.model import File as UserFile
+    from langbuilder.services.database.models.file.model import File as UserFile
 
 
 class FakeStorageService:  # Minimal stub for storage interactions

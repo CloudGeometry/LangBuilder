@@ -4,8 +4,8 @@ import { awaitBootstrapTest } from "../../utils/await-bootstrap-test";
 // Helper function to get JWT token for API requests
 async function getAuthToken(request: any) {
   const formData = new URLSearchParams();
-  formData.append("username", "langflow");
-  formData.append("password", "langflow");
+  formData.append("username", "langbuilder");
+  formData.append("password", "langbuilder");
 
   const loginResponse = await request.post("/api/v1/login", {
     headers: {

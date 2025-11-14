@@ -6,26 +6,26 @@ slug: /api-logs
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-Retrieve logs for your Langflow flow.
+Retrieve logs for your LangBuilder flow.
 
 ## Enable log retrieval
 
-The `/logs` endpoint requires log retrieval to be enabled in your Langflow instance.
+The `/logs` endpoint requires log retrieval to be enabled in your LangBuilder instance.
 
 1. To enable log retrieval, include these values in your `.env` file:
 
     ```text
-    LANGFLOW_ENABLE_LOG_RETRIEVAL=True
-    LANGFLOW_LOG_RETRIEVER_BUFFER_SIZE=10000
-    LANGFLOW_LOG_LEVEL=DEBUG
+    LANGBUILDER_ENABLE_LOG_RETRIEVAL=True
+    LANGBUILDER_LOG_RETRIEVER_BUFFER_SIZE=10000
+    LANGBUILDER_LOG_LEVEL=DEBUG
     ```
 
-    Log retrieval requires that `LANGFLOW_LOG_RETRIEVER_BUFFER_SIZE` is greater than 0. The default value is `10000`.
+    Log retrieval requires that `LANGBUILDER_LOG_RETRIEVER_BUFFER_SIZE` is greater than 0. The default value is `10000`.
 
-2. Start Langflow with the updated `.env`:
+2. Start LangBuilder with the updated `.env`:
 
    ```text
-   uv run langflow run --env-file .env
+   uv run langbuilder run --env-file .env
    ```
 
 ## Stream logs
@@ -34,9 +34,9 @@ Stream logs in real-time using Server Sent Events (SSE).
 
 ```bash
 curl -X GET \
-  "$LANGFLOW_URL/logs-stream" \
+  "$LANGBUILDER_URL/logs-stream" \
   -H "accept: text/event-stream" \
-  -H "x-api-key: $LANGFLOW_API_KEY"
+  -H "x-api-key: $LANGBUILDER_API_KEY"
 ```
 
 <details>
@@ -77,9 +77,9 @@ With default values, the endpoint returns the last 10 lines of logs.
 
 ```bash
 curl -X GET \
-  "$LANGFLOW_URL/logs?lines_before=0&lines_after=0&timestamp=0" \
+  "$LANGBUILDER_URL/logs?lines_before=0&lines_after=0&timestamp=0" \
   -H "accept: application/json" \
-  -H "x-api-key: $LANGFLOW_API_KEY"
+  -H "x-api-key: $LANGBUILDER_API_KEY"
 ```
 
 <details>
@@ -96,7 +96,7 @@ curl -X GET \
   "1736354770588": "2025-01-08T11:46:10.588105-0500 DEBUG Create service ServiceType.CHAT_SERVICE\n",
   "1736354771021": "2025-01-08T11:46:11.021817-0500 DEBUG Telemetry data sent successfully.\n",
   "1736354775619": "2025-01-08T11:46:15.619545-0500 DEBUG Create service ServiceType.STORE_SERVICE\n",
-  "1736354775699": "2025-01-08T11:46:15.699661-0500 DEBUG File 046-rocket.svg retrieved successfully from flow /Users/USER/Library/Caches/langflow/profile_pictures/Space.\n"
+  "1736354775699": "2025-01-08T11:46:15.699661-0500 DEBUG File 046-rocket.svg retrieved successfully from flow /Users/USER/Library/Caches/langbuilder/profile_pictures/Space.\n"
 }
 ```
 

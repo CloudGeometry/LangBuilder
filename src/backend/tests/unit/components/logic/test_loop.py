@@ -5,20 +5,20 @@ from uuid import UUID
 import orjson
 import pytest
 from httpx import AsyncClient
-from langflow.components.data.url import URLComponent
-from langflow.components.input_output import ChatOutput
-from langflow.components.logic import LoopComponent
-from langflow.components.openai.openai_chat_model import OpenAIModelComponent
-from langflow.components.processing import (
+from langbuilder.components.data.url import URLComponent
+from langbuilder.components.input_output import ChatOutput
+from langbuilder.components.logic import LoopComponent
+from langbuilder.components.openai.openai_chat_model import OpenAIModelComponent
+from langbuilder.components.processing import (
     ParserComponent,
     PromptComponent,
     SplitTextComponent,
     StructuredOutputComponent,
 )
-from langflow.graph import Graph
-from langflow.memory import aget_messages
-from langflow.schema.data import Data
-from langflow.services.database.models.flow import FlowCreate
+from langbuilder.graph import Graph
+from langbuilder.memory import aget_messages
+from langbuilder.schema.data import Data
+from langbuilder.services.database.models.flow import FlowCreate
 
 from tests.base import ComponentTestBaseWithClient
 from tests.unit.build_utils import build_flow, get_build_events
@@ -134,7 +134,7 @@ def loop_flow():
     """Complete loop flow that processes multiple URLs through a loop."""
     # Create URL component to fetch content from multiple sources
     url_component = URLComponent()
-    url_component.set(urls=["https://docs.langflow.org/"])
+    url_component.set(urls=["https://docs.langbuilder.org/"])
 
     # Create SplitText component to chunk the content
     split_text_component = SplitTextComponent()

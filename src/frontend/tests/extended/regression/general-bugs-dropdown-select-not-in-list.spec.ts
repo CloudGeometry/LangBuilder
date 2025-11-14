@@ -33,7 +33,7 @@ test(
     await page.getByTestId("dropdown_search_input").click();
     await page
       .getByTestId("dropdown_search_input")
-      .fill("this is a test langflow");
+      .fill("this is a test langbuilder");
     await page.keyboard.press("Enter");
 
     await page.waitForTimeout(500);
@@ -58,7 +58,7 @@ test(
     await page.getByTestId("dropdown_search_input").click();
     await page
       .getByTestId("dropdown_search_input")
-      .fill("this is a test langflow");
+      .fill("this is a test langbuilder");
     await page.keyboard.press("Enter");
 
     await page.waitForTimeout(500);

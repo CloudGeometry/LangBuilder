@@ -1,6 +1,6 @@
 #!/usr/bin/env pwsh
 
-Write-Host "Starting Langflow build and run process..." -ForegroundColor Green
+Write-Host "Starting LangBuilder build and run process..." -ForegroundColor Green
 
 # Check if .env file exists and set env file parameter
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
@@ -12,7 +12,7 @@ if (Test-Path $envPath) {
     $useEnvFile = $true
 } else {
     Write-Host ".env file not found at: $envPath" -ForegroundColor Yellow
-    Write-Host "Langflow will use default configuration" -ForegroundColor Yellow
+    Write-Host "LangBuilder will use default configuration" -ForegroundColor Yellow
 }
 
 # Step 1: Install frontend dependencies
@@ -58,7 +58,7 @@ try {
         throw "Neither build nor dist directory found in src\frontend"
     }
 
-    $targetDir = "src\backend\base\langflow\frontend"
+    $targetDir = "src\backend\base\langbuilder\frontend"
     Write-Host "Copying from $buildDir to $targetDir"
 
     # Create target directory if it doesn't exist
@@ -82,20 +82,20 @@ try {
     exit 1
 }
 
-# Step 4: Run Langflow
-Write-Host "`nStep 4: Running Langflow..." -ForegroundColor Yellow
+# Step 4: Run LangBuilder
+Write-Host "`nStep 4: Running LangBuilder..." -ForegroundColor Yellow
 Write-Host "`nAttention: Wait until uvicorn is running before opening the browser" -ForegroundColor Red
 try {
     if ($useEnvFile) {
-        & uv run --env-file $envPath langflow run
+        & uv run --env-file $envPath langbuilder run
     } else {
-        & uv run langflow run
+        & uv run langbuilder run
     }
 } catch {
-    Write-Host "Error running langflow: $_" -ForegroundColor Red
+    Write-Host "Error running langbuilder: $_" -ForegroundColor Red
     Read-Host "Press Enter to exit"
     exit 1
 }
 
-Write-Host "`nLangflow build and run process completed!" -ForegroundColor Green
+Write-Host "`nLangBuilder build and run process completed!" -ForegroundColor Green
 Read-Host "Press Enter to exit"

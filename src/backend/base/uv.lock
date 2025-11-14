@@ -2244,7 +2244,7 @@ wheels = [
 ]
 
 [[package]]
-name = "langflow-base"
+name = "langbuilder-base"
 version = "0.0.96"
 source = { editable = "." }
 dependencies = [

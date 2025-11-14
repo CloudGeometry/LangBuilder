@@ -3,31 +3,31 @@ title: Install custom dependencies
 slug: /install-custom-dependencies
 ---
 
-Langflow provides optional dependency groups and support for custom dependencies to extend Langflow functionality. This guide covers how to add dependencies for different Langflow installations, including Langflow Desktop and Langflow OSS.
+LangBuilder provides optional dependency groups and support for custom dependencies to extend LangBuilder functionality. This guide covers how to add dependencies for different LangBuilder installations, including LangBuilder Desktop and LangBuilder OSS.
 
-The Langflow codebase uses two `pyproject.toml` files to manage dependencies, with one for `base` and one for `main`:
+The LangBuilder codebase uses two `pyproject.toml` files to manage dependencies, with one for `base` and one for `main`:
 
 * The `main` package is managed by the root level `pyproject.toml`, and it includes end-user features and main application code, such as Langchain and OpenAI.
 * The `base` package is managed at `src/backend/base/pyproject.toml`, and it includes core infrastructure, such as the FastAPI web framework.
 
-## Install custom dependencies in Langflow Desktop {#langflow-desktop}
+## Install custom dependencies in LangBuilder Desktop {#langbuilder-desktop}
 
-To add dependencies to Langflow Desktop, add an entry for the package to the application's `requirements.txt` file:
+To add dependencies to LangBuilder Desktop, add an entry for the package to the application's `requirements.txt` file:
 
-    * On macOS, the file is located at `/Users/USER/.langflow/data/requirements.txt`.
-    * On Windows, the file is located at `C:\Users\USER\AppData\Roaming\com.Langflow\data\requirements.txt`.
+    * On macOS, the file is located at `/Users/USER/.langbuilder/data/requirements.txt`.
+    * On Windows, the file is located at `C:\Users\USER\AppData\Roaming\com.LangBuilder\data\requirements.txt`.
 
 Add each dependency to `requirements.txt` on its own line in the format `DEPENDENCY==VERSION`, such as `docling==2.40.0`.
 
-Restart Langflow Desktop to install the dependencies.
+Restart LangBuilder Desktop to install the dependencies.
 
-If you need to change or uninstall custom dependencies, edit the `requirements.txt` file, and then restart Langflow Desktop.
+If you need to change or uninstall custom dependencies, edit the `requirements.txt` file, and then restart LangBuilder Desktop.
 
-## Install custom dependencies in Langflow OSS
+## Install custom dependencies in LangBuilder OSS
 
-To install your own custom dependencies in your Langflow environment, add them with your package manager.
+To install your own custom dependencies in your LangBuilder environment, add them with your package manager.
 
-If you're working within a cloned Langflow repository, add dependencies with `uv add` because there is already a `pyproject.toml` file for uv to reference:
+If you're working within a cloned LangBuilder repository, add dependencies with `uv add` because there is already a `pyproject.toml` file for uv to reference:
 
 ```bash
 uv add DEPENDENCY
@@ -35,38 +35,38 @@ uv add DEPENDENCY
 
 ### Install optional dependency groups
 
-Langflow OSS provides optional dependency groups that extend its functionality.
+LangBuilder OSS provides optional dependency groups that extend its functionality.
 
-These dependencies are listed in the [pyproject.toml](https://github.com/langflow-ai/langflow/blob/main/pyproject.toml#L194) file under `[project.optional-dependencies]`.
+These dependencies are listed in the [pyproject.toml](https://github.com/CloudGeometry/langbuilder/blob/main/pyproject.toml#L194) file under `[project.optional-dependencies]`.
 
-Install dependency groups using pip's `[extras]` syntax. For example, to install Langflow with the `postgresql` dependency group, enter the following command:
+Install dependency groups using pip's `[extras]` syntax. For example, to install LangBuilder with the `postgresql` dependency group, enter the following command:
 
 ```bash
-uv pip install "langflow[postgresql]"
+uv pip install "langbuilder[postgresql]"
 ```
 
 To install multiple extras, use commas to separate each dependency group:
 
 ```bash
-uv pip install "langflow[local,postgresql]"
+uv pip install "langbuilder[local,postgresql]"
 ```
 
 ### Use a virtual environment to test custom dependencies
 
 When testing locally, use a virtual environment to isolate your dependencies and prevent conflicts with other Python projects.
 
-For example, if you want to experiment with `matplotlib` with Langflow:
+For example, if you want to experiment with `matplotlib` with LangBuilder:
 
 ```bash
 # Create and activate a virtual environment
-uv venv YOUR_LANGFLOW_VENV
-source YOUR_LANGFLOW_VENV/bin/activate
+uv venv YOUR_LANGBUILDER_VENV
+source YOUR_LANGBUILDER_VENV/bin/activate
 
-# Install langflow and your additional dependency
-uv pip install langflow matplotlib
+# Install langbuilder and your additional dependency
+uv pip install langbuilder matplotlib
 ```
 
-If you're working within a cloned Langflow repository, add dependencies with `uv add` to reference the existing `pyproject.toml` files:
+If you're working within a cloned LangBuilder repository, add dependencies with `uv add` to reference the existing `pyproject.toml` files:
 
 ```bash
 uv add matplotlib
@@ -74,11 +74,11 @@ uv add matplotlib
 
 The `uv add` commands automatically update the `uv.lock` file in the appropriate location.
 
-## Add dependencies to the Langflow codebase
+## Add dependencies to the LangBuilder codebase
 
-When contributing to the Langflow codebase, you might need to add dependencies to Langflow.
+When contributing to the LangBuilder codebase, you might need to add dependencies to LangBuilder.
 
-Langflow uses a workspace with two packages, each with different types of dependencies.
+LangBuilder uses a workspace with two packages, each with different types of dependencies.
 
 To add a dependency to the `main` package, run `uv add DEPENDENCY` from the project root.
 For example:
@@ -143,6 +143,6 @@ dev = [
 
 ## See also
 
-* [Containerize a Langflow application](/develop-application)
+* [Containerize a LangBuilder application](/develop-application)
 * [Create custom Python components](/components-custom-components)
 * [**Docling** bundle](/integrations-docling)

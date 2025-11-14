@@ -12,7 +12,7 @@ load_dotenv(find_dotenv())
 
 
 async def create_global_variable(client: AsyncClient, headers, name, value, variable_type="credential"):
-    """Create a global variable in Langflow."""
+    """Create a global variable in LangBuilder."""
     payload = {"name": name, "value": value, "type": variable_type, "default_fields": []}
 
     response = await client.post("/api/v1/variables/", json=payload, headers=headers)
@@ -40,7 +40,7 @@ async def load_and_prepare_flow(client: AsyncClient, created_api_key):
     template_path = (
         pathlib.Path(__file__).resolve().parent.parent.parent
         / "base"
-        / "langflow"
+        / "langbuilder"
         / "initial_setup"
         / "starter_projects"
         / "Basic Prompting.json"
@@ -91,7 +91,7 @@ async def test_openai_responses_non_streaming(client: AsyncClient, created_api_k
     flow, headers = await load_and_prepare_flow(client, created_api_key)
 
     # Now test the OpenAI-compatible endpoint
-    payload = {"model": flow["id"], "input": "Hello, Langflow!", "stream": False}
+    payload = {"model": flow["id"], "input": "Hello, LangBuilder!", "stream": False}
 
     # Make the request
     response = await client.post("/api/v1/responses", json=payload, headers=headers)

@@ -260,7 +260,7 @@ jobs:
       ASTRA_DB_API_ENDPOINT: "${{ secrets.ASTRA_DB_API_ENDPOINT }}"
       ANTHROPIC_API_KEY: "${{ secrets.ANTHROPIC_API_KEY }}"
       TAVILY_API_KEY: "${{ secrets.TAVILY_API_KEY }}"
-      LANGFLOW_DEACTIVE_TRACING: "true"
+      LANGBUILDER_DEACTIVE_TRACING: "true"
     outputs:
       failed: ${{ steps.check-failure.outputs.failed }}
     steps:

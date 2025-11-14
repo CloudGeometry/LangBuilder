@@ -6,7 +6,7 @@ Tests the core import_mod function used throughout the dynamic import system.
 from unittest.mock import patch
 
 import pytest
-from langflow.components._importing import import_mod
+from langbuilder.components._importing import import_mod
 
 
 class TestImportAttr:
@@ -15,7 +15,7 @@ class TestImportAttr:
     def test_import_module_with_none_module_name(self):
         """Test importing a module when module_name is None."""
         # This should import the module directly using the attr_name
-        result = import_mod("agents", None, "langflow.components")
+        result = import_mod("agents", None, "langbuilder.components")
 
         # Should return the agents module
         assert result is not None
@@ -24,7 +24,7 @@ class TestImportAttr:
     def test_import_module_with_module_name(self):
         """Test importing a module when module_name is __module__."""
         # This should import the module directly using the attr_name
-        result = import_mod("agents", "__module__", "langflow.components")
+        result = import_mod("agents", "__module__", "langbuilder.components")
 
         # Should return the agents module
         assert result is not None
@@ -33,7 +33,7 @@ class TestImportAttr:
     def test_import_modibute_from_module(self):
         """Test importing a specific attribute from a module."""
         # Test importing a class from a specific module
-        result = import_mod("AnthropicModelComponent", "anthropic", "langflow.components.anthropic")
+        result = import_mod("AnthropicModelComponent", "anthropic", "langbuilder.components.anthropic")
 
         assert result is not None
         assert hasattr(result, "__name__")
@@ -42,22 +42,22 @@ class TestImportAttr:
     def test_import_nonexistent_module(self):
         """Test error handling when module doesn't exist."""
         with pytest.raises(ImportError, match="not found"):
-            import_mod("SomeComponent", "nonexistent_module", "langflow.components.openai")
+            import_mod("SomeComponent", "nonexistent_module", "langbuilder.components.openai")
 
     def test_module_not_found_with_none_module_name(self):
         """Test ModuleNotFoundError handling when module_name is None."""
         with pytest.raises(AttributeError, match="has no attribute"):
-            import_mod("nonexistent_module", None, "langflow.components")
+            import_mod("nonexistent_module", None, "langbuilder.components")
 
     def test_module_not_found_with_module_special_name(self):
         """Test ModuleNotFoundError handling when module_name is '__module__'."""
         with pytest.raises(AttributeError, match="has no attribute"):
-            import_mod("nonexistent_module", "__module__", "langflow.components")
+            import_mod("nonexistent_module", "__module__", "langbuilder.components")
 
     def test_import_nonexistent_attribute(self):
         """Test error handling when attribute doesn't exist in module."""
         with pytest.raises(AttributeError):
-            import_mod("NonExistentComponent", "anthropic", "langflow.components.anthropic")
+            import_mod("NonExistentComponent", "anthropic", "langbuilder.components.anthropic")
 
     def test_import_with_none_package(self):
         """Test behavior when package is None."""
@@ -84,51 +84,51 @@ class TestImportAttr:
     def test_relative_import_behavior(self):
         """Test that relative imports are constructed correctly."""
         # This test verifies the relative import logic
-        result = import_mod("helpers", "__module__", "langflow.components")
+        result = import_mod("helpers", "__module__", "langbuilder.components")
         assert result is not None
 
     def test_package_resolution(self):
         """Test that package parameter is used correctly."""
         # Test with a known working package and module
-        result = import_mod("CalculatorComponent", "calculator_core", "langflow.components.helpers")
+        result = import_mod("CalculatorComponent", "calculator_core", "langbuilder.components.helpers")
         assert result is not None
         assert callable(result)
 
     def test_import_mod_with_special_module_name(self):
         """Test behavior with special module_name values."""
         # Test with "__module__" - should import the attr_name as a module
-        result = import_mod("data", "__module__", "langflow.components")
+        result = import_mod("data", "__module__", "langbuilder.components")
         assert result is not None
 
         # Test with None - should also import the attr_name as a module
-        result2 = import_mod("data", None, "langflow.components")
+        result2 = import_mod("data", None, "langbuilder.components")
         assert result2 is not None
 
     def test_error_message_formatting(self):
         """Test that error messages are properly formatted."""
         with pytest.raises(ImportError) as exc_info:
-            import_mod("NonExistent", "nonexistent", "langflow.components")
+            import_mod("NonExistent", "nonexistent", "langbuilder.components")
 
         error_msg = str(exc_info.value)
-        assert "langflow.components" in error_msg
+        assert "langbuilder.components" in error_msg
         assert "nonexistent" in error_msg
 
     def test_return_value_types(self):
         """Test that import_mod returns appropriate types."""
         # Test module import
-        module_result = import_mod("openai", "__module__", "langflow.components")
+        module_result = import_mod("openai", "__module__", "langbuilder.components")
         assert hasattr(module_result, "__name__")
 
         # Test class import
-        class_result = import_mod("OpenAIModelComponent", "openai_chat_model", "langflow.components.openai")
+        class_result = import_mod("OpenAIModelComponent", "openai_chat_model", "langbuilder.components.openai")
         assert callable(class_result)
         assert hasattr(class_result, "__name__")
 
     def test_caching_independence(self):
         """Test that import_mod doesn't interfere with Python's module caching."""
         # Multiple calls should work consistently
-        result1 = import_mod("agents", "__module__", "langflow.components")
-        result2 = import_mod("agents", "__module__", "langflow.components")
+        result1 = import_mod("agents", "__module__", "langbuilder.components")
+        result2 = import_mod("agents", "__module__", "langbuilder.components")
 
         # Should return the same module object (Python's import caching)
         assert result1 is result2

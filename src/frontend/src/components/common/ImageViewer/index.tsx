@@ -90,8 +90,8 @@ export default function ImageViewer({ image }: { image: string }) {
         {IMGViewErrorTitle}
       </div>
       <div className="align-center flex justify-center">
-        <div className="langflow-chat-desc align-center flex justify-center">
-          <div className="langflow-chat-desc-span">{IMGViewErrorMSG}</div>
+        <div className="langbuilder-chat-desc align-center flex justify-center">
+          <div className="langbuilder-chat-desc-span">{IMGViewErrorMSG}</div>
         </div>
       </div>
     </div>

@@ -7,7 +7,7 @@ import useHandleNodeClass from "@/CustomNodes/hooks/use-handle-node-class";
 import ShadTooltip from "@/components/common/shadTooltipComponent";
 import ToggleShadComponent from "@/components/core/parameterRenderComponent/components/toggleShadComponent";
 import { Button } from "@/components/ui/button";
-import { LANGFLOW_SUPPORTED_TYPES } from "@/constants/constants";
+import { LANGBUILDER_SUPPORTED_TYPES } from "@/constants/constants";
 import { usePostTemplateValue } from "@/controllers/API/queries/nodes/use-post-template-value";
 import { usePostRetrieveVertexOrder } from "@/controllers/API/queries/vertex";
 import { customOpenNewTab } from "@/customization/utils/custom-open-new-tab";
@@ -127,7 +127,7 @@ const NodeToolbarComponent = memo(
     const inputsWithHandle =
       Object.values(data.node?.template ?? {}).filter((input) => {
         return (
-          (!LANGFLOW_SUPPORTED_TYPES.has(input.type ?? "") ||
+          (!LANGBUILDER_SUPPORTED_TYPES.has(input.type ?? "") ||
             (input.input_types && input.input_types.length > 0)) &&
           (!input.tool_mode || !data.node?.tool_mode) &&
           !input.refresh_button &&

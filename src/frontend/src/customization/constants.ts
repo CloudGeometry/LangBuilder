@@ -1,4 +1,4 @@
-//Langflow Desktop Base URL
+//LangBuilder Desktop Base URL
 export const baseURL = "";
 
 export const customCodeTabsClass = {

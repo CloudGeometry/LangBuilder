@@ -1,9 +1,9 @@
 import pytest
-from langflow.components.input_output import ChatInput, ChatOutput
-from langflow.graph import Graph
-from langflow.graph.graph.constants import Finish
-from langflow.graph.state.model import create_state_model
-from langflow.template.field.base import UNDEFINED
+from langbuilder.components.input_output import ChatInput, ChatOutput
+from langbuilder.graph import Graph
+from langbuilder.graph.graph.constants import Finish
+from langbuilder.graph.state.model import create_state_model
+from langbuilder.template.field.base import UNDEFINED
 from pydantic import Field
 
 

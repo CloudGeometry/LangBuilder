@@ -6,11 +6,11 @@ import sys
 import packaging.version
 from packaging.version import Version
 
-PYPI_LANGFLOW_URL = "https://pypi.org/pypi/langflow/json"
-PYPI_LANGFLOW_NIGHTLY_URL = "https://pypi.org/pypi/langflow-nightly/json"
+PYPI_LANGBUILDER_URL = "https://pypi.org/pypi/langbuilder/json"
+PYPI_LANGBUILDER_NIGHTLY_URL = "https://pypi.org/pypi/langbuilder-nightly/json"
 
-PYPI_LANGFLOW_BASE_URL = "https://pypi.org/pypi/langflow-base/json"
-PYPI_LANGFLOW_BASE_NIGHTLY_URL = "https://pypi.org/pypi/langflow-base-nightly/json"
+PYPI_LANGBUILDER_BASE_URL = "https://pypi.org/pypi/langbuilder-base/json"
+PYPI_LANGBUILDER_BASE_NIGHTLY_URL = "https://pypi.org/pypi/langbuilder-base-nightly/json"
 
 ARGUMENT_NUMBER = 2
 
@@ -20,9 +20,9 @@ def get_latest_published_version(build_type: str, *, is_nightly: bool) -> Versio
 
     url = ""
     if build_type == "base":
-        url = PYPI_LANGFLOW_BASE_NIGHTLY_URL if is_nightly else PYPI_LANGFLOW_BASE_URL
+        url = PYPI_LANGBUILDER_BASE_NIGHTLY_URL if is_nightly else PYPI_LANGBUILDER_BASE_URL
     elif build_type == "main":
-        url = PYPI_LANGFLOW_NIGHTLY_URL if is_nightly else PYPI_LANGFLOW_URL
+        url = PYPI_LANGBUILDER_NIGHTLY_URL if is_nightly else PYPI_LANGBUILDER_URL
     else:
         msg = f"Invalid build type: {build_type}"
         raise ValueError(msg)

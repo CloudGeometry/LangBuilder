@@ -1,5 +1,5 @@
 [project]
-name = "langflow-base"
+name = "langbuilder-base"
 version = "0.6.5"
 description = "A Python package with a built-in web application"
 requires-python = ">=3.10,<3.14"
@@ -7,12 +7,12 @@ license = "MIT"
 keywords = ["nlp", "langchain", "openai", "gpt", "gui"]
 readme = "README.md"
 maintainers = [
-    { name = "Carlos Coelho", email = "carlos@langflow.org" },
+    { name = "Carlos Coelho", email = "carlos@langbuilder.org" },
     { name = "Cristhian Zanforlin", email = "cristhian.lousa@gmail.com" },
-    { name = "Gabriel Almeida", email = "gabriel@langflow.org" },
+    { name = "Gabriel Almeida", email = "gabriel@langbuilder.org" },
     { name = "Lucas Eduoli", email = "lucaseduoli@gmail.com" },
     { name = "Otávio Anovazzi", email = "otavio2204@gmail.com" },
-    { name = "Rodrigo Nader", email = "rodrigo@langflow.org" },
+    { name = "Rodrigo Nader", email = "rodrigo@langbuilder.org" },
     { name = "Italo dos Anjos", email = "italojohnnydosanjos@gmail.com" },
 ]
 
@@ -133,7 +133,7 @@ dev = [
 
 
 [tool.hatch.build.targets.wheel]
-packages = ["langflow"]
+packages = ["langbuilder"]
 
 
 [tool.pytest.ini_options]
@@ -152,12 +152,12 @@ plugins = ["pydantic.mypy"]
 follow_imports = "skip"
 disable_error_code = ["type-var"]
 namespace_packages = true
-mypy_path = "langflow"
+mypy_path = "langbuilder"
 ignore_missing_imports = true
 
 [tool.ruff]
 target-version = "py310"
-exclude = ["langflow/alembic/versions"]
+exclude = ["langbuilder/alembic/versions"]
 line-length = 120
 
 [tool.ruff.lint]
@@ -197,25 +197,25 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"langflow/api/v1/*" = [
+"langbuilder/api/v1/*" = [
     "TCH", # FastAPI needs to evaluate types at runtime
 ]
-"langflow/api/v2/*" = [
+"langbuilder/api/v2/*" = [
     "TCH", # FastAPI needs to evaluate types at runtime
 ]
-"langflow/{components/tools/python_code_structured_tool.py,custom/code_parser/code_parser.py,utils/validate.py}" = [
+"langbuilder/{components/tools/python_code_structured_tool.py,custom/code_parser/code_parser.py,utils/validate.py}" = [
     "S102", # Use of exec
 ]
-"langflow/services/cache/*" = [
+"langbuilder/services/cache/*" = [
     "S301", # Use of pickle
 ]
 
 [tool.codeflash]
 # All paths are relative to this pyproject.toml's directory.
-module-root = "langflow"
+module-root = "langbuilder"
 tests-root = "../tests/unit"
 test-framework = "pytest"
-ignore-paths = ["langflow/components/"]
+ignore-paths = ["langbuilder/components/"]
 formatter-cmds = ["ruff check --exit-zero --fix $file", "ruff format $file"]
 #disable plugins that might interfere with runtime measurement
 pytest-cmd = "pytest -p no:profiling -p no:sugar -p no:xdist -p no:cov -p no:split"
@@ -229,8 +229,8 @@ build-backend = "hatchling.build"
 
 
 [project.urls]
-Repository = "https://github.com/langflow-ai/langflow"
-Documentation = "https://docs.langflow.org"
+Repository = "https://github.com/CloudGeometry/langbuilder"
+Documentation = "https://docs.langbuilder.org"
 
 # Optional dependencies for uv
 [project.optional-dependencies]
@@ -255,4 +255,4 @@ all = [
 ]
 
 [project.scripts]
-langflow-base = "langflow.__main__:main"
+langbuilder-base = "langbuilder.__main__:main"

@@ -1,10 +1,10 @@
-# How to contribute to Langflow
+# How to contribute to LangBuilder
 
 Thank you for your interest in contributing!
 
 ## How to Contribute
 
-1. Fork the [Langflow GitHub repository](https://github.com/langflow-ai/langflow).
+1. Fork the [LangBuilder GitHub repository](https://github.com/CloudGeometry/langbuilder).
 2. Create a new branch for your changes.
 3. Submit a pull request to the `main` branch with a clear title and description.
 Reference any issues fixed, for example `Fixes #1234`.
@@ -17,7 +17,7 @@ For detailed instructions on setting up your local development environment, see 
 
 ## Documentation Contributions
 
-Langflow documentation is built with [Docusaurus](https://docusaurus.io/).
+LangBuilder documentation is built with [Docusaurus](https://docusaurus.io/).
 For setup instructions, see [DEVELOPMENT.md](./DEVELOPMENT.md).
 
 ## Additional Guides
@@ -27,4 +27,4 @@ For setup instructions, see [DEVELOPMENT.md](./DEVELOPMENT.md).
 - [Contribute Tests](./docs/docs/Contributing/contributing-component-tests.mdx)
 - [Contribute Templates](./docs/docs/Contributing/contributing-templates.mdx)
 
-Thank you for helping improve Langflow!
+Thank you for helping improve LangBuilder!

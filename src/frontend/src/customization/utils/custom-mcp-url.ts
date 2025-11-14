@@ -10,7 +10,7 @@ export const customGetMCPUrl = (
     return composerUrl;
   }
 
-  // Fallback to direct Langflow SSE endpoint
+  // Fallback to direct LangBuilder SSE endpoint
   const apiHost = api.defaults.baseURL || window.location.origin;
   const apiUrl = `${apiHost}/api/v1/mcp/project/${projectId}/sse`;
   return apiUrl;

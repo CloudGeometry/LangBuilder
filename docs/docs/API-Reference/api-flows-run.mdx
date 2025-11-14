@@ -13,7 +13,7 @@ To create, read, update, and delete flows, see [Flow management endpoints](/api-
 ## Run flow
 
 :::tip
-Langflow automatically generates Python, JavaScript, and curl code snippets for the `/v1/run/$FLOW_ID` endpoint for all flows.
+LangBuilder automatically generates Python, JavaScript, and curl code snippets for the `/v1/run/$FLOW_ID` endpoint for all flows.
 For more information, see [Generate API code snippets](/concepts-publish#generate-api-code-snippets).
 :::
 
@@ -25,9 +25,9 @@ This flow requires a chat input string (`input_value`), and uses default values 
 
 ```bash
 curl -X POST \
-  "$LANGFLOW_SERVER_URL/api/v1/run/$FLOW_ID" \
+  "$LANGBUILDER_SERVER_URL/api/v1/run/$FLOW_ID" \
   -H "Content-Type: application/json" \
-  -H "x-api-key: $LANGFLOW_API_KEY" \
+  -H "x-api-key: $LANGBUILDER_API_KEY" \
   -d '{
     "input_value": "Tell me about something interesting!",
     "session_id": "chat-123",
@@ -79,7 +79,7 @@ The following example illustrates a response from a Basic Prompting flow:
 </details>
 
 If you are parsing the response in an application, you most likely need to extract the relevant content from the response, rather than pass the entire response back to the user.
-For an example of a script that extracts data from a Langflow API response, see the [Quickstart](/get-started-quickstart).
+For an example of a script that extracts data from a LangBuilder API response, see the [Quickstart](/get-started-quickstart).
 
 ### Stream LLM token responses
 
@@ -89,10 +89,10 @@ To stream LLM token responses, append the `?stream=true` query parameter to the 
 
 ```bash
 curl -X POST \
-  "$LANGFLOW_SERVER_URL/api/v1/run/$FLOW_ID?stream=true" \
+  "$LANGBUILDER_SERVER_URL/api/v1/run/$FLOW_ID?stream=true" \
   -H "accept: application/json" \
   -H "Content-Type: application/json" \
-  -H "x-api-key: $LANGFLOW_API_KEY" \
+  -H "x-api-key: $LANGBUILDER_API_KEY" \
   -d '{
     "message": "Tell me something interesting!",
     "session_id": "chat-123"
@@ -155,10 +155,10 @@ The following example is truncated to illustrate a series of `token` events as w
 
 ```bash
 curl -X POST \
-  "$LANGFLOW_SERVER_URL/api/v1/run/$FLOW_ID?stream=true" \
+  "$LANGBUILDER_SERVER_URL/api/v1/run/$FLOW_ID?stream=true" \
   -H "Content-Type: application/json" \
   -H "accept: application/json" \
-  -H "x-api-key: $LANGFLOW_API_KEY" \
+  -H "x-api-key: $LANGBUILDER_API_KEY" \
   -d '{
     "input_value": "Tell me a story",
     "input_type": "chat",
@@ -184,9 +184,9 @@ For more information, see [Trigger flows with webhooks](/webhook).
 
 ```bash
 curl -X POST \
-  "$LANGFLOW_SERVER_URL/api/v1/webhook/$FLOW_ID" \
+  "$LANGBUILDER_SERVER_URL/api/v1/webhook/$FLOW_ID" \
   -H "Content-Type: application/json" \
-  -H "x-api-key: $LANGFLOW_API_KEY" \
+  -H "x-api-key: $LANGBUILDER_API_KEY" \
   -d '{"data": "example-data"}'
 ```
 

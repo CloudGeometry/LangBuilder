@@ -3,28 +3,28 @@ title: Memory management options
 slug: /memory
 ---
 
-Langflow provides flexible memory management options for storage and retrieval of data relevant to your flows and your Langflow server.
-This includes essential Langflow database tables, file management, and caching, as well as chat memory.
+LangBuilder provides flexible memory management options for storage and retrieval of data relevant to your flows and your LangBuilder server.
+This includes essential LangBuilder database tables, file management, and caching, as well as chat memory.
 
 ## Storage options and paths
 
-Langflow supports both local memory and external memory options.
+LangBuilder supports both local memory and external memory options.
 
-Langflow's default storage option is a [SQLite](https://www.sqlite.org/) database stored in your system's cache directory.
+LangBuilder's default storage option is a [SQLite](https://www.sqlite.org/) database stored in your system's cache directory.
 The default storage path depends on your operation system and installation method:
 
-- **macOS Desktop**: `/Users/<username>/.langflow/data/database.db`
-- **Windows Desktop**: `C:\Users\<name>\AppData\Roaming\com.Langflow\data\langflow.db`
-- **OSS macOS/Windows/Linux/WSL (`uv pip install`)**: `<path_to_venv>/lib/python3.12/site-packages/langflow/langflow.db` (Python version may vary)
-- **OSS macOS/Windows/Linux/WSL (`git clone`)**: `<path_to_clone>/src/backend/base/langflow/langflow.db`
+- **macOS Desktop**: `/Users/<username>/.langbuilder/data/database.db`
+- **Windows Desktop**: `C:\Users\<name>\AppData\Roaming\com.LangBuilder\data\langbuilder.db`
+- **OSS macOS/Windows/Linux/WSL (`uv pip install`)**: `<path_to_venv>/lib/python3.12/site-packages/langbuilder/langbuilder.db` (Python version may vary)
+- **OSS macOS/Windows/Linux/WSL (`git clone`)**: `<path_to_clone>/src/backend/base/langbuilder/langbuilder.db`
 
-Alternatively, you can use an external PostgreSQL database for all of your Langflow storage.
-You can also selectively use external storage for chat memory, separate from other Langflow storage.
+Alternatively, you can use an external PostgreSQL database for all of your LangBuilder storage.
+You can also selectively use external storage for chat memory, separate from other LangBuilder storage.
 For more information, see [Configure external memory](#configure-external-memory) and [Store chat memory](#store-chat-memory).
 
-## Local Langflow database tables
+## Local LangBuilder database tables
 
-The following tables are stored in `langflow.db`:
+The following tables are stored in `langbuilder.db`:
 
 • **User**: Stores user account information including credentials, permissions, profiles, and user management settings. For more information, see [API keys and authentication](/api-keys-and-authentication).
 
@@ -34,7 +34,7 @@ The following tables are stored in `langflow.db`:
 
 • **Transaction**: Records execution history and results of flow runs. This information is used for [logging](/logging).
 
-• **ApiKey**: Manages Langflow API authentication keys. Component API keys are stored in the **Variables** table. For more information, see [API keys and authentication](/api-keys-and-authentication).
+• **ApiKey**: Manages LangBuilder API authentication keys. Component API keys are stored in the **Variables** table. For more information, see [API keys and authentication](/api-keys-and-authentication).
 
 • **Project**: Provides a structure for flow storage, including single-user projects and shared projects accessed by multiple users. For more information, see [Manage flows in projects](/concepts-flows#projects).
 
@@ -42,14 +42,14 @@ The following tables are stored in `langflow.db`:
 
 • **VertexBuild**: Tracks the build status of individual nodes within flows. For more information, see [Test flows in the Playground](/concepts-playground).
 
-For more information, see the database models in the [source code](https://github.com/langflow-ai/langflow/tree/main/src/backend/base/langflow/services/database/models).
+For more information, see the database models in the [source code](https://github.com/CloudGeometry/langbuilder/tree/main/src/backend/base/langbuilder/services/database/models).
 
 ## Configure external memory
 
-To replace the default Langflow SQLite database with another database, modify the `LANGFLOW_DATABASE_URL` environment variable, and then start Langflow with your `.env` file:
+To replace the default LangBuilder SQLite database with another database, modify the `LANGBUILDER_DATABASE_URL` environment variable, and then start LangBuilder with your `.env` file:
 
 ```
-LANGFLOW_DATABASE_URL=postgresql://user:password@localhost:5432/langflow
+LANGBUILDER_DATABASE_URL=postgresql://user:password@localhost:5432/langbuilder
 ```
 
 For an example, see [Configure an external PostgreSQL database](/configuration-custom-database).
@@ -59,8 +59,8 @@ For an example, see [Configure an external PostgreSQL database](/configuration-c
 The following settings allow you to fine-tune your database connection pool and timeout settings:
 
 ```
-LANGFLOW_DB_CONNECTION_SETTINGS='{"pool_size": 20, "max_overflow": 30, "pool_timeout": 30, "pool_pre_ping": true, "pool_recycle": 1800, "echo": false}'
-LANGFLOW_DB_CONNECT_TIMEOUT=20
+LANGBUILDER_DB_CONNECTION_SETTINGS='{"pool_size": 20, "max_overflow": 30, "pool_timeout": 30, "pool_pre_ping": true, "pool_recycle": 1800, "echo": false}'
+LANGBUILDER_DB_CONNECT_TIMEOUT=20
 ```
 
 - `pool_size`: Maximum number of database connections to keep in the pool (default: 20)
@@ -69,27 +69,27 @@ LANGFLOW_DB_CONNECT_TIMEOUT=20
 - `pool_pre_ping`: If true, the pool tests connections for liveness upon each checkout (default: true)
 - `pool_recycle`: Number of seconds after which a connection is automatically recycled (default: 1800, or 30 minutes)
 - `echo`: If true, SQL queries are logged for debugging purposes (default: false)
-- `LANGFLOW_DB_CONNECT_TIMEOUT`: Maximum number of seconds to wait when establishing a new database connection (default: 20)
+- `LANGBUILDER_DB_CONNECT_TIMEOUT`: Maximum number of seconds to wait when establishing a new database connection (default: 20)
 
 ## Configure cache memory
 
-The default Langflow caching behavior is an asynchronous, in-memory cache.
+The default LangBuilder caching behavior is an asynchronous, in-memory cache.
 ```
-LANGFLOW_LANGCHAIN_CACHE=InMemoryCache
-LANGFLOW_CACHE_TYPE=Async
+LANGBUILDER_LANGCHAIN_CACHE=InMemoryCache
+LANGBUILDER_CACHE_TYPE=Async
 ```
 
 Alternative caching options can be configured, but options other than the default asynchronous, in-memory cache aren't supported.
 The default behavior is suitable for most use cases.
 
-For other options, see the `LANGFLOW_CACHE_TYPE` [environment variable](/environment-variables).
+For other options, see the `LANGBUILDER_CACHE_TYPE` [environment variable](/environment-variables).
 
 ## Store chat memory
 
 Chat-based flows with a **Language Model** or **Agent** component have built-in chat memory that is enabled by default.
 This memory allows them to retrieve and reference messages from previous conversations associated with the same session ID.
 
-Built-in chat memory stores memories in the Langflow `messages` table.
+Built-in chat memory stores memories in the LangBuilder `messages` table.
 
 <details>
 <summary>How does chat memory work?</summary>
@@ -118,25 +118,25 @@ For example, if you use user IDs as session IDs, then each user's chat history i
 
 Where and how chat memory is stored depends on the components used in your flow:
 
-* **Language Model and Agent components**: All messages are stored in [Langflow storage](#storage-options-and-paths).
+* **Language Model and Agent components**: All messages are stored in [LangBuilder storage](#storage-options-and-paths).
 The **Agent** component provides some memory configuration options, such as **Number of Chat History Messages**.
 
     The **Language Model** and **Agent** component's built-in chat memory are sufficient for most use cases.
 
     If you prefer to use dedicated, external chat memory storage, or you need to retrieve memories outside the context of a chat, you can add **Message History** and **Chat Memory** components to your flow.
 
-* **Message History component**: By default, this component stores and retrieves memories from Langflow storage, unless you attach a **Chat Memory** component. It provides a few more options for sorting and filtering memories, although most of these options are built-in to the **Agent** component as configurable or fixed parameters.
+* **Message History component**: By default, this component stores and retrieves memories from LangBuilder storage, unless you attach a **Chat Memory** component. It provides a few more options for sorting and filtering memories, although most of these options are built-in to the **Agent** component as configurable or fixed parameters.
 
     You can use the **Message History** component with or without a **Language Model** or **Agent** component.
     For example, if you need to retrieve data from memories outside of chat, you can use the **Message History** component to fetch that data directly from your chat memory database without feeding it into a chat.
 
 * **Third-party Chat Memory components**: Use one of these components only if you need to specifically store or retrieve chat memories from a dedicated chat memory database.
-Typically, this is necessary only if you have specific storage needs that aren't met by Langflow storage.
-For example, if you want to manage chat memory data by directly working with the database, or if you want to use a different database than the default Langflow storage.
+Typically, this is necessary only if you have specific storage needs that aren't met by LangBuilder storage.
+For example, if you want to manage chat memory data by directly working with the database, or if you want to use a different database than the default LangBuilder storage.
 
 For more information and examples, see [**Message History** component](/components-helpers#message-history) and [Agent memory](/agents#agent-memory).
 
 ## See also
 
-* [Langflow file management](/concepts-file-management)
-* [Langflow logs](/logging)
+* [LangBuilder file management](/concepts-file-management)
+* [LangBuilder logs](/logging)

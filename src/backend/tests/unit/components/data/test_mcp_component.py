@@ -9,8 +9,8 @@ import shutil
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from langflow.base.mcp.util import MCPSessionManager, MCPSseClient, MCPStdioClient
-from langflow.components.agents.mcp_component import MCPToolsComponent
+from langbuilder.base.mcp.util import MCPSessionManager, MCPSseClient, MCPStdioClient
+from langbuilder.components.agents.mcp_component import MCPToolsComponent
 
 from tests.base import ComponentTestBaseWithoutClient, VersionComponentMapping
 

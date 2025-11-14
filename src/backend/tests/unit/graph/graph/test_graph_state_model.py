@@ -1,14 +1,14 @@
 from typing import TYPE_CHECKING
 
 import pytest
-from langflow.components.helpers.memory import MemoryComponent
-from langflow.components.input_output import ChatInput, ChatOutput
-from langflow.components.openai.openai_chat_model import OpenAIModelComponent
-from langflow.components.processing import PromptComponent
-from langflow.components.processing.converter import TypeConverterComponent
-from langflow.graph.graph.base import Graph
-from langflow.graph.graph.constants import Finish
-from langflow.graph.graph.state_model import create_state_model_from_graph
+from langbuilder.components.helpers.memory import MemoryComponent
+from langbuilder.components.input_output import ChatInput, ChatOutput
+from langbuilder.components.openai.openai_chat_model import OpenAIModelComponent
+from langbuilder.components.processing import PromptComponent
+from langbuilder.components.processing.converter import TypeConverterComponent
+from langbuilder.graph.graph.base import Graph
+from langbuilder.graph.graph.constants import Finish
+from langbuilder.graph.graph.state_model import create_state_model_from_graph
 
 if TYPE_CHECKING:
     from pydantic import BaseModel

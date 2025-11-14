@@ -1,5 +1,5 @@
 import pytest
-from langflow.components.datastax import (
+from langbuilder.components.datastax import (
     AssistantsCreateAssistant,
     AssistantsCreateThread,
     AssistantsGetAssistantName,

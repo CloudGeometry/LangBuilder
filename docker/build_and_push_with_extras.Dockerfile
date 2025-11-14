@@ -52,7 +52,7 @@ WORKDIR /tmp/src/frontend
 RUN --mount=type=cache,target=/root/.npm \
     npm ci \
     && npm run build \
-    && cp -r build /app/src/backend/langflow/frontend \
+    && cp -r build /app/src/backend/langbuilder/frontend \
     && rm -rf /tmp/src/frontend
 
 WORKDIR /app
@@ -83,16 +83,16 @@ COPY --from=builder --chown=1000 /app/.venv /app/.venv
 # Place executables in the environment at the front of the path
 ENV PATH="/app/.venv/bin:$PATH"
 
-LABEL org.opencontainers.image.title=langflow
-LABEL org.opencontainers.image.authors=['Langflow']
+LABEL org.opencontainers.image.title=langbuilder
+LABEL org.opencontainers.image.authors=['LangBuilder']
 LABEL org.opencontainers.image.licenses=MIT
-LABEL org.opencontainers.image.url=https://github.com/langflow-ai/langflow
-LABEL org.opencontainers.image.source=https://github.com/langflow-ai/langflow
+LABEL org.opencontainers.image.url=https://github.com/CloudGeometry/langbuilder
+LABEL org.opencontainers.image.source=https://github.com/CloudGeometry/langbuilder
 
 USER user
 WORKDIR /app
 
-ENV LANGFLOW_HOST=0.0.0.0
-ENV LANGFLOW_PORT=7860
+ENV LANGBUILDER_HOST=0.0.0.0
+ENV LANGBUILDER_PORT=7860
 
-CMD ["langflow", "run"]
+CMD ["langbuilder", "run"]

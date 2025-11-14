@@ -3,7 +3,7 @@ import { adjustScreenView } from "../../utils/adjust-screen-view";
 import { awaitBootstrapTest } from "../../utils/await-bootstrap-test";
 
 test(
-  "LangflowShortcuts",
+  "LangBuilderShortcuts",
   { tag: ["@release", "@workspace"] },
   async ({ page }) => {
     await awaitBootstrapTest(page);

@@ -3,7 +3,7 @@
 from unittest.mock import Mock, patch
 
 import pytest
-from langflow.custom.utils import (
+from langbuilder.custom.utils import (
     _generate_code_hash,
     build_component_metadata,
     build_custom_component_template_from_inputs,
@@ -51,11 +51,11 @@ class TestCodeHashGeneration:
 class TestMetadataInTemplateBuilders:
     """Test metadata addition in template building functions."""
 
-    @patch("langflow.custom.utils.ComponentFrontendNode")
+    @patch("langbuilder.custom.utils.ComponentFrontendNode")
     def test_build_from_inputs_adds_metadata_with_module(self, mock_frontend_class):
         """Test that build_custom_component_template_from_inputs adds metadata when module_name is provided."""
-        from langflow.custom.custom_component.component import Component
-        from langflow.custom.utils import build_custom_component_template_from_inputs
+        from langbuilder.custom.custom_component.component import Component
+        from langbuilder.custom.utils import build_custom_component_template_from_inputs
 
         # Setup mock frontend node
         mock_frontend = Mock()
@@ -74,7 +74,7 @@ class TestMetadataInTemplateBuilders:
         test_component.template_config = {"inputs": []}
 
         # Mock get_component_instance to return a mock instance
-        with patch("langflow.custom.utils.get_component_instance") as mock_get_instance:
+        with patch("langbuilder.custom.utils.get_component_instance") as mock_get_instance:
             mock_instance = Mock()
             mock_instance.get_template_config = Mock(return_value={})
             mock_instance._get_field_order = Mock(return_value=[])
@@ -82,8 +82,8 @@ class TestMetadataInTemplateBuilders:
 
             # Mock add_code_field to return the frontend node
             with (
-                patch("langflow.custom.utils.add_code_field", return_value=mock_frontend),
-                patch("langflow.custom.utils.reorder_fields"),
+                patch("langbuilder.custom.utils.add_code_field", return_value=mock_frontend),
+                patch("langbuilder.custom.utils.reorder_fields"),
             ):
                 # Call the function
                 _template, _ = build_custom_component_template_from_inputs(test_component, module_name="test.module")
@@ -94,11 +94,11 @@ class TestMetadataInTemplateBuilders:
         # assert "code_hash" in mock_frontend.metadata
         # assert len(mock_frontend.metadata["code_hash"]) == 12
 
-    @patch("langflow.custom.utils.CustomComponentFrontendNode")
+    @patch("langbuilder.custom.utils.CustomComponentFrontendNode")
     def test_build_template_adds_metadata_with_module(self, mock_frontend_class):
         """Test that build_custom_component_template adds metadata when module_name is provided."""
-        from langflow.custom.custom_component.component import Component
-        from langflow.custom.utils import build_custom_component_template
+        from langbuilder.custom.custom_component.component import Component
+        from langbuilder.custom.utils import build_custom_component_template
 
         # Setup mock frontend node
         mock_frontend = Mock()
@@ -115,17 +115,17 @@ class TestMetadataInTemplateBuilders:
         test_component._get_function_entrypoint_return_type = []
 
         # Mock helper functions
-        with patch("langflow.custom.utils.run_build_config") as mock_run_build:
+        with patch("langbuilder.custom.utils.run_build_config") as mock_run_build:
             mock_instance = Mock()
             mock_instance._get_field_order = Mock(return_value=[])
             mock_run_build.return_value = ({}, mock_instance)
 
             with (
-                patch("langflow.custom.utils.add_extra_fields"),
-                patch("langflow.custom.utils.add_code_field", return_value=mock_frontend),
-                patch("langflow.custom.utils.add_base_classes"),
-                patch("langflow.custom.utils.add_output_types"),
-                patch("langflow.custom.utils.reorder_fields"),
+                patch("langbuilder.custom.utils.add_extra_fields"),
+                patch("langbuilder.custom.utils.add_code_field", return_value=mock_frontend),
+                patch("langbuilder.custom.utils.add_base_classes"),
+                patch("langbuilder.custom.utils.add_output_types"),
+                patch("langbuilder.custom.utils.reorder_fields"),
             ):
                 # Call the function
                 _template, _ = build_custom_component_template(test_component, module_name="custom.test")
@@ -151,7 +151,7 @@ class TestDependencyAnalyzer:
 
     def test_top_level_basic(self):
         """Test extracting top level package name."""
-        from langflow.custom.dependency_analyzer import _top_level
+        from langbuilder.custom.dependency_analyzer import _top_level
 
         assert _top_level("numpy") == "numpy"
         assert _top_level("numpy.array") == "numpy"
@@ -159,7 +159,7 @@ class TestDependencyAnalyzer:
 
     def test_is_relative(self):
         """Test relative import detection."""
-        from langflow.custom.dependency_analyzer import _is_relative
+        from langbuilder.custom.dependency_analyzer import _is_relative
 
         assert _is_relative(".module") is True
         assert _is_relative("..parent") is True
@@ -169,7 +169,7 @@ class TestDependencyAnalyzer:
 
     def test_analyze_dependencies_basic(self):
         """Test basic dependency analysis."""
-        from langflow.custom.dependency_analyzer import analyze_dependencies
+        from langbuilder.custom.dependency_analyzer import analyze_dependencies
 
         code = """
 import os
@@ -196,7 +196,7 @@ from requests import get
 
     def test_analyze_dependencies_optional_detection(self):
         """Test that all dependencies are treated as required (no optional detection)."""
-        from langflow.custom.dependency_analyzer import analyze_dependencies
+        from langbuilder.custom.dependency_analyzer import analyze_dependencies
 
         code = """
 import os
@@ -225,13 +225,13 @@ except ImportError:
 
     def test_analyze_component_dependencies(self):
         """Test component-specific dependency analysis."""
-        from langflow.custom.dependency_analyzer import analyze_component_dependencies
+        from langbuilder.custom.dependency_analyzer import analyze_component_dependencies
 
         component_code = """
 import os
 import sys
 from typing import Dict, List
-from langflow.custom import CustomComponent
+from langbuilder.custom import CustomComponent
 import numpy as np
 
 class TestComponent(CustomComponent):
@@ -257,7 +257,7 @@ class TestComponent(CustomComponent):
 
     def test_analyze_component_dependencies_error_handling(self):
         """Test error handling in component dependency analysis."""
-        from langflow.custom.dependency_analyzer import analyze_component_dependencies
+        from langbuilder.custom.dependency_analyzer import analyze_component_dependencies
 
         # Test with invalid Python code
         invalid_code = "import os\nthis is not valid python syntax!!!"
@@ -270,7 +270,7 @@ class TestComponent(CustomComponent):
 
     def test_dependency_info_dataclass(self):
         """Test DependencyInfo dataclass creation."""
-        from langflow.custom.dependency_analyzer import DependencyInfo
+        from langbuilder.custom.dependency_analyzer import DependencyInfo
 
         dep = DependencyInfo(
             name="numpy",
@@ -284,7 +284,7 @@ class TestComponent(CustomComponent):
 
     def test_no_optional_dependency_classification(self):
         """Test that the simplified analyzer doesn't classify any dependencies as optional."""
-        from langflow.custom.dependency_analyzer import analyze_dependencies
+        from langbuilder.custom.dependency_analyzer import analyze_dependencies
 
         # Code with various import patterns that previously might have been considered optional
         code = """
@@ -329,7 +329,7 @@ class TestMetadataWithDependencies:
 
     def test_build_from_inputs_without_module_generates_default(self):
         """Test that build_component_metadata includes dependency analysis results."""
-        from langflow.custom.custom_component.component import Component
+        from langbuilder.custom.custom_component.component import Component
 
         # Setup mock frontend node
         mock_frontend = Mock()
@@ -364,7 +364,7 @@ class TestComponent:
 
     def test_build_component_metadata_handles_analysis_error(self):
         """Test that build_component_metadata handles dependency analysis errors gracefully."""
-        from langflow.custom.custom_component.component import Component
+        from langbuilder.custom.custom_component.component import Component
 
         # Setup mock frontend node
         mock_frontend = Mock()
@@ -385,7 +385,7 @@ class TestComponent:
 
     def test_build_component_metadata_with_external_dependencies(self):
         """Test dependency analysis with external packages."""
-        from langflow.custom.custom_component.component import Component
+        from langbuilder.custom.custom_component.component import Component
 
         # Setup mock frontend node
         mock_frontend = Mock()
@@ -395,7 +395,7 @@ class TestComponent:
         test_component = Mock(spec=Component)
         test_component._code = """
 import os
-from langflow.custom import CustomComponent
+from langbuilder.custom import CustomComponent
 
 class TestComponent(CustomComponent):
     def build(self):
@@ -407,16 +407,16 @@ class TestComponent(CustomComponent):
 
         # Verify dependency analysis results
         dep_info = mock_frontend.metadata["dependencies"]
-        assert dep_info["total_dependencies"] == 1  # Only langflow (os is stdlib, filtered out)
+        assert dep_info["total_dependencies"] == 1  # Only langbuilder (os is stdlib, filtered out)
 
         # Check for dependencies
         package_names = [pkg["name"] for pkg in dep_info["dependencies"]]
-        assert "langflow" in package_names  # langflow should be detected as external
+        assert "langbuilder" in package_names  # langbuilder should be detected as external
         assert "os" not in package_names  # os is stdlib, should be filtered out
 
     def test_build_component_metadata_with_optional_dependencies(self):
         """Test dependency analysis with optional dependencies."""
-        from langflow.custom.custom_component.component import Component
+        from langbuilder.custom.custom_component.component import Component
 
         # Setup mock frontend node
         mock_frontend = Mock()
@@ -451,8 +451,8 @@ class TestComponent:
 
     def test_build_component_metadata_with_real_component(self):
         """Test dependency analysis with a real component."""
-        from langflow.custom.custom_component.component import Component
-        from langflow.custom.utils import build_component_metadata
+        from langbuilder.custom.custom_component.component import Component
+        from langbuilder.custom.utils import build_component_metadata
 
         # Setup mock frontend node
         mock_frontend = Mock()
@@ -465,8 +465,8 @@ from urllib.parse import urljoin
 import httpx
 from langchain_openai import ChatOpenAI
 
-from langflow.base.models.model import LCModelComponent
-from langflow.field_typing import LanguageModel
+from langbuilder.base.models.model import LCModelComponent
+from langbuilder.field_typing import LanguageModel
 
 class LMStudioModelComponent(LCModelComponent):
     display_name = "LM Studio"
@@ -484,7 +484,7 @@ class LMStudioModelComponent(LCModelComponent):
 
         # Call the function
         build_component_metadata(
-            mock_frontend, test_component, "langflow.components.lmstudio", "LMStudioModelComponent"
+            mock_frontend, test_component, "langbuilder.components.lmstudio", "LMStudioModelComponent"
         )
 
         # Verify metadata was added
@@ -502,7 +502,7 @@ class LMStudioModelComponent(LCModelComponent):
         # External packages should be found
         assert "httpx" in package_names  # external
         assert "langchain_openai" in package_names  # external
-        assert "langflow" in package_names  # project dependency
+        assert "langbuilder" in package_names  # project dependency
 
         # Stdlib imports should be filtered out
         assert "typing" not in package_names
@@ -520,7 +520,7 @@ class LMStudioModelComponent(LCModelComponent):
         test_component.template_config = {"inputs": []}
 
         # Mock get_component_instance to return a mock instance
-        with patch("langflow.custom.utils.get_component_instance") as mock_get_instance:
+        with patch("langbuilder.custom.utils.get_component_instance") as mock_get_instance:
             mock_instance = Mock()
             mock_instance.get_template_config = Mock(return_value={})
             mock_instance._get_field_order = Mock(return_value=[])
@@ -528,8 +528,8 @@ class LMStudioModelComponent(LCModelComponent):
 
             # Mock add_code_field to return the frontend node
             with (
-                patch("langflow.custom.utils.add_code_field", return_value=mock_frontend),
-                patch("langflow.custom.utils.reorder_fields"),
+                patch("langbuilder.custom.utils.add_code_field", return_value=mock_frontend),
+                patch("langbuilder.custom.utils.reorder_fields"),
             ):
                 # Call the function without module_name
                 _, _ = build_custom_component_template_from_inputs(test_component, module_name=None)

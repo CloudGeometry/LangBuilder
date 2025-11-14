@@ -1,19 +1,19 @@
 module.exports = {
   docs: [
-    "Get-Started/welcome-to-langflow",
+    "Get-Started/welcome-to-langbuilder",
     {
       type: "category",
       label: "Get started",
       items: [
         {
           type: "doc",
-          id: "Get-Started/about-langflow",
-          label: "About Langflow"
+          id: "Get-Started/about-langbuilder",
+          label: "About LangBuilder"
         },
         {
           type: "doc",
           id: "Get-Started/get-started-installation",
-          label: "Install Langflow"
+          label: "Install LangBuilder"
         },
         {
           type: "doc",
@@ -53,7 +53,7 @@ module.exports = {
             {
               type: "doc",
               id: "Concepts/concepts-publish",
-              label: "Trigger flows with the Langflow API"
+              label: "Trigger flows with the LangBuilder API"
             },
             {
               type: "doc",
@@ -148,7 +148,7 @@ module.exports = {
         {
           type: "doc",
           id: "Concepts/data-types",
-          label: "Use Langflow data types"
+          label: "Use LangBuilder data types"
         },
         {
           type: "doc",
@@ -158,7 +158,7 @@ module.exports = {
         {
           type: "doc",
           id: "Configuration/configuration-cli",
-          label: "Use the Langflow CLI"
+          label: "Use the LangBuilder CLI"
         },
       ],
     },
@@ -169,12 +169,12 @@ module.exports = {
         {
           type:"doc",
           id: "Deployment/deployment-overview",
-          label: "Langflow deployment overview"
+          label: "LangBuilder deployment overview"
         },
         {
           type: "doc",
           id: "Deployment/deployment-public-server",
-          label: "Deploy a public Langflow server"
+          label: "Deploy a public LangBuilder server"
         },
         {
           type: "category",
@@ -184,12 +184,12 @@ module.exports = {
             {
               type: "doc",
               id: "Deployment/deployment-docker",
-              label: "Langflow Docker images"
+              label: "LangBuilder Docker images"
             },
             {
               type: "doc",
               id: "Deployment/deployment-caddyfile",
-              label: "Deploy Langflow on a remote server"
+              label: "Deploy LangBuilder on a remote server"
             },
             {
               type: "category",
@@ -377,7 +377,7 @@ module.exports = {
         {
           type: "doc",
           id: "API-Reference/api-reference-api-examples",
-          label: "Get started with the Langflow API",
+          label: "Get started with the LangBuilder API",
         },
         {
           type: "doc",
@@ -426,7 +426,7 @@ module.exports = {
         },
         {
           type: "link",
-          label: "Langflow API specification",
+          label: "LangBuilder API specification",
           href: "/api",
         },
       ],
@@ -470,7 +470,7 @@ module.exports = {
         },
         {
           type: "doc",
-          id: "Support/luna-for-langflow",
+          id: "Support/luna-for-langbuilder",
           label: "Enterprise support",
         },
       ],
@@ -479,7 +479,7 @@ module.exports = {
       type: "html",
       className: "sidebar-ad",
       value: `
-        <a href="https://www.langflow.org/desktop" target="_blank" class="menu__link">
+        <a href="https://www.langbuilder.org/desktop" target="_blank" class="menu__link">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <g clip-path="url(#clip0_1645_37)">
               <path d="M12 17H20C21.1046 17 22 16.1046 22 15V13M12 17H4C2.89543 17 2 16.1046 2 15V5C2 3.89543 2.89543 3 4 3H10M12 17V21M8 21H12M12 21H16M11.75 10.2917H13.2083L16.125 7.375H17.5833L20.5 4.45833H21.9583M16.125 11.75H17.5833L20.5 8.83333H21.9583M11.75 5.91667H13.2083L16.125 3H17.5833" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -492,7 +492,7 @@ module.exports = {
           </svg>
           <div class="sidebar-ad-text-container">
             <span class="sidebar-ad-text">Get started in minutes</span>
-            <span class="sidebar-ad-text sidebar-ad-text-gradient">Download Langflow Desktop</span>
+            <span class="sidebar-ad-text sidebar-ad-text-gradient">Download LangBuilder Desktop</span>
           </div>
         </a>
       `,

@@ -45,16 +45,16 @@ test(
     await page.getByTestId("code-button-modal").click();
 
     const customCodeWithError = `
-# from langflow.field_typing import Data
-from langflow.custom import Component
-from langflow.io import TableInput, Output
-from langflow.schema import Data
+# from langbuilder.field_typing import Data
+from langbuilder.custom import Component
+from langbuilder.io import TableInput, Output
+from langbuilder.schema import Data
 
 
 class CustomComponent(Component):
     display_name = "Custom Component"
     description = "Use as a template to create your own component."
-    documentation: str = "https://docs.langflow.org/components-custom-components"
+    documentation: str = "https://docs.langbuilder.org/components-custom-components"
     icon = "custom_components"
     name = "CustomComponent"
 

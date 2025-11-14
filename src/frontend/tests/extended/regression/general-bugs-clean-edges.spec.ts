@@ -24,9 +24,9 @@ test(
     await page.getByTestId("code-button-modal").last().click();
 
     const customComponentCode = `
-from langflow.custom import Component
-from langflow.io import Output
-from langflow.schema.message import Message
+from langbuilder.custom import Component
+from langbuilder.io import Output
+from langbuilder.schema.message import Message
 
 class CustomComponent(Component):
     display_name = "Custom Component"

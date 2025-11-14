@@ -7,7 +7,7 @@ import Icon from "@site/src/components/icon";
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-Langflow's **Vector Store** components are used to read and write vector data, including embedding storage, vector search, Graph RAG traversals, and specialized provider-specific search, such as OpenSearch, Elasticsearch, and Vectara.
+LangBuilder's **Vector Store** components are used to read and write vector data, including embedding storage, vector search, Graph RAG traversals, and specialized provider-specific search, such as OpenSearch, Elasticsearch, and Vectara.
 
 These components are critical for vector search applications, such as Retrieval Augmented Generation (RAG) chatbots that need to retrieve relevant context from large datasets.
 
@@ -111,7 +111,7 @@ The exception to this pattern is the **Vectara RAG** component, which outputs on
 
 ### Vector store instances
 
-Because Langflow is based on LangChain, **Vector Store** components use an instance of [LangChain vector store](https://python.langchain.com/docs/integrations/vectorstores/) to drive the underlying vector search functions.
+Because LangBuilder is based on LangChain, **Vector Store** components use an instance of [LangChain vector store](https://python.langchain.com/docs/integrations/vectorstores/) to drive the underlying vector search functions.
 In the component code, this is often instantiated as `vector_store`, but some components use a different name, such as the provider name.
 
 For the **Cassandra Graph** and **Astra DB Graph** components, `vector_store` is an instance of [LangChain graph vector store](https://python.langchain.com/api_reference/community/graph_vectorstores.html).
@@ -120,7 +120,7 @@ These instances are provider-specific and configured according to the component'
 For example, the **Redis** component creates an instance of [`RedisVectorStore`](https://python.langchain.com/docs/integrations/vectorstores/redis/) based on the component's parameters, such as the connection string, index name, and schema.
 
 Some LangChain classes don't expose all possible options as component parameters.
-Depending on the provider, these options might use default values or allow modification through environment variables, if they are supported in Langflow.
+Depending on the provider, these options might use default values or allow modification through environment variables, if they are supported in LangBuilder.
 For information about specific options, see the LangChain API reference and provider documentation.
 
 <details>
@@ -242,7 +242,7 @@ After running the flow once, you can click <Icon name="TextSearch" aria-hidden="
 
 | Name | Type | Description |
 |------|------|-------------|
-| **Collection Name** (`collection_name`) | String | Input parameter.  The name of your Chroma vector store collection. Default: `langflow`. |
+| **Collection Name** (`collection_name`) | String | Input parameter.  The name of your Chroma vector store collection. Default: `langbuilder`. |
 | **Persist Directory** (`persist_directory`) | String | Input parameter. To persist the Chroma database, enter a relative or absolute path to a directory to store the `chroma.sqlite3` file. Leave empty for an ephemeral database. When reading or writing to an existing persistent database, specify the path to the persistent directory. |
 | **Ingest Data** (`ingest_data`) | Data or DataFrame | Input parameter. `Data` or `DataFrame` input containing the records to write to the vector store. Only relevant for writes. |
 | **Search Query** (`search_query`) | String | Input parameter. The query to use for vector search. Only relevant for reads. |
@@ -262,8 +262,8 @@ After running the flow once, you can click <Icon name="TextSearch" aria-hidden="
 
 ### Local DB
 
-The **Local DB** component reads and writes to a persistent, in-memory Chroma DB instance intended for use with Langflow.
-It has separate modes for reads and writes, automatic collection management, and default persistence in your Langflow cache directory.
+The **Local DB** component reads and writes to a persistent, in-memory Chroma DB instance intended for use with LangBuilder.
+It has separate modes for reads and writes, automatic collection management, and default persistence in your LangBuilder cache directory.
 
 ![A basic flow with a Local DB component in Retrieve mode.](/img/component-local-db.png)
 
@@ -279,8 +279,8 @@ The following parameters are available in **Ingest** mode:
 
 | Name | Type | Description |
 |------|------|-------------|
-| **Name Your Collection** (`collection_name`) | String | Input parameter. The name for your Chroma vector store collection. Default: `langflow`. Only available in **Ingest** mode. |
-| **Persist Directory** (`persist_directory`) | String | Input parameter. The base directory where you want to create and persist the vector store. If you use the **Local DB** component in multiple flows or to create multiple collections, collections are stored at `$PERSISTENT_DIRECTORY/vector_stores/$COLLECTION_NAME`. If not specified, the default location is your Langflow cache directory (`LANGFLOW_CONFIG_DIR`). For more information, see [Memory management options](/memory). |
+| **Name Your Collection** (`collection_name`) | String | Input parameter. The name for your Chroma vector store collection. Default: `langbuilder`. Only available in **Ingest** mode. |
+| **Persist Directory** (`persist_directory`) | String | Input parameter. The base directory where you want to create and persist the vector store. If you use the **Local DB** component in multiple flows or to create multiple collections, collections are stored at `$PERSISTENT_DIRECTORY/vector_stores/$COLLECTION_NAME`. If not specified, the default location is your LangBuilder cache directory (`LANGBUILDER_CONFIG_DIR`). For more information, see [Memory management options](/memory). |
 | **Embedding** (`embedding`) | Embeddings | Input parameter. The embedding function to use for the vector store. |
 | **Allow Duplicates** (`allow_duplicates`) | Boolean | Input parameter. If true (default), writes don't check for existing duplicates in the collection, allowing you to store multiple copies of the same content. If false, writes won't add documents that match existing documents already present in the collection. If false, it can strictly enforce deduplication by searching the entire collection or only search the number of records, specified in `limit`. Only available in **Ingest** mode. |
 | **Ingest Data** (`ingest_data`) | Data or DataFrame | Input parameter. The records to write to the collection. Records are embedded and indexed for semantic search. Only available in **Ingest** mode. |
@@ -295,7 +295,7 @@ The following parameters are available in **Retrieve** mode:
 
 | Name | Type | Description |
 |------|------|-------------|
-| **Persist Directory** (`persist_directory`) | String | Input parameter. The base directory where you want to create and persist the vector store. If you use the **Local DB** component in multiple flows or to create multiple collections, collections are stored at `$PERSISTENT_DIRECTORY/vector_stores/$COLLECTION_NAME`. If not specified, the default location is your Langflow cache directory (`LANGFLOW_CONFIG_DIR`). For more information, see [Memory management options](/memory). |
+| **Persist Directory** (`persist_directory`) | String | Input parameter. The base directory where you want to create and persist the vector store. If you use the **Local DB** component in multiple flows or to create multiple collections, collections are stored at `$PERSISTENT_DIRECTORY/vector_stores/$COLLECTION_NAME`. If not specified, the default location is your LangBuilder cache directory (`LANGBUILDER_CONFIG_DIR`). For more information, see [Memory management options](/memory). |
 | **Existing Collections** (`existing_collections`) | String | Input parameter. Select a previously-created collection to search. Only available in **Retrieve** mode. |
 | **Embedding** (`embedding`) | Embeddings | Input parameter. The embedding function to use for the vector store. |
 | **Search Type** (`search_type`) | String | Input parameter. The type of search to perform, either `Similarity` or `MMR`. Only available in **Retrieve** mode. |
@@ -391,7 +391,7 @@ The **Astra DB** component read and writes to Astra DB Serverless databases, usi
 :::important
 It is recommend that you create any databases, keyspaces, and collections you need before configuring the **Astra DB** component.
 
-You can create new databases and collections through this component, but this is only possible in the Langflow visual editor, not at runtime, and you must wait while the database or collection initializes before proceeding with flow configuration.
+You can create new databases and collections through this component, but this is only possible in the LangBuilder visual editor, not at runtime, and you must wait while the database or collection initializes before proceeding with flow configuration.
 Additionally, not all database and collection configuration options are available through the **Astra DB** component, such as hybrid search options, PCU groups, vectorize integration management, and multi-region deployments.
 :::
 
@@ -408,7 +408,7 @@ Additionally, not all database and collection configuration options are availabl
 | embedding_model | Embedding Model | Input parameter. Attach an [**Embedding Model** component](/components-embedding-models) to generate embeddings. Only available if the specified collection doesn't have a [vectorize integration](https://docs.datastax.com/en/astra-db-serverless/databases/embedding-generation.html). If a vectorize integration exists, the component automatically uses the collection's integrated model. |
 | ingest_data | Ingest Data | Input parameter. The documents to load into the specified collection. |
 | search_query | Search Query | Input parameter. The query string for vector search. |
-| cache_vector_store | Cache Vector Store | Input parameter. Whether to cache the vector store in Langflow memory for faster reads. Default: Enabled (true). |
+| cache_vector_store | Cache Vector Store | Input parameter. Whether to cache the vector store in LangBuilder memory for faster reads. Default: Enabled (true). |
 | search_method | Search Method | Input parameter. The search methods to use, either `Hybrid Search` or `Vector Search`. Your collection must be configured to support the chosen option, and the default depends on what your collection supports. All collections in Astra DB Serverless (Vector) databases support vector search, but hybrid search requires that you set specific collection settings when creating the collection. These options are only available when creating a collection programmatically. For more information, see [Ways to find data in Astra DB Serverless](https://docs.datastax.com/en/astra-db-serverless/databases/about-search.html) and [Create a collection that supports hybrid search](https://docs.datastax.com/en/astra-db-serverless/api-reference/collection-methods/create-collection.html#example-hybrid). |
 | reranker | Reranker | Input parameter. The re-ranker model to use for hybrid search, depending on the collection configuration. **This parameter shows the default reranker even if the selected collection doesn't support hybrid search.** To verify if a collection supports hybrid search, [get collection metadata](https://docs.datastax.com/en/astra-db-serverless/api-reference/collection-methods/list-collection-metadata.html), and then check that `lexical` and `rerank` both have `"enabled": true`. |
 | lexical_terms | Lexical Terms | Input parameter. A space-separated string of keywords for hybrid search, like `features, data, attributes, characteristics`. This parameter is only available if the collection supports hybrid search. For more information, see the following **Hybrid search example**. |
@@ -511,7 +511,7 @@ For more information, see [Build a Graph RAG system with LangChain and GraphRetr
 | metadata_incoming_links_key | Metadata Incoming Links Key | Input parameter. The metadata key for the incoming links in the vector store. |
 | ingest_data | Ingest Data | Input parameter. Records to load into the vector store. Only relevant for writes. |
 | search_input | Search Query | Input parameter. Query string for similarity search. Only relevant for reads. |
-| cache_vector_store | Cache Vector Store | Input parameter. Whether to cache the vector store in Langflow memory for faster reads. Default: Enabled (true). |
+| cache_vector_store | Cache Vector Store | Input parameter. Whether to cache the vector store in LangBuilder memory for faster reads. Default: Enabled (true). |
 | embedding_model | Embedding Model | Input parameter. Attach an [**Embedding Model** component](/components-embedding-models) to generate embeddings. If the collection has a [vectorize integration](https://docs.datastax.com/en/astra-db-serverless/databases/embedding-generation.html), don't attach an **Embedding Model** component. |
 | metric | Metric | Input parameter. The metrics to use for similarity search calculations, either `cosine` (default), `dot_product`, or `euclidean`. This is a collection setting. |
 | batch_size | Batch Size | Input parameter. Optional number of records to process in a single batch. |
@@ -640,8 +640,8 @@ For more information, see the following:
 
 | Name                      | Type          | Description                                      |
 |---------------------------|---------------|--------------------------------------------------|
-| index_name                 | String        | Input parameter. The name of the FAISS index. Default: "langflow_index". |
-| persist_directory          | String        | Input parameter. Path to save the FAISS index. It is relative to where Langflow is running. |
+| index_name                 | String        | Input parameter. The name of the FAISS index. Default: "langbuilder_index". |
+| persist_directory          | String        | Input parameter. Path to save the FAISS index. It is relative to where LangBuilder is running. |
 | search_query               | String        | Input parameter. The query to search for in the vector store.     |
 | ingest_data                | Data          | Input parameter. The list of data to ingest into the vector store. |
 | allow_dangerous_deserialization | Boolean  | Input parameter. Set to True to allow loading pickle files from untrusted sources. Default: True. |
