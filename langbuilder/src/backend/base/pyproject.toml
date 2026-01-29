@@ -90,8 +90,8 @@ dependencies = [
     "langchain-ibm>=0.3.8",
     "trustcall>=0.0.38",
     "langchain-chroma>=0.1.4",
-    "composio==0.8.5",
-    "composio-langchain==0.8.5",
+    "composio==0.1.1",
+    "composio-langchain==0.7.20",
     "pymysql==1.1.1",
     "weasyprint",
 ]
