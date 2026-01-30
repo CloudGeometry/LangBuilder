@@ -25,7 +25,6 @@ from langbuilder.io import (
     DropdownInput,
     IntInput,
     MessageTextInput,
-    SecretStrInput,
     StrInput,
 )
 from langbuilder.schema.data import Data
@@ -77,22 +76,6 @@ class AtlassianMCPComponent(LCToolComponent):
             value="sse",
             info="MCP transport type (SSE recommended for stability)",
             advanced=True,
-        ),
-
-        # === Atlassian Credentials ===
-        StrInput(
-            name="atlassian_email",
-            display_name="Atlassian Email",
-            info="Email for Atlassian authentication (e.g., user@company.com). "
-                 "Must match the account used to generate the API token.",
-            required=False,
-        ),
-        SecretStrInput(
-            name="atlassian_api_token",
-            display_name="Atlassian API Token",
-            info="API token for Atlassian authentication. "
-                 "Generate at https://id.atlassian.com/manage-profile/security/api-tokens",
-            required=False,
         ),
 
         # === User Context (from Slack via tweaks) ===
@@ -441,11 +424,11 @@ class AtlassianMCPComponent(LCToolComponent):
                 if arguments["jql"] != original_jql:
                     logger.info(f"JQL substitution: {original_jql} -> {arguments['jql']}")
 
-            if self.tool_name == "confluence_search" and "query" in arguments:
-                original_query = arguments["query"]
-                arguments["query"] = self._substitute_user_email(original_query)
-                if arguments["query"] != original_query:
-                    logger.info(f"CQL substitution: {original_query} -> {arguments['query']}")
+            if self.tool_name == "confluence_search" and "cql" in arguments:
+                original_cql = arguments["cql"]
+                arguments["cql"] = self._substitute_user_email(original_cql)
+                if arguments["cql"] != original_cql:
+                    logger.info(f"CQL substitution: {original_cql} -> {arguments['cql']}")
 
             # Apply limit to search operations (MCP server uses 'limit' not 'maxResults')
             if "search" in self.tool_name and "limit" not in arguments:
@@ -546,7 +529,7 @@ Common JQL patterns:
 
         def _jira_get_issue(issue_key: str) -> str:
             self.tool_name = "jira_get_issue"
-            self.tool_arguments = json.dumps({"issue_key": issue_key})
+            self.tool_arguments = json.dumps({"issueKey": issue_key})
             result = self.run_model()
             if result.data.get("error"):
                 return f"Error: {result.data['error']}"
@@ -576,9 +559,9 @@ Common JQL patterns:
         ) -> str:
             self.tool_name = "jira_create_issue"
             self.tool_arguments = json.dumps({
-                "project_key": project_key,
+                "projectKey": project_key,
                 "summary": summary,
-                "issue_type": issue_type,
+                "issueType": issue_type,
                 "description": description,
             })
             result = self.run_model()
@@ -602,7 +585,7 @@ Common JQL patterns:
 
         def _confluence_search(cql: str, max_results: int = 25) -> str:
             self.tool_name = "confluence_search"
-            self.tool_arguments = json.dumps({"query": cql, "limit": max_results})
+            self.tool_arguments = json.dumps({"cql": cql, "limit": max_results})
             result = self.run_model()
             if result.data.get("error"):
                 return f"Error: {result.data['error']}"
@@ -630,7 +613,7 @@ Common CQL patterns:
 
         def _confluence_get_page(page_id: str) -> str:
             self.tool_name = "confluence_get_page"
-            self.tool_arguments = json.dumps({"page_id": page_id})
+            self.tool_arguments = json.dumps({"pageId": page_id})
             result = self.run_model()
             if result.data.get("error"):
                 return f"Error: {result.data['error']}"
