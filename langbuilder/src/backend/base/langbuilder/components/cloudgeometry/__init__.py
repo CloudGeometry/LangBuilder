@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from langbuilder.components.cloudgeometry.pinecone_search_tool import PineconeSearchToolComponent
     from langbuilder.components.cloudgeometry.pinecone_store_tool import PineconeStoreToolComponent
     from langbuilder.components.cloudgeometry.dummy_component import CloudGeometryDummyComponent
+    from langbuilder.components.cloudgeometry.atlassian_mcp_component import AtlassianMCPComponent
 
 _dynamic_imports = {
     "Jinja2Renderer": "jinja2_renderer",
@@ -17,6 +18,7 @@ _dynamic_imports = {
     "PineconeSearchToolComponent": "pinecone_search_tool",
     "PineconeStoreToolComponent": "pinecone_store_tool",
     "CloudGeometryDummyComponent": "dummy_component",
+    "AtlassianMCPComponent": "atlassian_mcp_component",
 }
 
 __all__ = [
@@ -25,6 +27,7 @@ __all__ = [
     "PineconeSearchToolComponent",
     "PineconeStoreToolComponent",
     "CloudGeometryDummyComponent",
+    "AtlassianMCPComponent",
 ]
 
 

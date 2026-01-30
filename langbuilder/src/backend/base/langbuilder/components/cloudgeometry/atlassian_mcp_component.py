@@ -115,8 +115,9 @@ class AtlassianMCPComponent(LCToolComponent):
         StrInput(
             name="mcp_endpoint",
             display_name="MCP Server URL",
-            info="URL of the mcp-atlassian server (e.g., http://localhost:9000)",
-            value="http://localhost:9000",
+            info="URL of the mcp-atlassian server. "
+                 "TEMPORARY default points to CG AWS Fargate deployment.",
+            value="http://mcp-atlassian-alb-1010564853.us-west-2.elb.amazonaws.com",
             required=True,
         ),
         DropdownInput(
