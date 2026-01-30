@@ -11,6 +11,7 @@ Supports: Jira Cloud, Confluence Cloud, Server/Data Center
 from __future__ import annotations
 
 import asyncio
+import base64
 import json
 from typing import TYPE_CHECKING, Any
 
@@ -25,6 +26,7 @@ from langbuilder.io import (
     DropdownInput,
     IntInput,
     MessageTextInput,
+    SecretStrInput,
     StrInput,
 )
 from langbuilder.schema.data import Data
@@ -76,6 +78,28 @@ class AtlassianMCPComponent(LCToolComponent):
             value="sse",
             info="MCP transport type (SSE recommended for stability)",
             advanced=True,
+        ),
+
+        # === Atlassian Credentials (per-user, sent per-request) ===
+        StrInput(
+            name="atlassian_url",
+            display_name="Atlassian URL",
+            info="Your Atlassian Cloud URL (e.g., https://yourcompany.atlassian.net). "
+                 "Leave empty if server handles auth via env vars.",
+            required=False,
+        ),
+        StrInput(
+            name="atlassian_email",
+            display_name="Atlassian Email",
+            info="Email for Atlassian authentication (e.g., user@company.com).",
+            required=False,
+        ),
+        SecretStrInput(
+            name="atlassian_api_token",
+            display_name="Atlassian API Token",
+            info="API token for Atlassian authentication. "
+                 "Generate at https://id.atlassian.com/manage-profile/security/api-tokens",
+            required=False,
         ),
 
         # === User Context (from Slack via tweaks) ===
@@ -148,6 +172,34 @@ class AtlassianMCPComponent(LCToolComponent):
         ),
     ]
 
+    def _get_auth_headers(self) -> dict[str, str]:
+        """Build per-request auth headers from component credentials.
+
+        Returns empty dict if no credentials configured, allowing
+        backward compatibility with server-side auth via env vars.
+        """
+        email = getattr(self, "atlassian_email", None)
+        token = getattr(self, "atlassian_api_token", None)
+        url = getattr(self, "atlassian_url", None)
+
+        if not email or not token:
+            return {}
+
+        # Resolve SecretStrInput to plain string
+        token_str = token.get_secret_value() if hasattr(token, "get_secret_value") else str(token)
+
+        encoded = base64.b64encode(f"{email}:{token_str}".encode()).decode()
+        headers: dict[str, str] = {
+            "Authorization": f"Basic {encoded}",
+        }
+
+        if url:
+            base = url.rstrip("/")
+            headers["X-Atlassian-Jira-Url"] = base
+            headers["X-Atlassian-Confluence-Url"] = f"{base}/wiki"
+
+        return headers
+
     def _get_mcp_url(self) -> str:
         """Get the full MCP endpoint URL.
 
@@ -198,6 +250,7 @@ class AtlassianMCPComponent(LCToolComponent):
         headers = {
             "Content-Type": "application/json",
             "Accept": "application/json, text/event-stream",
+            **self._get_auth_headers(),
         }
 
         logger.debug(f"Initializing MCP session at {mcp_url}")
@@ -275,6 +328,7 @@ class AtlassianMCPComponent(LCToolComponent):
                 "Content-Type": "application/json",
                 "Accept": "application/json, text/event-stream",
                 "Mcp-Session-Id": session_id,
+                **self._get_auth_headers(),
             }
 
             logger.debug(f"Calling MCP tool {tool_name} at {mcp_url}")
@@ -336,6 +390,7 @@ class AtlassianMCPComponent(LCToolComponent):
                 "Content-Type": "application/json",
                 "Accept": "application/json, text/event-stream",
                 "Mcp-Session-Id": session_id,
+                **self._get_auth_headers(),
             }
 
             response = await client.post(
@@ -424,11 +479,11 @@ class AtlassianMCPComponent(LCToolComponent):
                 if arguments["jql"] != original_jql:
                     logger.info(f"JQL substitution: {original_jql} -> {arguments['jql']}")
 
-            if self.tool_name == "confluence_search" and "cql" in arguments:
-                original_cql = arguments["cql"]
-                arguments["cql"] = self._substitute_user_email(original_cql)
-                if arguments["cql"] != original_cql:
-                    logger.info(f"CQL substitution: {original_cql} -> {arguments['cql']}")
+            if self.tool_name == "confluence_search" and "query" in arguments:
+                original_cql = arguments["query"]
+                arguments["query"] = self._substitute_user_email(original_cql)
+                if arguments["query"] != original_cql:
+                    logger.info(f"CQL substitution: {original_cql} -> {arguments['query']}")
 
             # Apply limit to search operations (MCP server uses 'limit' not 'maxResults')
             if "search" in self.tool_name and "limit" not in arguments:
@@ -529,7 +584,7 @@ Common JQL patterns:
 
         def _jira_get_issue(issue_key: str) -> str:
             self.tool_name = "jira_get_issue"
-            self.tool_arguments = json.dumps({"issueKey": issue_key})
+            self.tool_arguments = json.dumps({"issue_key": issue_key})
             result = self.run_model()
             if result.data.get("error"):
                 return f"Error: {result.data['error']}"
@@ -559,9 +614,9 @@ Common JQL patterns:
         ) -> str:
             self.tool_name = "jira_create_issue"
             self.tool_arguments = json.dumps({
-                "projectKey": project_key,
+                "project_key": project_key,
                 "summary": summary,
-                "issueType": issue_type,
+                "issue_type": issue_type,
                 "description": description,
             })
             result = self.run_model()
@@ -585,7 +640,7 @@ Common JQL patterns:
 
         def _confluence_search(cql: str, max_results: int = 25) -> str:
             self.tool_name = "confluence_search"
-            self.tool_arguments = json.dumps({"cql": cql, "limit": max_results})
+            self.tool_arguments = json.dumps({"query": cql, "limit": max_results})
             result = self.run_model()
             if result.data.get("error"):
                 return f"Error: {result.data['error']}"
@@ -613,7 +668,7 @@ Common CQL patterns:
 
         def _confluence_get_page(page_id: str) -> str:
             self.tool_name = "confluence_get_page"
-            self.tool_arguments = json.dumps({"pageId": page_id})
+            self.tool_arguments = json.dumps({"page_id": page_id})
             result = self.run_model()
             if result.data.get("error"):
                 return f"Error: {result.data['error']}"
