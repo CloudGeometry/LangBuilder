@@ -80,15 +80,19 @@ User (Slack / UI)
 
 ## Tools Exposed to Agents
 
-When connected to an Agent node, the component exposes 5 LangChain `StructuredTool` instances:
+When connected to an Agent node, the component exposes 9 LangChain `StructuredTool` instances:
 
 | Tool Name | MCP Tool | Parameters | Description |
 |-----------|----------|------------|-------------|
 | `atlassian_jira_search` | `jira_search` | `jql` (str), `max_results` (int) | Search Jira issues using JQL |
 | `atlassian_jira_get_issue` | `jira_get_issue` | `issue_key` (str) | Get a single issue by key (e.g., EXC-123) |
 | `atlassian_jira_create_issue` | `jira_create_issue` | `project_key`, `summary`, `issue_type`, `description` | Create a new Jira issue |
+| `atlassian_jira_update_issue` | `jira_update_issue` | `issue_key` (str), `fields` (JSON str) | Update fields on an existing issue |
+| `atlassian_jira_transition_issue` | `jira_transition_issue` | `issue_key` (str), `transition_id` (str), `comment` (optional str) | Transition an issue to a new status |
 | `atlassian_confluence_search` | `confluence_search` | `cql` (str), `max_results` (int) | Search Confluence using CQL |
 | `atlassian_confluence_get_page` | `confluence_get_page` | `page_id` (str) | Get a Confluence page by ID |
+| `atlassian_confluence_create_page` | `confluence_create_page` | `space_key`, `title`, `content`, `parent_id` (optional), `content_format` (default "markdown") | Create a new Confluence page |
+| `atlassian_confluence_update_page` | `confluence_update_page` | `page_id`, `title`, `content`, `content_format` (default "markdown"), `version_comment` (optional), `is_minor_edit` (bool) | Update an existing Confluence page |
 
 **Tool naming convention:** All tool names are prefixed with `atlassian_` to avoid collisions with other components in the same Agent.
 
@@ -124,9 +128,9 @@ The component supports three Slack context fields passed via **tweaks** from a S
 
 ### How it works
 
-1. **Agent-level context injection** (`build_tool()`, line 540): When `slack_user_email` is set, the tool descriptions include an `IMPORTANT:` block telling the LLM the user's email. This helps the Agent formulate personalized JQL like `assignee = "user@company.com"`.
+1. **Agent-level context injection** (`build_tool()`, line 583): When `slack_user_email` is set, the tool descriptions include an `IMPORTANT:` block telling the LLM the user's email. This helps the Agent formulate personalized JQL like `assignee = "user@company.com"`.
 
-2. **Component-level substitution** (`_substitute_user_email()`, line 420): Before sending JQL/CQL to the MCP server, the component replaces these placeholders with the actual email:
+2. **Component-level substitution** (`_substitute_user_email()`, line 470): Before sending JQL/CQL to the MCP server, the component replaces these placeholders with the actual email:
 
    | Placeholder | Example |
    |-------------|---------|
@@ -136,7 +140,7 @@ The component supports three Slack context fields passed via **tweaks** from a S
 
    This is critical for **service account** deployments where `currentUser()` would resolve to the service account, not the actual user.
 
-3. **Result metadata** (`run_model()`, line 501): Every result includes a `user_context` dict with the Slack IDs for downstream consumers.
+3. **Result metadata** (`run_model()`, line 505): Every result includes a `user_context` dict with the Slack IDs for downstream consumers.
 
 ### When substitution matters
 
@@ -153,7 +157,7 @@ The component communicates with the MCP server using **JSON-RPC 2.0 over HTTP** 
 2. **Tool calls**: `POST /mcp` with `method: "tools/call"` + `Mcp-Session-Id` header
 3. **Tool listing**: `POST /mcp` with `method: "tools/list"` (used for dynamic discovery)
 
-Responses use SSE format (`event: message\ndata: {...}`), parsed in `_call_mcp_tool()` (line 291).
+Responses use SSE format (`event: message\ndata: {...}`), parsed in `_call_mcp_tool()` (line 341).
 
 Sessions are cached in the class-level `_mcp_sessions` dict to avoid re-initializing on every tool call.
 
@@ -234,28 +238,34 @@ curl -s -X POST "http://ALB_URL/mcp" \
 
 | Method | Line | Purpose |
 |--------|------|---------|
-| `_get_auth_headers()` | 175 | Builds `Authorization: Basic` + URL headers from component inputs |
-| `_get_mcp_url()` | 203 | Returns `{mcp_endpoint}/mcp` |
-| `_initialize_mcp_session()` | 213 | JSON-RPC `initialize` → caches `Mcp-Session-Id` |
-| `_call_mcp_tool()` | 291 | JSON-RPC `tools/call` with session + auth headers |
-| `_list_mcp_tools()` | 371 | JSON-RPC `tools/list` for dynamic tool discovery |
-| `_substitute_user_email()` | 420 | Replaces `{user_email}`, `{me}`, `currentUser()` in JQL/CQL |
-| `run_model()` | 455 | Main entry: parse args → substitute email → call MCP → return Data |
-| `_get_tools()` | 517 | Override to ensure each tool gets its own name (not generic "run_model") |
-| `build_tool()` | 533 | Creates 5 LangChain StructuredTool instances for Agent use |
+| `_get_auth_headers()` | 225 | Builds `Authorization: Basic` + URL headers from component inputs |
+| `_get_mcp_url()` | 253 | Returns `{mcp_endpoint}/mcp` |
+| `_initialize_mcp_session()` | 263 | JSON-RPC `initialize` → caches `Mcp-Session-Id` |
+| `_call_mcp_tool()` | 341 | JSON-RPC `tools/call` with session + auth headers |
+| `_list_mcp_tools()` | 421 | JSON-RPC `tools/list` for dynamic tool discovery |
+| `_substitute_user_email()` | 470 | Replaces `{user_email}`, `{me}`, `currentUser()` in JQL/CQL |
+| `run_model()` | 505 | Main entry: parse args → substitute email → call MCP → return Data |
+| `_get_tools()` | 567 | Override to ensure each tool gets its own name (not generic "run_model") |
+| `build_tool()` | 583 | Creates 9 LangChain StructuredTool instances for Agent use |
 
 ## Parameter Name Mapping
 
 The MCP server uses **snake_case** parameter names. The component maps them correctly:
 
-| Agent sees | Component sends to MCP |
-|------------|----------------------|
-| `issue_key` | `issue_key` |
-| `project_key` | `project_key` |
-| `issue_type` | `issue_type` |
-| `cql` (user-facing) | `query` (MCP param name) |
-| `page_id` | `page_id` |
-| `max_results` | `limit` |
+| Agent sees | Component sends to MCP | Notes |
+|------------|----------------------|-------|
+| `issue_key` | `issue_key` | |
+| `project_key` | `project_key` | |
+| `issue_type` | `issue_type` | |
+| `cql` (user-facing) | `query` (MCP param name) | |
+| `page_id` | `page_id` | |
+| `max_results` | `limit` | |
+| `fields` (JSON string) | `fields` (dict) | `jira_update_issue` — Agent sends JSON string, component parses to dict |
+| `transition_id` | `transition_id` | Numeric string (e.g., "31"), not transition name |
+| `content_format` | `content_format` | `"markdown"` (default), `"wiki"`, or `"storage"` |
+| `space_key` | `space_key` | For `confluence_create_page` |
+| `version_comment` | `version_comment` | Optional, for `confluence_update_page` |
+| `is_minor_edit` | `is_minor_edit` | Boolean, for `confluence_update_page` |
 
 ## Troubleshooting
 
@@ -267,6 +277,9 @@ The MCP server uses **snake_case** parameter names. The component maps them corr
 | `Unexpected keyword argument: max_results` | MCP server uses `limit`, not `max_results` | Component handles this mapping in `run_model()` |
 | Agent uses wrong email / "assigned to me" returns wrong user | `slack_user_email` not set | Pass `slack_user_email` via tweaks |
 | `401 Unauthorized` | Bad Atlassian email or expired API token | Regenerate token at https://id.atlassian.com/manage-profile/security/api-tokens |
+| `jira_update_issue` validation error on `fields` | Agent sent separate params instead of `fields` dict | The `fields` parameter must be a JSON string, e.g., `'{"summary": "New title"}'` |
+| `jira_transition_issue` fails with invalid transition | Wrong `transition_id` for current issue status | Use `jira_get_issue` first to see available transitions. IDs are workflow-dependent. |
+| `confluence_create_page` permission error | User lacks create permission in the target space | Try a personal space (e.g., `~ACCOUNT_ID`) or check space permissions |
 | Flow node has old code | LangBuilder nodes store embedded code copies | PATCH the flow to update node code, or recreate the node |
 
 ## Repository References

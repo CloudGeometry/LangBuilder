@@ -7,8 +7,12 @@ The Atlassian MCP component lets you talk to Jira and Confluence from inside a L
 - **Search Jira issues** — "Find all open bugs in project EXC"
 - **Get issue details** — "Show me EXC-914"
 - **Create issues** — "Create a Task in EXC called 'Fix login page'"
+- **Update issues** — "Change the description of EXC-914"
+- **Transition issues** — "Move EXC-914 to In Progress"
 - **Search Confluence** — "Find pages about onboarding in the HR space"
 - **Read Confluence pages** — "Get the content of page 12345"
+- **Create Confluence pages** — "Create a page in the ENG space called 'Release Notes'"
+- **Update Confluence pages** — "Update page 12345 with the new content"
 
 You ask in plain English. The Agent translates your request into the right Jira/Confluence query and returns the results.
 
@@ -80,6 +84,9 @@ The Agent will call the Jira search tool and return formatted results.
 | "What issues are assigned to me?" | Searches with `assignee = currentUser()` (requires Slack email — see below) |
 | "Create a Task in EXC called 'Update docs'" | Creates a new Jira issue |
 | "Find critical issues updated this week" | Searches: `priority = Critical AND updated >= -7d` |
+| "Change the description of EXC-914 to 'Updated scope'" | Updates the issue's description field |
+| "Move EXC-914 to In Progress" | Transitions the issue to a new status |
+| "Assign EXC-914 to alice@company.com" | Updates the assignee field |
 
 ### Confluence
 
@@ -88,6 +95,8 @@ The Agent will call the Jira search tool and return formatted results.
 | "Search for pages about 'release process'" | CQL search across all spaces |
 | "Find pages in the ENG space" | CQL: `space = ENG AND type = page` |
 | "Get the content of page 12345" | Fetches full page content by ID |
+| "Create a page in ENG called 'Sprint 42 Retro'" | Creates a new Confluence page in the ENG space |
+| "Update page 12345 with the new meeting notes" | Updates an existing page's content |
 
 ---
 
@@ -167,9 +176,11 @@ Replace `AtlassianMCP-XXXXX` and `Agent-XXXXX` with the actual node IDs from you
 
 ## Available Tools
 
-The component gives the Agent these 5 tools:
+The component gives the Agent these 9 tools:
 
-### 1. Jira Search (`atlassian_jira_search`)
+### Jira Tools
+
+#### 1. Jira Search (`atlassian_jira_search`)
 
 Search for issues using JQL (Jira Query Language). The Agent writes the JQL for you based on your natural language request.
 
@@ -183,11 +194,11 @@ Search for issues using JQL (Jira Query Language). The Agent writes the JQL for 
 - `created >= -7d` — Recent issues
 - `labels = "frontend"` — Issues with a label
 
-### 2. Jira Get Issue (`atlassian_jira_get_issue`)
+#### 2. Jira Get Issue (`atlassian_jira_get_issue`)
 
 Get full details of a single issue by its key (e.g., `EXC-914`). Returns summary, description, status, assignee, comments, and more.
 
-### 3. Jira Create Issue (`atlassian_jira_create_issue`)
+#### 3. Jira Create Issue (`atlassian_jira_create_issue`)
 
 Create a new issue. You need to specify at minimum:
 - **Project** (e.g., EXC)
@@ -196,7 +207,30 @@ Create a new issue. You need to specify at minimum:
 
 Example: "Create a Bug in EXC called 'Login button not working' with description 'The login button on the landing page returns a 500 error'"
 
-### 4. Confluence Search (`atlassian_confluence_search`)
+#### 4. Jira Update Issue (`atlassian_jira_update_issue`)
+
+Update fields on an existing issue. The Agent sends a JSON object with the fields to change — only the specified fields are updated, everything else stays the same.
+
+**Fields you can update:**
+- `summary` — The issue title
+- `description` — The issue description
+- `assignee` — Email address of the new assignee
+- `priority` — Priority name (e.g., "Critical", "Major", "Minor")
+- Any other standard or custom Jira field
+
+Example: "Change the priority of EXC-914 to Critical and update the description"
+
+#### 5. Jira Transition Issue (`atlassian_jira_transition_issue`)
+
+Move an issue to a different status (e.g., "To Do" to "In Progress" to "Done"). The Agent uses the issue's available transitions — these depend on your Jira workflow configuration.
+
+The Agent will first check the issue to see which transitions are available, then apply the right one. You can also add a comment during the transition.
+
+Example: "Move EXC-914 to Done with a comment 'Completed in sprint 42'"
+
+### Confluence Tools
+
+#### 6. Confluence Search (`atlassian_confluence_search`)
 
 Search Confluence pages using CQL (Confluence Query Language).
 
@@ -207,9 +241,31 @@ Search Confluence pages using CQL (Confluence Query Language).
 - `text ~ "keyword"` — Content contains a word
 - `creator = "email"` — Pages by author
 
-### 5. Confluence Get Page (`atlassian_confluence_get_page`)
+#### 7. Confluence Get Page (`atlassian_confluence_get_page`)
 
 Get the full content of a Confluence page by its page ID.
+
+#### 8. Confluence Create Page (`atlassian_confluence_create_page`)
+
+Create a new page in a Confluence space. You specify:
+- **Space** — The space key (e.g., ENG, DEV)
+- **Title** — The page title
+- **Content** — Page content in markdown (default), wiki markup, or Confluence storage format
+
+You can optionally create it as a child of an existing page by providing a parent page ID.
+
+Example: "Create a page in the ENG space called 'Sprint 42 Retro' with a summary of action items"
+
+#### 9. Confluence Update Page (`atlassian_confluence_update_page`)
+
+Update the content of an existing Confluence page. You provide:
+- **Page ID** — The numeric ID of the page to update
+- **Title** — The page title (required even if unchanged)
+- **Content** — The new page content in markdown (default) or other format
+
+You can optionally add a version comment and mark it as a minor edit.
+
+Example: "Update page 12345 with the new release notes and add a version comment 'Added v2.1 notes'"
 
 ---
 
@@ -239,7 +295,19 @@ Get the full content of a Confluence page by its page ID.
 ### Created issue is missing fields
 
 - The create tool supports: project, summary, type, and description
-- For other fields (priority, labels, sprint), edit the issue in Jira after creation
+- For other fields (priority, labels, sprint), use the update tool: "Set the priority of EXC-123 to Critical"
+
+### Transition fails or says "invalid transition"
+
+- Available transitions depend on your Jira workflow and the issue's current status
+- The Agent will check available transitions automatically — just say what status you want (e.g., "Move to Done")
+- If the transition still fails, the issue may be in a status that doesn't allow that move in your workflow
+
+### Confluence page creation fails with permission error
+
+- You may not have create permission in the target space
+- Try a different space, or ask your Confluence admin to grant you the right permissions
+- Personal spaces (e.g., your own space) typically allow page creation
 
 ---
 
