@@ -11,6 +11,12 @@ if TYPE_CHECKING:
     from langbuilder.components.cloudgeometry.pinecone_store_tool import PineconeStoreToolComponent
     from langbuilder.components.cloudgeometry.dummy_component import CloudGeometryDummyComponent
     from langbuilder.components.cloudgeometry.atlassian_mcp_component import AtlassianMCPComponent
+    from langbuilder.components.cloudgeometry.action_plan_store import ActionPlanStoreComponent
+    from langbuilder.components.cloudgeometry.slack_block_kit_poster import SlackBlockKitPosterComponent
+    from langbuilder.components.cloudgeometry.slack_event_parser import SlackEventParserComponent
+    from langbuilder.components.cloudgeometry.slack_dashboard_updater import SlackDashboardUpdaterComponent
+    from langbuilder.components.cloudgeometry.per_user_jira_auth import PerUserJiraAuthComponent
+    from langbuilder.components.cloudgeometry.slack_modal_trigger import SlackModalTriggerComponent
 
 _dynamic_imports = {
     "Jinja2Renderer": "jinja2_renderer",
@@ -19,6 +25,12 @@ _dynamic_imports = {
     "PineconeStoreToolComponent": "pinecone_store_tool",
     "CloudGeometryDummyComponent": "dummy_component",
     "AtlassianMCPComponent": "atlassian_mcp_component",
+    "ActionPlanStoreComponent": "action_plan_store",
+    "SlackBlockKitPosterComponent": "slack_block_kit_poster",
+    "SlackEventParserComponent": "slack_event_parser",
+    "SlackDashboardUpdaterComponent": "slack_dashboard_updater",
+    "PerUserJiraAuthComponent": "per_user_jira_auth",
+    "SlackModalTriggerComponent": "slack_modal_trigger",
 }
 
 __all__ = [
@@ -28,6 +40,12 @@ __all__ = [
     "PineconeStoreToolComponent",
     "CloudGeometryDummyComponent",
     "AtlassianMCPComponent",
+    "ActionPlanStoreComponent",
+    "SlackBlockKitPosterComponent",
+    "SlackEventParserComponent",
+    "SlackDashboardUpdaterComponent",
+    "PerUserJiraAuthComponent",
+    "SlackModalTriggerComponent",
 ]
 
 
