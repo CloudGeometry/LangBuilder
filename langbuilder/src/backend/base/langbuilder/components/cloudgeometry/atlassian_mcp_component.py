@@ -2,8 +2,9 @@
 Atlassian MCP Component
 
 Connect to Jira and Confluence via the mcp-atlassian MCP server.
-Exposes 5 tools for Agent use: jira_search, jira_get_issue, jira_create_issue,
-confluence_search, and confluence_get_page.
+Exposes 9 tools for Agent use: jira_search, jira_get_issue, jira_create_issue,
+jira_update_issue, jira_transition_issue, confluence_search, confluence_get_page,
+confluence_create_page, and confluence_update_page.
 
 Architecture
 ============
@@ -61,7 +62,7 @@ from __future__ import annotations
 import asyncio
 import base64
 import json
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Optional
 
 import httpx
 from langchain_core.tools import StructuredTool
@@ -92,8 +93,8 @@ class AtlassianMCPComponent(LCToolComponent):
     3. The MCP server handles Atlassian authentication via its own config
 
     **Features:**
-    - Access Jira (search, get, create, update issues)
-    - Access Confluence (search, get, create pages)
+    - Access Jira (search, get, create, update, transition issues)
+    - Access Confluence (search, get, create, update pages)
     - Slack user context support for personalized queries
     - Works with Cloud and Server/Data Center
 
@@ -732,11 +733,178 @@ Common CQL patterns:
             tags=["atlassian_confluence_get_page"],
         )
 
+        # Jira Update Issue Tool
+        class JiraUpdateIssueInput(BaseModel):
+            issue_key: str = Field(description="Jira issue key (e.g., PROJ-123)")
+            fields: str = Field(
+                description="JSON string of fields to update. Example: "
+                "'{\"summary\": \"New title\", \"description\": \"New desc\", \"assignee\": \"user@example.com\"}'"
+            )
+
+        def _jira_update_issue(issue_key: str, fields: str) -> str:
+            self.tool_name = "jira_update_issue"
+            try:
+                fields_dict = json.loads(fields)
+            except json.JSONDecodeError:
+                return "Error: fields must be a valid JSON string"
+            self.tool_arguments = json.dumps({
+                "issue_key": issue_key,
+                "fields": fields_dict,
+            })
+            result = self.run_model()
+            if result.data.get("error"):
+                return f"Error: {result.data['error']}"
+            return json.dumps(result.data.get("result", {}), indent=2)
+
+        jira_update_issue_tool = StructuredTool.from_function(
+            name="atlassian_jira_update_issue",
+            description="Update an existing Jira issue. Pass fields as a JSON string with keys like 'summary', 'description', 'assignee' (email), 'priority', etc. Only provided fields are changed.",
+            args_schema=JiraUpdateIssueInput,
+            func=_jira_update_issue,
+            return_direct=False,
+            tags=["atlassian_jira_update_issue"],
+        )
+
+        # Jira Transition Issue Tool
+        class JiraTransitionIssueInput(BaseModel):
+            issue_key: str = Field(description="Jira issue key (e.g., PROJ-123)")
+            transition_id: str = Field(
+                description="ID of the transition to perform (e.g., '11', '21', '31'). "
+                "Use jira_get_issue first to see available transitions."
+            )
+            comment: Optional[str] = Field(
+                default=None, description="Optional comment to add during the transition"
+            )
+
+        def _jira_transition_issue(
+            issue_key: str,
+            transition_id: str,
+            comment: Optional[str] = None,
+        ) -> str:
+            self.tool_name = "jira_transition_issue"
+            args: dict[str, Any] = {
+                "issue_key": issue_key,
+                "transition_id": transition_id,
+            }
+            if comment is not None:
+                args["comment"] = comment
+            self.tool_arguments = json.dumps(args)
+            result = self.run_model()
+            if result.data.get("error"):
+                return f"Error: {result.data['error']}"
+            return json.dumps(result.data.get("result", {}), indent=2)
+
+        jira_transition_issue_tool = StructuredTool.from_function(
+            name="atlassian_jira_transition_issue",
+            description="Transition a Jira issue to a new status using a transition ID. Get available transition IDs from jira_get_issue first.",
+            args_schema=JiraTransitionIssueInput,
+            func=_jira_transition_issue,
+            return_direct=False,
+            tags=["atlassian_jira_transition_issue"],
+        )
+
+        # Confluence Create Page Tool
+        class ConfluenceCreatePageInput(BaseModel):
+            space_key: str = Field(description="Confluence space key (e.g., ENG, DEV)")
+            title: str = Field(description="Page title")
+            content: str = Field(description="Page content in markdown format (default) or storage format")
+            parent_id: Optional[str] = Field(
+                default=None, description="Parent page ID to create as a child page"
+            )
+            content_format: str = Field(
+                default="markdown",
+                description="Content format: 'markdown' (default), 'wiki', or 'storage'",
+            )
+
+        def _confluence_create_page(
+            space_key: str,
+            title: str,
+            content: str,
+            parent_id: Optional[str] = None,
+            content_format: str = "markdown",
+        ) -> str:
+            self.tool_name = "confluence_create_page"
+            args: dict[str, Any] = {
+                "space_key": space_key,
+                "title": title,
+                "content": content,
+                "content_format": content_format,
+            }
+            if parent_id is not None:
+                args["parent_id"] = parent_id
+            self.tool_arguments = json.dumps(args)
+            result = self.run_model()
+            if result.data.get("error"):
+                return f"Error: {result.data['error']}"
+            return json.dumps(result.data.get("result", {}), indent=2)
+
+        confluence_create_page_tool = StructuredTool.from_function(
+            name="atlassian_confluence_create_page",
+            description="Create a new Confluence page in a space. Content defaults to markdown format.",
+            args_schema=ConfluenceCreatePageInput,
+            func=_confluence_create_page,
+            return_direct=False,
+            tags=["atlassian_confluence_create_page"],
+        )
+
+        # Confluence Update Page Tool
+        class ConfluenceUpdatePageInput(BaseModel):
+            page_id: str = Field(description="Confluence page ID to update")
+            title: str = Field(description="Updated page title")
+            content: str = Field(description="Updated page content in markdown format (default) or storage format")
+            content_format: str = Field(
+                default="markdown",
+                description="Content format: 'markdown' (default), 'wiki', or 'storage'",
+            )
+            version_comment: Optional[str] = Field(
+                default=None, description="Optional comment for this version"
+            )
+            is_minor_edit: bool = Field(
+                default=False, description="Whether this is a minor edit"
+            )
+
+        def _confluence_update_page(
+            page_id: str,
+            title: str,
+            content: str,
+            content_format: str = "markdown",
+            version_comment: Optional[str] = None,
+            is_minor_edit: bool = False,
+        ) -> str:
+            self.tool_name = "confluence_update_page"
+            args: dict[str, Any] = {
+                "page_id": page_id,
+                "title": title,
+                "content": content,
+                "content_format": content_format,
+                "is_minor_edit": is_minor_edit,
+            }
+            if version_comment is not None:
+                args["version_comment"] = version_comment
+            self.tool_arguments = json.dumps(args)
+            result = self.run_model()
+            if result.data.get("error"):
+                return f"Error: {result.data['error']}"
+            return json.dumps(result.data.get("result", {}), indent=2)
+
+        confluence_update_page_tool = StructuredTool.from_function(
+            name="atlassian_confluence_update_page",
+            description="Update an existing Confluence page. Replaces the title and content. Supports markdown (default), wiki, or storage format.",
+            args_schema=ConfluenceUpdatePageInput,
+            func=_confluence_update_page,
+            return_direct=False,
+            tags=["atlassian_confluence_update_page"],
+        )
+
         self.status = "Tools built"
         return [
             jira_search_tool,
             jira_get_issue_tool,
             jira_create_issue_tool,
+            jira_update_issue_tool,
+            jira_transition_issue_tool,
             confluence_search_tool,
             confluence_get_page_tool,
+            confluence_create_page_tool,
+            confluence_update_page_tool,
         ]

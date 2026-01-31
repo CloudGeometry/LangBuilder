@@ -16,7 +16,7 @@
 
 ## What This Is
 
-The AtlassianMCP component connects LangBuilder flows to Jira and Confluence via the [mcp-atlassian](https://github.com/sooperset/mcp-atlassian) MCP server. It exposes 5 tools that an Agent can call: Jira search, get issue, create issue, Confluence search, and get page.
+The AtlassianMCP component connects LangBuilder flows to Jira and Confluence via the [mcp-atlassian](https://github.com/sooperset/mcp-atlassian) MCP server. It exposes 9 tools that an Agent can call: Jira search, get issue, create issue, update issue, transition issue, Confluence search, get page, create page, and update page.
 
 **Key design decision:** The component holds NO shared Atlassian credentials. Each user provides their own email + API token, which are sent per-request as `Authorization: Basic` headers to the MCP server. This is the **per-user auth** model.
 
