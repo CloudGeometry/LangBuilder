@@ -82,6 +82,17 @@ class DynamoDBSessionStoreComponent(LCToolComponent):
             required=True,
         ),
 
+        StrInput(
+            name="primary_key_name",
+            display_name="Primary Key Name",
+            info="Name of the DynamoDB partition key attribute. Default 'session_id'. "
+                 "Set to match your table's key (e.g. 'slack_user_id'). "
+                 "When using a custom key, include it in structured_data or answers JSON.",
+            value="session_id",
+            required=False,
+            advanced=True,
+        ),
+
         # AWS credentials (secured inputs)
         SecretStrInput(
             name="aws_access_key_id",
@@ -163,13 +174,14 @@ class DynamoDBSessionStoreComponent(LCToolComponent):
 
                 # Create the table
                 try:
+                    pk_name = getattr(self, "primary_key_name", "session_id") or "session_id"
                     new_table = dynamodb.create_table(
                         TableName=self.table_name,
                         KeySchema=[
-                            {"AttributeName": "session_id", "KeyType": "HASH"}
+                            {"AttributeName": pk_name, "KeyType": "HASH"}
                         ],
                         AttributeDefinitions=[
-                            {"AttributeName": "session_id", "AttributeType": "S"}
+                            {"AttributeName": pk_name, "AttributeType": "S"}
                         ],
                         BillingMode="PAY_PER_REQUEST"
                     )
@@ -294,9 +306,11 @@ class DynamoDBSessionStoreComponent(LCToolComponent):
             session_id = str(uuid.uuid4())
             self.log("WARNING: Auto-generated session_id - conversation continuity will be lost!")
 
+        # Determine primary key name (configurable, default: "session_id")
+        pk_name = getattr(self, "primary_key_name", "session_id") or "session_id"
+
         # Prepare item to save - base required fields
         item = {
-            "session_id": session_id,  # Primary key
             "timestamp": now.isoformat(),
             "ttl": ttl_timestamp,  # DynamoDB TTL attribute
             "user_message": str(self.user_message),
@@ -308,15 +322,32 @@ class DynamoDBSessionStoreComponent(LCToolComponent):
             if key not in item:  # Don't overwrite mandatory fields
                 item[key] = value
 
+        # Set primary key: use value from structured_data if present, else session_id
+        if pk_name != "session_id":
+            if pk_name in item:
+                # Already at top level from structured_data
+                self.log(f"Using primary key '{pk_name}' = '{item[pk_name]}' from structured data")
+            elif "answers" in item and isinstance(item["answers"], dict) and pk_name in item["answers"]:
+                # Found inside answers dict — promote to top level as primary key
+                item[pk_name] = item["answers"][pk_name]
+                self.log(f"Using primary key '{pk_name}' = '{item[pk_name]}' from answers")
+            else:
+                # Custom key not found in data, fall back to session_id value
+                item[pk_name] = session_id
+                self.log(f"WARNING: '{pk_name}' not found in data, using session_id as fallback")
+        else:
+            # Default: use session_id as the primary key
+            item[pk_name] = session_id
+
         # Log operation
-        self.log(f"Storing session {session_id} to table {self.table_name}")
+        self.log(f"Storing to table {self.table_name} with {pk_name}={item.get(pk_name, 'unknown')}")
         self.log(f"Fields: {list(output_data.keys())}")
         self.log(f"TTL: {ttl_timestamp} ({self.ttl_days} days from now)")
 
         # Put item to DynamoDB
         try:
             table.put_item(Item=item)
-            self.log(f"Session {session_id} stored successfully")
+            self.log(f"Stored successfully: {pk_name}={item.get(pk_name, 'unknown')}")
 
         except ClientError as e:
             error_code = e.response["Error"]["Code"]
@@ -331,7 +362,7 @@ class DynamoDBSessionStoreComponent(LCToolComponent):
             raise ValueError(msg) from e
 
         # Update status (visible in component UI)
-        self.status = f"Stored session {session_id}"
+        self.status = f"Stored {pk_name}={item.get(pk_name, 'unknown')}"
 
         # Return Data object with stored information
         return Data(data=item)
