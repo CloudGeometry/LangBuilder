@@ -40,8 +40,9 @@ export const CategoryGroup = memo(function CategoryGroup({
           {Object.entries(dataFilter)
             .filter(
               ([categoryName, items]) =>
-                // filter out bundles and MCP
-                !SIDEBAR_BUNDLES.some((cat) => cat.name === categoryName) &&
+                // filter out bundles and MCP (keep cloudgeometry in both tabs)
+                (!SIDEBAR_BUNDLES.some((cat) => cat.name === categoryName) ||
+                  categoryName === "cloudgeometry") &&
                 categoryName !== "custom_component" &&
                 categoryName !== "MCP" &&
                 Object.keys(items).length > 0,

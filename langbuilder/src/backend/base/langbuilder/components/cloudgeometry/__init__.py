@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from langbuilder.components.cloudgeometry.slack_dashboard_updater import SlackDashboardUpdaterComponent
     from langbuilder.components.cloudgeometry.per_user_jira_auth import PerUserJiraAuthComponent
     from langbuilder.components.cloudgeometry.slack_modal_trigger import SlackModalTriggerComponent
+    from langbuilder.components.cloudgeometry.slack_component import SlackComponent
 
 _dynamic_imports = {
     "Jinja2Renderer": "jinja2_renderer",
@@ -31,6 +32,7 @@ _dynamic_imports = {
     "SlackDashboardUpdaterComponent": "slack_dashboard_updater",
     "PerUserJiraAuthComponent": "per_user_jira_auth",
     "SlackModalTriggerComponent": "slack_modal_trigger",
+    "SlackComponent": "slack_component",
 }
 
 __all__ = [
@@ -46,6 +48,7 @@ __all__ = [
     "SlackDashboardUpdaterComponent",
     "PerUserJiraAuthComponent",
     "SlackModalTriggerComponent",
+    "SlackComponent",
 ]
 
 

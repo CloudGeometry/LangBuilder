@@ -238,6 +238,7 @@ export const SIDEBAR_CATEGORIES = [
   { display_name: "Text Splitters", name: "textsplitters", icon: "Scissors" },
   { display_name: "Toolkits", name: "toolkits", icon: "Package2" },
   { display_name: "Tools", name: "tools", icon: "Hammer" },
+  { display_name: "Cloud Geometry", name: "cloudgeometry", icon: "Cloud" },
 ];
 
 export const SIDEBAR_BUNDLES = [
@@ -263,6 +264,7 @@ export const SIDEBAR_BUNDLES = [
   { display_name: "ClickHouse", name: "clickhouse", icon: "Clickhouse" },
   { display_name: "Cleanlab", name: "cleanlab", icon: "Cleanlab" },
   { display_name: "Cloudflare", name: "cloudflare", icon: "Cloudflare" },
+  { display_name: "Cloud Geometry", name: "cloudgeometry", icon: "Cloud" },
   { display_name: "Cohere", name: "cohere", icon: "Cohere" },
   { display_name: "Composio", name: "composio", icon: "Composio" },
   { display_name: "Confluence", name: "confluence", icon: "Confluence" },
