@@ -61,6 +61,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import hashlib
 import json
 from typing import TYPE_CHECKING, Any, Optional
 
@@ -278,10 +279,14 @@ class AtlassianMCPComponent(LCToolComponent):
         """
         mcp_url = self._get_mcp_url()
 
-        # Check if we have a cached session for this endpoint
-        if mcp_url in self._mcp_sessions:
+        # Key cache by (url, credentials) to prevent cross-user session reuse
+        email = getattr(self, "atlassian_email", "") or ""
+        cache_key = f"{mcp_url}|{hashlib.sha256(email.encode()).hexdigest()[:12]}"
+
+        # Check if we have a cached session for this endpoint + user
+        if cache_key in self._mcp_sessions:
             logger.debug(f"Using cached MCP session for {mcp_url}")
-            return self._mcp_sessions[mcp_url]
+            return self._mcp_sessions[cache_key]
 
         init_request = {
             "jsonrpc": "2.0",
@@ -313,7 +318,16 @@ class AtlassianMCPComponent(LCToolComponent):
         )
 
         if response.status_code != 200:
-            error_msg = f"MCP initialization failed: {response.status_code} - {response.text}"
+            resp_text = response.text
+            # Detect the specific OAuth fallback error when per-user credentials are missing
+            if "OAuth authentication requires" in resp_text or "cloud_id" in resp_text:
+                error_msg = (
+                    "MCP server rejected request — no valid authentication. "
+                    "Configure 'Atlassian Email' and 'Atlassian API Token' on this component. "
+                    "The MCP server requires per-request Basic Auth credentials."
+                )
+            else:
+                error_msg = f"MCP initialization failed: {response.status_code} - {resp_text}"
             logger.error(error_msg)
             raise ValueError(error_msg)
 
@@ -334,8 +348,8 @@ class AtlassianMCPComponent(LCToolComponent):
 
         logger.info(f"MCP session initialized: {session_id[:16]}...")
 
-        # Cache the session
-        self._mcp_sessions[mcp_url] = session_id
+        # Cache the session (keyed by url + user)
+        self._mcp_sessions[cache_key] = session_id
         return session_id
 
     async def _call_mcp_tool(
@@ -392,7 +406,9 @@ class AtlassianMCPComponent(LCToolComponent):
 
             if response.status_code != 200:
                 # Clear cached session on error - it may have expired
-                self._mcp_sessions.pop(mcp_url, None)
+                email = getattr(self, "atlassian_email", "") or ""
+                evict_key = f"{mcp_url}|{hashlib.sha256(email.encode()).hexdigest()[:12]}"
+                self._mcp_sessions.pop(evict_key, None)
                 error_msg = f"MCP call failed: {response.status_code} - {response.text}"
                 logger.error(error_msg)
                 raise ValueError(error_msg)
@@ -416,7 +432,20 @@ class AtlassianMCPComponent(LCToolComponent):
                 error = result["error"]
                 raise ValueError(f"MCP error: {error.get('message', 'Unknown error')}")
 
-            return result.get("result", {})
+            # Check for MCP tool-level error (isError in result content)
+            mcp_result = result.get("result", {})
+            if mcp_result.get("isError"):
+                content = mcp_result.get("content", [])
+                error_text = content[0].get("text", "Unknown error") if content else "Unknown error"
+                if "OAuth authentication requires" in error_text or "cloud_id" in error_text:
+                    raise ValueError(
+                        "Atlassian authentication failed. "
+                        "Configure 'Atlassian Email' and 'Atlassian API Token' on this component. "
+                        f"Server response: {error_text}"
+                    )
+                raise ValueError(f"MCP tool error: {error_text}")
+
+            return mcp_result
 
     async def _list_mcp_tools(self) -> list[dict]:
         """List available tools from MCP server.
@@ -509,6 +538,13 @@ class AtlassianMCPComponent(LCToolComponent):
             Data object with tool execution result
         """
         try:
+            # Warn if credentials not configured
+            if not getattr(self, "atlassian_email", None) or not getattr(self, "atlassian_api_token", None):
+                logger.warning(
+                    "Atlassian credentials not set on component — "
+                    "requests will fail if MCP server requires per-user auth"
+                )
+
             # Parse tool arguments
             arguments = {}
             if self.tool_arguments:
@@ -586,6 +622,13 @@ class AtlassianMCPComponent(LCToolComponent):
         Returns:
             List of tools exposing Atlassian MCP operations
         """
+        # Warn if credentials missing (tools will fail at runtime)
+        if not getattr(self, "atlassian_email", None) or not getattr(self, "atlassian_api_token", None):
+            logger.warning(
+                "Building Atlassian tools without credentials — "
+                "configure atlassian_email and atlassian_api_token for per-user auth"
+            )
+
         # Build email context note for tool descriptions
         email_context = ""
         if self.slack_user_email:
@@ -896,6 +939,50 @@ Common CQL patterns:
             tags=["atlassian_confluence_update_page"],
         )
 
+        # Jira Add Comment Tool
+        class JiraAddCommentInput(BaseModel):
+            issue_key: str = Field(description="Jira issue key (e.g., PROJ-123)")
+            comment: str = Field(description="Comment text in Markdown format")
+
+        def _jira_add_comment(issue_key: str, comment: str) -> str:
+            self.tool_name = "jira_add_comment"
+            self.tool_arguments = json.dumps({"issue_key": issue_key, "comment": comment})
+            result = self.run_model()
+            if result.data.get("error"):
+                return f"Error: {result.data['error']}"
+            return json.dumps(result.data.get("result", {}), indent=2)
+
+        jira_add_comment_tool = StructuredTool.from_function(
+            name="atlassian_jira_add_comment",
+            description="Add a comment to a Jira issue.",
+            args_schema=JiraAddCommentInput,
+            func=_jira_add_comment,
+            return_direct=False,
+            tags=["atlassian_jira_add_comment"],
+        )
+
+        # Confluence Add Comment Tool
+        class ConfluenceAddCommentInput(BaseModel):
+            page_id: str = Field(description="Confluence page ID")
+            content: str = Field(description="Comment content in Markdown format")
+
+        def _confluence_add_comment(page_id: str, content: str) -> str:
+            self.tool_name = "confluence_add_comment"
+            self.tool_arguments = json.dumps({"page_id": page_id, "content": content})
+            result = self.run_model()
+            if result.data.get("error"):
+                return f"Error: {result.data['error']}"
+            return json.dumps(result.data.get("result", {}), indent=2)
+
+        confluence_add_comment_tool = StructuredTool.from_function(
+            name="atlassian_confluence_add_comment",
+            description="Add a comment to a Confluence page.",
+            args_schema=ConfluenceAddCommentInput,
+            func=_confluence_add_comment,
+            return_direct=False,
+            tags=["atlassian_confluence_add_comment"],
+        )
+
         self.status = "Tools built"
         return [
             jira_search_tool,
@@ -903,8 +990,10 @@ Common CQL patterns:
             jira_create_issue_tool,
             jira_update_issue_tool,
             jira_transition_issue_tool,
+            jira_add_comment_tool,
             confluence_search_tool,
             confluence_get_page_tool,
             confluence_create_page_tool,
             confluence_update_page_tool,
+            confluence_add_comment_tool,
         ]
