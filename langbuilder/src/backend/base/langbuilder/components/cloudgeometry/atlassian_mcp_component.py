@@ -811,19 +811,65 @@ Common CQL patterns:
         # Jira Transition Issue Tool
         class JiraTransitionIssueInput(BaseModel):
             issue_key: str = Field(description="Jira issue key (e.g., PROJ-123)")
-            transition_id: str = Field(
-                description="ID of the transition to perform (e.g., '11', '21', '31'). "
-                "Use jira_get_issue first to see available transitions."
+            target_status: str = Field(
+                description="Target status name (e.g., 'In Progress', 'Done', 'To Do') "
+                "OR a numeric transition ID (e.g., '31'). Status names are resolved "
+                "automatically — prefer using the status name."
             )
             comment: Optional[str] = Field(
                 default=None, description="Optional comment to add during the transition"
             )
 
+        def _resolve_transition_id(issue_key: str, target_status: str) -> str:
+            """Resolve a status name to a transition ID by querying available transitions."""
+            self.tool_name = "jira_get_transitions"
+            self.tool_arguments = json.dumps({"issue_key": issue_key})
+            result = self.run_model()
+            if result.data.get("error"):
+                raise ValueError(f"Failed to get transitions: {result.data['error']}")
+
+            mcp_result = result.data.get("result", {})
+            content = mcp_result.get("content", [])
+            if not content:
+                raise ValueError("No transition data returned from Jira")
+
+            transitions_text = content[0].get("text", "[]") if content else "[]"
+            transitions = json.loads(transitions_text) if isinstance(transitions_text, str) else transitions_text
+
+            # Match by target status name (case-insensitive)
+            target_lower = target_status.lower().strip()
+            for t in transitions:
+                to_status = t.get("to", {}).get("name", "") if isinstance(t.get("to"), dict) else ""
+                if to_status.lower().strip() == target_lower:
+                    return str(t["id"])
+                # Also match on transition name itself
+                if t.get("name", "").lower().strip() == target_lower:
+                    return str(t["id"])
+
+            available = [
+                f"{t.get('name', '?')} (id={t.get('id', '?')}) → {t.get('to', {}).get('name', '?')}"
+                for t in transitions
+            ]
+            raise ValueError(
+                f"No transition to '{target_status}' found. "
+                f"Available transitions: {', '.join(available)}"
+            )
+
         def _jira_transition_issue(
             issue_key: str,
-            transition_id: str,
+            target_status: str,
             comment: Optional[str] = None,
         ) -> str:
+            # Resolve status name to transition ID if not numeric
+            if target_status.strip().isdigit():
+                transition_id = target_status.strip()
+            else:
+                try:
+                    transition_id = _resolve_transition_id(issue_key, target_status)
+                    logger.info(f"Resolved '{target_status}' to transition_id={transition_id} for {issue_key}")
+                except ValueError as e:
+                    return f"Error: {e}"
+
             self.tool_name = "jira_transition_issue"
             args: dict[str, Any] = {
                 "issue_key": issue_key,
@@ -835,11 +881,32 @@ Common CQL patterns:
             result = self.run_model()
             if result.data.get("error"):
                 return f"Error: {result.data['error']}"
-            return json.dumps(result.data.get("result", {}), indent=2)
+
+            # Verify the transition actually changed the status
+            mcp_result = result.data.get("result", {})
+            content = mcp_result.get("content", [])
+            if content:
+                try:
+                    issue_data = json.loads(content[0].get("text", "{}"))
+                    new_status = issue_data.get("issue", {}).get("status", {}).get("name", "")
+                    if new_status and not target_status.strip().isdigit():
+                        if new_status.lower().strip() != target_status.lower().strip():
+                            return (
+                                f"Warning: Transition completed but status is '{new_status}', "
+                                f"not '{target_status}'. The transition may have gone to an unexpected status."
+                            )
+                except (json.JSONDecodeError, AttributeError):
+                    pass
+
+            return json.dumps(mcp_result, indent=2)
 
         jira_transition_issue_tool = StructuredTool.from_function(
             name="atlassian_jira_transition_issue",
-            description="Transition a Jira issue to a new status using a transition ID. Get available transition IDs from jira_get_issue first.",
+            description=(
+                "Transition a Jira issue to a new status. Pass the target status name "
+                "(e.g., 'In Progress', 'Done', 'To Do') and the correct transition will "
+                "be resolved automatically. You can also pass a numeric transition ID directly."
+            ),
             args_schema=JiraTransitionIssueInput,
             func=_jira_transition_issue,
             return_direct=False,
