@@ -80,6 +80,7 @@ from langbuilder.io import (
     StrInput,
 )
 from langbuilder.schema.data import Data
+from langbuilder.services.tracing.spans import ComponentSpanTracker
 
 if TYPE_CHECKING:
     pass
@@ -356,6 +357,7 @@ class AtlassianMCPComponent(LCToolComponent):
         self,
         tool_name: str,
         arguments: dict[str, Any],
+        tracker: ComponentSpanTracker | None = None,
     ) -> dict[str, Any]:
         """Call a tool on the mcp-atlassian server.
 
@@ -364,6 +366,7 @@ class AtlassianMCPComponent(LCToolComponent):
         Args:
             tool_name: Name of the MCP tool to call
             arguments: Tool arguments
+            tracker: Optional span tracker for detailed tracing
 
         Returns:
             Tool execution result
@@ -374,8 +377,17 @@ class AtlassianMCPComponent(LCToolComponent):
         mcp_url = self._get_mcp_url()
 
         async with httpx.AsyncClient() as client:
-            # Initialize session first
-            session_id = await self._initialize_mcp_session(client)
+            # Initialize session first (with tracing if available)
+            if tracker:
+                async with tracker.span(
+                    "MCP Session Init",
+                    span_type="mcp",
+                    inputs={"endpoint": mcp_url},
+                ) as span:
+                    session_id = await self._initialize_mcp_session(client)
+                    span.set_output("session_id", session_id[:16] + "..." if session_id else None)
+            else:
+                session_id = await self._initialize_mcp_session(client)
 
             # Build MCP JSON-RPC request
             mcp_request = {
@@ -397,55 +409,101 @@ class AtlassianMCPComponent(LCToolComponent):
 
             logger.debug(f"Calling MCP tool {tool_name} at {mcp_url}")
 
-            response = await client.post(
-                mcp_url,
-                json=mcp_request,
-                headers=headers,
-                timeout=self.timeout,
-            )
-
-            if response.status_code != 200:
-                # Clear cached session on error - it may have expired
-                email = getattr(self, "atlassian_email", "") or ""
-                evict_key = f"{mcp_url}|{hashlib.sha256(email.encode()).hexdigest()[:12]}"
-                self._mcp_sessions.pop(evict_key, None)
-                error_msg = f"MCP call failed: {response.status_code} - {response.text}"
-                logger.error(error_msg)
-                raise ValueError(error_msg)
-
-            # Parse response - may be SSE format
-            text = response.text
-            if text.startswith("event:"):
-                # Parse SSE format: "event: message\ndata: {...}"
-                for line in text.split("\n"):
-                    if line.startswith("data:"):
-                        json_str = line[5:].strip()
-                        result = json.loads(json_str)
-                        break
-                else:
-                    raise ValueError(f"Could not parse SSE response: {text[:200]}")
-            else:
-                result = response.json()
-
-            # Check for JSON-RPC error
-            if "error" in result:
-                error = result["error"]
-                raise ValueError(f"MCP error: {error.get('message', 'Unknown error')}")
-
-            # Check for MCP tool-level error (isError in result content)
-            mcp_result = result.get("result", {})
-            if mcp_result.get("isError"):
-                content = mcp_result.get("content", [])
-                error_text = content[0].get("text", "Unknown error") if content else "Unknown error"
-                if "OAuth authentication requires" in error_text or "cloud_id" in error_text:
-                    raise ValueError(
-                        "Atlassian authentication failed. "
-                        "Configure 'Atlassian Email' and 'Atlassian API Token' on this component. "
-                        f"Server response: {error_text}"
+            # Track the actual MCP tool call
+            if tracker:
+                async with tracker.mcp_call(
+                    tool_name,
+                    server="mcp-atlassian",
+                    **arguments,
+                ) as span:
+                    response = await client.post(
+                        mcp_url,
+                        json=mcp_request,
+                        headers=headers,
+                        timeout=self.timeout,
                     )
-                raise ValueError(f"MCP tool error: {error_text}")
+                    span.set_metadata("status_code", response.status_code)
+                    span.set_metadata("response_time_ms", response.elapsed.total_seconds() * 1000)
 
-            return mcp_result
+                    if response.status_code != 200:
+                        email = getattr(self, "atlassian_email", "") or ""
+                        evict_key = f"{mcp_url}|{hashlib.sha256(email.encode()).hexdigest()[:12]}"
+                        self._mcp_sessions.pop(evict_key, None)
+                        error_msg = f"MCP call failed: {response.status_code} - {response.text}"
+                        span.set_error(ValueError(error_msg))
+                        logger.error(error_msg)
+                        raise ValueError(error_msg)
+
+                    # Parse and set outputs
+                    mcp_result = self._parse_mcp_response(response.text, tool_name)
+                    span.set_output("has_content", bool(mcp_result.get("content")))
+                    if mcp_result.get("content"):
+                        content = mcp_result["content"]
+                        if isinstance(content, list) and content:
+                            # Extract summary info from first content item
+                            first = content[0]
+                            if isinstance(first, dict) and "text" in first:
+                                try:
+                                    parsed = json.loads(first["text"])
+                                    if isinstance(parsed, list):
+                                        span.set_output("result_count", len(parsed))
+                                    elif isinstance(parsed, dict):
+                                        span.set_output("result_keys", list(parsed.keys())[:5])
+                                except (json.JSONDecodeError, TypeError):
+                                    pass
+                    return mcp_result
+            else:
+                response = await client.post(
+                    mcp_url,
+                    json=mcp_request,
+                    headers=headers,
+                    timeout=self.timeout,
+                )
+
+                if response.status_code != 200:
+                    # Clear cached session on error - it may have expired
+                    email = getattr(self, "atlassian_email", "") or ""
+                    evict_key = f"{mcp_url}|{hashlib.sha256(email.encode()).hexdigest()[:12]}"
+                    self._mcp_sessions.pop(evict_key, None)
+                    error_msg = f"MCP call failed: {response.status_code} - {response.text}"
+                    logger.error(error_msg)
+                    raise ValueError(error_msg)
+
+                return self._parse_mcp_response(response.text, tool_name)
+
+    def _parse_mcp_response(self, text: str, tool_name: str) -> dict[str, Any]:
+        """Parse MCP response which may be in SSE or JSON format."""
+        if text.startswith("event:"):
+            # Parse SSE format: "event: message\ndata: {...}"
+            for line in text.split("\n"):
+                if line.startswith("data:"):
+                    json_str = line[5:].strip()
+                    result = json.loads(json_str)
+                    break
+            else:
+                raise ValueError(f"Could not parse SSE response: {text[:200]}")
+        else:
+            result = json.loads(text)
+
+        # Check for JSON-RPC error
+        if "error" in result:
+            error = result["error"]
+            raise ValueError(f"MCP error: {error.get('message', 'Unknown error')}")
+
+        # Check for MCP tool-level error (isError in result content)
+        mcp_result = result.get("result", {})
+        if mcp_result.get("isError"):
+            content = mcp_result.get("content", [])
+            error_text = content[0].get("text", "Unknown error") if content else "Unknown error"
+            if "OAuth authentication requires" in error_text or "cloud_id" in error_text:
+                raise ValueError(
+                    "Atlassian authentication failed. "
+                    "Configure 'Atlassian Email' and 'Atlassian API Token' on this component. "
+                    f"Server response: {error_text}"
+                )
+            raise ValueError(f"MCP tool error: {error_text}")
+
+        return mcp_result
 
     async def _list_mcp_tools(self) -> list[dict]:
         """List available tools from MCP server.
@@ -537,6 +595,9 @@ class AtlassianMCPComponent(LCToolComponent):
         Returns:
             Data object with tool execution result
         """
+        # Create span tracker for detailed tracing
+        tracker = ComponentSpanTracker(self)
+
         try:
             # Warn if credentials not configured
             if not getattr(self, "atlassian_email", None) or not getattr(self, "atlassian_api_token", None):
@@ -575,9 +636,9 @@ class AtlassianMCPComponent(LCToolComponent):
             if "search" in self.tool_name and "limit" not in arguments:
                 arguments["limit"] = self.max_results
 
-            # Execute MCP tool
+            # Execute MCP tool with tracing
             self.status = f"Executing {self.tool_name}..."
-            result = asyncio.run(self._call_mcp_tool(self.tool_name, arguments))
+            result = asyncio.run(self._call_mcp_tool(self.tool_name, arguments, tracker))
 
             self.status = f"Completed {self.tool_name}"
             return Data(data={
