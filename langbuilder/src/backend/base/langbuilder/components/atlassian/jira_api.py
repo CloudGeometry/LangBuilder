@@ -13,6 +13,7 @@ from langbuilder.inputs import (
 from langbuilder.io import Output
 from langbuilder.logging import logger
 from langbuilder.schema.message import Message
+from langbuilder.services.tracing.spans import ComponentSpanTracker
 
 
 class JiraAPIComponent(Component):
@@ -298,29 +299,30 @@ class JiraAPIComponent(Component):
     def execute_action(self) -> Message:
         """Execute the selected Jira action."""
         action = self.action
+        tracker = ComponentSpanTracker(self)
 
         try:
             with self._get_client() as client:
                 if action == "Get Issue":
-                    result = self._get_issue(client)
+                    result = self._get_issue(client, tracker)
                 elif action == "Search Issues":
-                    result = self._search_issues(client)
+                    result = self._search_issues(client, tracker)
                 elif action == "Create Issue":
-                    result = self._create_issue(client)
+                    result = self._create_issue(client, tracker)
                 elif action == "Update Issue":
-                    result = self._update_issue(client)
+                    result = self._update_issue(client, tracker)
                 elif action == "Transition Issue":
-                    result = self._transition_issue(client)
+                    result = self._transition_issue(client, tracker)
                 elif action == "Add Comment":
-                    result = self._add_comment(client)
+                    result = self._add_comment(client, tracker)
                 elif action == "Set Due Date":
-                    result = self._set_due_date(client)
+                    result = self._set_due_date(client, tracker)
                 elif action == "Assign Issue":
-                    result = self._assign_issue(client)
+                    result = self._assign_issue(client, tracker)
                 elif action == "Get Transitions":
-                    result = self._get_transitions(client)
+                    result = self._get_transitions(client, tracker)
                 elif action == "Get Projects":
-                    result = self._get_projects(client)
+                    result = self._get_projects(client, tracker)
                 else:
                     result = {"error": f"Unknown action: {action}"}
 
@@ -339,16 +341,21 @@ class JiraAPIComponent(Component):
             logger.error(f"Error executing Jira action: {e}")
             return Message(text=f"Error: {e!s}")
 
-    def _get_issue(self, client: httpx.Client) -> dict:
+    def _get_issue(self, client: httpx.Client, tracker: ComponentSpanTracker) -> dict:
         """Get issue by key with formatted output."""
         if not self.issue_key:
             return {"error": "Issue key is required"}
 
-        response = client.get(f"/rest/api/3/issue/{self.issue_key}")
-        response.raise_for_status()
-        return self._format_issue(response.json())
+        with tracker.span_sync("Get Issue", span_type="api", inputs={"issue_key": self.issue_key}) as span:
+            response = client.get(f"/rest/api/3/issue/{self.issue_key}")
+            span.set_metadata("status_code", response.status_code)
+            response.raise_for_status()
+            result = self._format_issue(response.json())
+            span.set_output("summary", result.get("summary", "")[:100])
+            span.set_output("status", result.get("status"))
+            return result
 
-    def _search_issues(self, client: httpx.Client) -> dict:
+    def _search_issues(self, client: httpx.Client, tracker: ComponentSpanTracker) -> dict:
         """Search issues with formatted output including subtasks."""
         # Build JQL
         assignee_filter_value = None
@@ -384,9 +391,12 @@ class JiraAPIComponent(Component):
             "fields": ["summary", "description", "assignee", "status", "duedate", "priority", "parent", "issuetype"],
         }
 
-        response = client.post("/rest/api/3/search/jql", json=body)
-        response.raise_for_status()
-        data = response.json()
+        with tracker.span_sync("Search Issues", span_type="api", inputs={"jql": jql, "max_results": fetch_limit}) as span:
+            response = client.post("/rest/api/3/search/jql", json=body)
+            span.set_metadata("status_code", response.status_code)
+            response.raise_for_status()
+            data = response.json()
+            span.set_output("total_found", data.get("total", 0))
 
         issues = [self._format_issue(issue) for issue in data.get("issues", [])]
 
@@ -409,7 +419,7 @@ class JiraAPIComponent(Component):
             "issues": issues,
         }
 
-    def _create_issue(self, client: httpx.Client) -> dict:
+    def _create_issue(self, client: httpx.Client, tracker: ComponentSpanTracker) -> dict:
         """Create a new issue."""
         if not self.project_key or not self.summary:
             return {"error": "Project key and summary are required"}
@@ -436,9 +446,12 @@ class JiraAPIComponent(Component):
             fields["priority"] = {"name": self.priority}
 
         if self.assignee:
-            resolved = self._resolve_user(client, self.assignee)
-            if "error" in resolved:
-                return resolved
+            with tracker.span_sync("Resolve User", span_type="api", inputs={"user": self.assignee}) as span:
+                resolved = self._resolve_user(client, self.assignee)
+                if "error" in resolved:
+                    span.set_output("error", resolved["error"])
+                    return resolved
+                span.set_output("account_id", resolved["accountId"][:12] + "...")
             fields["assignee"] = {"accountId": resolved["accountId"]}
 
         if self.due_date:
@@ -449,9 +462,12 @@ class JiraAPIComponent(Component):
         if self.labels:
             fields["labels"] = [label.strip() for label in self.labels.split(",")]
 
-        response = client.post("/rest/api/3/issue", json={"fields": fields})
-        response.raise_for_status()
-        created = response.json()
+        with tracker.span_sync("Create Issue", span_type="api", inputs={"project": self.project_key, "summary": self.summary[:50]}) as span:
+            response = client.post("/rest/api/3/issue", json={"fields": fields})
+            span.set_metadata("status_code", response.status_code)
+            response.raise_for_status()
+            created = response.json()
+            span.set_output("issue_key", created.get("key"))
 
         return {
             "success": True,
@@ -460,7 +476,7 @@ class JiraAPIComponent(Component):
             "message": f"Created issue {created.get('key')}: {self.summary}",
         }
 
-    def _update_issue(self, client: httpx.Client) -> dict:
+    def _update_issue(self, client: httpx.Client, tracker: ComponentSpanTracker) -> dict:
         """Update an existing issue."""
         if not self.issue_key:
             return {"error": "Issue key is required"}
@@ -491,8 +507,10 @@ class JiraAPIComponent(Component):
         if not fields:
             return {"error": "No fields to update"}
 
-        response = client.put(f"/rest/api/3/issue/{self.issue_key}", json={"fields": fields})
-        response.raise_for_status()
+        with tracker.span_sync("Update Issue", span_type="api", inputs={"issue_key": self.issue_key, "fields": list(fields.keys())}) as span:
+            response = client.put(f"/rest/api/3/issue/{self.issue_key}", json={"fields": fields})
+            span.set_metadata("status_code", response.status_code)
+            response.raise_for_status()
 
         return {
             "success": True,
@@ -500,15 +518,18 @@ class JiraAPIComponent(Component):
             "message": f"Updated issue {self.issue_key}",
         }
 
-    def _transition_issue(self, client: httpx.Client) -> dict:
+    def _transition_issue(self, client: httpx.Client, tracker: ComponentSpanTracker) -> dict:
         """Transition an issue to a new status by name."""
         if not self.issue_key or not self.transition_to:
             return {"error": "Issue key and target status are required"}
 
         # First, get available transitions
-        response = client.get(f"/rest/api/3/issue/{self.issue_key}/transitions")
-        response.raise_for_status()
-        transitions = response.json().get("transitions", [])
+        with tracker.span_sync("Get Transitions", span_type="api", inputs={"issue_key": self.issue_key}) as span:
+            response = client.get(f"/rest/api/3/issue/{self.issue_key}/transitions")
+            span.set_metadata("status_code", response.status_code)
+            response.raise_for_status()
+            transitions = response.json().get("transitions", [])
+            span.set_output("available_count", len(transitions))
 
         # Find matching transition
         target_lower = self.transition_to.lower()
@@ -528,9 +549,12 @@ class JiraAPIComponent(Component):
             }
 
         # Execute transition
-        body = {"transition": {"id": transition_id}}
-        response = client.post(f"/rest/api/3/issue/{self.issue_key}/transitions", json=body)
-        response.raise_for_status()
+        with tracker.span_sync("Execute Transition", span_type="api", inputs={"issue_key": self.issue_key, "target": self.transition_to}) as span:
+            body = {"transition": {"id": transition_id}}
+            response = client.post(f"/rest/api/3/issue/{self.issue_key}/transitions", json=body)
+            span.set_metadata("status_code", response.status_code)
+            span.set_output("transition_id", transition_id)
+            response.raise_for_status()
 
         return {
             "success": True,
@@ -538,7 +562,7 @@ class JiraAPIComponent(Component):
             "message": f"Transitioned {self.issue_key} to '{self.transition_to}'",
         }
 
-    def _add_comment(self, client: httpx.Client) -> dict:
+    def _add_comment(self, client: httpx.Client, tracker: ComponentSpanTracker) -> dict:
         """Add a comment to an issue."""
         if not self.issue_key or not self.comment:
             return {"error": "Issue key and comment are required"}
@@ -556,8 +580,10 @@ class JiraAPIComponent(Component):
             }
         }
 
-        response = client.post(f"/rest/api/3/issue/{self.issue_key}/comment", json=body)
-        response.raise_for_status()
+        with tracker.span_sync("Add Comment", span_type="api", inputs={"issue_key": self.issue_key, "comment_length": len(self.comment)}) as span:
+            response = client.post(f"/rest/api/3/issue/{self.issue_key}/comment", json=body)
+            span.set_metadata("status_code", response.status_code)
+            response.raise_for_status()
 
         return {
             "success": True,
@@ -565,18 +591,20 @@ class JiraAPIComponent(Component):
             "message": f"Added comment to {self.issue_key}",
         }
 
-    def _set_due_date(self, client: httpx.Client) -> dict:
+    def _set_due_date(self, client: httpx.Client, tracker: ComponentSpanTracker) -> dict:
         """Set due date for an issue."""
         if not self.issue_key or not self.due_date:
             return {"error": "Issue key and due date are required"}
 
         parsed_date = self._parse_due_date(self.due_date)
 
-        response = client.put(
-            f"/rest/api/3/issue/{self.issue_key}",
-            json={"fields": {"duedate": parsed_date}}
-        )
-        response.raise_for_status()
+        with tracker.span_sync("Set Due Date", span_type="api", inputs={"issue_key": self.issue_key, "due_date": parsed_date}) as span:
+            response = client.put(
+                f"/rest/api/3/issue/{self.issue_key}",
+                json={"fields": {"duedate": parsed_date}}
+            )
+            span.set_metadata("status_code", response.status_code)
+            response.raise_for_status()
 
         return {
             "success": True,
@@ -585,18 +613,20 @@ class JiraAPIComponent(Component):
             "message": f"Set due date for {self.issue_key} to {parsed_date}",
         }
 
-    def _assign_issue(self, client: httpx.Client) -> dict:
+    def _assign_issue(self, client: httpx.Client, tracker: ComponentSpanTracker) -> dict:
         """Assign an issue to a user by name or account ID."""
         if not self.issue_key:
             return {"error": "Issue key is required"}
 
         # If no assignee provided, unassign
         if not self.assignee:
-            response = client.put(
-                f"/rest/api/3/issue/{self.issue_key}/assignee",
-                json={"accountId": None}
-            )
-            response.raise_for_status()
+            with tracker.span_sync("Unassign Issue", span_type="api", inputs={"issue_key": self.issue_key}) as span:
+                response = client.put(
+                    f"/rest/api/3/issue/{self.issue_key}/assignee",
+                    json={"accountId": None}
+                )
+                span.set_metadata("status_code", response.status_code)
+                response.raise_for_status()
             return {
                 "success": True,
                 "key": self.issue_key,
@@ -604,18 +634,24 @@ class JiraAPIComponent(Component):
             }
 
         # Resolve user by name or ID
-        resolved = self._resolve_user(client, self.assignee)
-        if "error" in resolved:
-            return resolved
+        with tracker.span_sync("Resolve User", span_type="api", inputs={"user": self.assignee}) as span:
+            resolved = self._resolve_user(client, self.assignee)
+            if "error" in resolved:
+                span.set_output("error", resolved.get("error"))
+                return resolved
+            span.set_output("account_id", resolved["accountId"][:12] + "...")
+            span.set_output("display_name", resolved.get("displayName"))
 
         account_id = resolved["accountId"]
         display_name = resolved.get("displayName", self.assignee)
 
-        response = client.put(
-            f"/rest/api/3/issue/{self.issue_key}/assignee",
-            json={"accountId": account_id}
-        )
-        response.raise_for_status()
+        with tracker.span_sync("Assign Issue", span_type="api", inputs={"issue_key": self.issue_key, "assignee": display_name}) as span:
+            response = client.put(
+                f"/rest/api/3/issue/{self.issue_key}/assignee",
+                json={"accountId": account_id}
+            )
+            span.set_metadata("status_code", response.status_code)
+            response.raise_for_status()
 
         return {
             "success": True,
@@ -624,14 +660,17 @@ class JiraAPIComponent(Component):
             "message": f"Assigned {self.issue_key} to {display_name}",
         }
 
-    def _get_transitions(self, client: httpx.Client) -> dict:
+    def _get_transitions(self, client: httpx.Client, tracker: ComponentSpanTracker) -> dict:
         """Get available transitions for an issue."""
         if not self.issue_key:
             return {"error": "Issue key is required"}
 
-        response = client.get(f"/rest/api/3/issue/{self.issue_key}/transitions")
-        response.raise_for_status()
-        data = response.json()
+        with tracker.span_sync("Get Transitions", span_type="api", inputs={"issue_key": self.issue_key}) as span:
+            response = client.get(f"/rest/api/3/issue/{self.issue_key}/transitions")
+            span.set_metadata("status_code", response.status_code)
+            response.raise_for_status()
+            data = response.json()
+            span.set_output("transition_count", len(data.get("transitions", [])))
 
         transitions = [
             {"id": t.get("id"), "name": t.get("name")}
@@ -686,14 +725,18 @@ class JiraAPIComponent(Component):
         matches = [{"name": u.get("displayName"), "accountId": u.get("accountId")} for u in users]
         return {"error": f"Multiple users match '{user_input}'", "matches": matches}
 
-    def _get_projects(self, client: httpx.Client) -> dict:
+    def _get_projects(self, client: httpx.Client, tracker: ComponentSpanTracker) -> dict:
         """Get all accessible projects."""
-        response = client.get("/rest/api/3/project")
-        response.raise_for_status()
+        with tracker.span_sync("Get Projects", span_type="api") as span:
+            response = client.get("/rest/api/3/project")
+            span.set_metadata("status_code", response.status_code)
+            response.raise_for_status()
+            data = response.json()
+            span.set_output("project_count", len(data))
 
         projects = [
             {"key": p.get("key"), "name": p.get("name")}
-            for p in response.json()
+            for p in data
         ]
 
         return {"projects": projects}
