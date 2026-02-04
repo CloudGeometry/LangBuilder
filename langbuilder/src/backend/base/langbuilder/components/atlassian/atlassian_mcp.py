@@ -1,0 +1,913 @@
+"""
+Atlassian MCP Component
+
+Connect to Jira and Confluence via the mcp-atlassian MCP server.
+Exposes tools for Agent use: jira_search, jira_get_issue, jira_create_issue,
+jira_update_issue, jira_add_comment, jira_transition_issue, jira_get_transitions,
+confluence_search, and confluence_get_page.
+
+Architecture
+============
+LangBuilder Flow -> AtlassianMCPComponent -> mcp-atlassian server -> Atlassian Cloud APIs
+
+The component communicates with the MCP server using JSON-RPC 2.0 over HTTP
+(streamable-http transport). Each request includes per-user credentials as
+Authorization: Basic <base64(email:api_token)> headers. The MCP server holds
+NO shared secrets - it operates in per-user auth mode (ATLASSIAN_OAUTH_ENABLE=true).
+
+Authentication
+==============
+Per-user Basic Auth. Each user provides their own Atlassian email + API token
+via component inputs (or tweaks at runtime). The component builds an
+Authorization: Basic header and sends it with every MCP request.
+
+If atlassian_email and atlassian_api_token are empty, the component falls back
+to server-side auth (backward compatible with env-var credentials on the server).
+
+Slack User Context
+==================
+Three optional Slack fields (slack_user_email, slack_user_id, slack_team_id)
+provide user identity context from a Slack bridge integration. These are NOT
+Slack API credentials - they enable:
+
+1. Agent-level email context: Tool descriptions include the user's email so
+   the LLM can formulate personalized JQL (e.g., assignee = "user@company.com").
+2. Component-level substitution: {user_email}, {me}, and currentUser() in
+   JQL/CQL are replaced with the actual email before sending to the MCP server.
+   Critical for service account deployments where currentUser() would resolve
+   to the service account, not the actual user.
+3. Result metadata: Every result includes user_context with Slack IDs.
+
+MCP Server Deployment
+=====================
+TEMPORARY - Current AWS Fargate deployment:
+  ALB: http://mcp-atlassian-alb-1010564853.us-west-2.elb.amazonaws.com
+  Service Discovery: atlassian.mcp.internal:9000 (VPC-internal)
+  AWS Profile: ai-entourage
+  CDK Stack: McpAtlassianStack (us-west-2)
+
+Local Docker:
+  docker run -p 9000:9000 -e ATLASSIAN_OAUTH_ENABLE=true \\
+    -e JIRA_URL=https://cloudgeometry.atlassian.net \\
+    -e CONFLUENCE_URL=https://cloudgeometry.atlassian.net/wiki \\
+    mcp-atlassian --transport streamable-http --host 0.0.0.0 --port 9000
+
+Repository: https://github.com/adubuc-cloudgeometry/mcp-atlassian (fork with per-user auth)
+Upstream:   https://github.com/sooperset/mcp-atlassian
+Supports:   Jira Cloud, Confluence Cloud, Server/Data Center
+"""
+
+from __future__ import annotations
+
+import asyncio
+import base64
+import json
+from typing import TYPE_CHECKING, Any
+
+import httpx
+from langchain_core.tools import StructuredTool
+from loguru import logger
+from pydantic import BaseModel, Field
+
+from langbuilder.base.langchain_utilities.model import LCToolComponent
+from langbuilder.field_typing import Tool
+from langbuilder.io import (
+    DropdownInput,
+    IntInput,
+    MessageTextInput,
+    SecretStrInput,
+    StrInput,
+)
+from langbuilder.schema.data import Data
+
+if TYPE_CHECKING:
+    pass
+
+
+class AtlassianMCPComponent(LCToolComponent):
+    """Connect to Atlassian via community MCP server (mcp-atlassian).
+
+    **Setup:**
+    1. Run the mcp-atlassian Docker container (see microservice folder)
+    2. Configure MCP endpoint URL (default: http://localhost:9000)
+    3. The MCP server handles Atlassian authentication via its own config
+
+    **Features:**
+    - Access Jira (search, get, create, update, transition issues, add comments)
+    - Access Confluence (search, get, create pages)
+    - Slack user context support for personalized queries
+    - Works with Cloud and Server/Data Center
+
+    **Note:** Authentication is handled by the mcp-atlassian server.
+    Configure JIRA_API_TOKEN and CONFLUENCE_API_TOKEN in the server's .env file.
+    """
+
+    display_name = "Atlassian MCP"
+    description = "Access Jira and Confluence via mcp-atlassian server"
+    documentation = "https://github.com/sooperset/mcp-atlassian"
+    icon = "Jira"
+    name = "AtlassianMCP"
+
+    # Class-level session cache for MCP connections
+    _mcp_sessions: dict[str, str] = {}
+
+    inputs = [
+        # === MCP Server Configuration ===
+        StrInput(
+            name="mcp_endpoint",
+            display_name="MCP Server URL",
+            info="URL of the mcp-atlassian server. "
+                 "TEMPORARY default points to CG AWS Fargate deployment.",
+            value="http://mcp-atlassian-alb-1010564853.us-west-2.elb.amazonaws.com",
+            required=True,
+        ),
+        DropdownInput(
+            name="transport",
+            display_name="Transport",
+            options=["sse", "http"],
+            value="sse",
+            info="MCP transport type (SSE recommended for stability)",
+            advanced=True,
+        ),
+
+        # === Atlassian Credentials (per-user, sent per-request) ===
+        StrInput(
+            name="atlassian_url",
+            display_name="Atlassian URL",
+            info="Your Atlassian Cloud URL (e.g., https://yourcompany.atlassian.net). "
+                 "Leave empty if server handles auth via env vars.",
+            required=False,
+        ),
+        StrInput(
+            name="atlassian_email",
+            display_name="Atlassian Email",
+            info="Email for Atlassian authentication (e.g., user@company.com).",
+            required=False,
+        ),
+        SecretStrInput(
+            name="atlassian_api_token",
+            display_name="Atlassian API Token",
+            info="API token for Atlassian authentication. "
+                 "Generate at https://id.atlassian.com/manage-profile/security/api-tokens",
+            required=False,
+        ),
+
+        # === User Context (from Slack via tweaks) ===
+        StrInput(
+            name="slack_user_id",
+            display_name="Slack User ID",
+            info="Passed automatically from Slack bridge via tweaks",
+            required=False,
+            advanced=True,
+        ),
+        StrInput(
+            name="slack_user_email",
+            display_name="Slack User Email",
+            info="Used for personalized JQL queries (e.g., 'my tickets')",
+            required=False,
+            advanced=True,
+        ),
+        StrInput(
+            name="slack_team_id",
+            display_name="Slack Team ID",
+            info="Slack workspace identifier",
+            required=False,
+            advanced=True,
+        ),
+
+        # === Tool Selection ===
+        DropdownInput(
+            name="tool_name",
+            display_name="Atlassian Tool",
+            options=[
+                "jira_search",
+                "jira_get_issue",
+                "jira_get_transitions",
+                "jira_create_issue",
+                "jira_update_issue",
+                "jira_transition_issue",
+                "jira_add_comment",
+                "confluence_search",
+                "confluence_get_page",
+                "confluence_create_page",
+                "confluence_update_page",
+                "confluence_add_comment",
+            ],
+            value="jira_search",
+            info="Select the MCP tool to execute",
+            required=True,
+            tool_mode=True,
+        ),
+        MessageTextInput(
+            name="tool_arguments",
+            display_name="Tool Arguments (JSON)",
+            info="Arguments for the selected tool in JSON format",
+            required=False,
+            tool_mode=True,
+        ),
+
+        # === Advanced Settings ===
+        IntInput(
+            name="max_results",
+            display_name="Max Results",
+            value=50,
+            info="Maximum results to return from searches",
+            advanced=True,
+        ),
+        IntInput(
+            name="timeout",
+            display_name="Timeout (seconds)",
+            value=30,
+            info="Request timeout in seconds",
+            advanced=True,
+        ),
+    ]
+
+    def _get_auth_headers(self) -> dict[str, str]:
+        """Build per-request auth headers from component credentials.
+
+        Returns empty dict if no credentials configured, allowing
+        backward compatibility with server-side auth via env vars.
+        """
+        email = getattr(self, "atlassian_email", None)
+        token = getattr(self, "atlassian_api_token", None)
+        url = getattr(self, "atlassian_url", None)
+
+        if not email or not token:
+            return {}
+
+        # Resolve SecretStrInput to plain string
+        token_str = token.get_secret_value() if hasattr(token, "get_secret_value") else str(token)
+
+        encoded = base64.b64encode(f"{email}:{token_str}".encode()).decode()
+        headers: dict[str, str] = {
+            "Authorization": f"Basic {encoded}",
+        }
+
+        if url:
+            base = url.rstrip("/")
+            headers["X-Atlassian-Jira-Url"] = base
+            headers["X-Atlassian-Confluence-Url"] = f"{base}/wiki"
+
+        return headers
+
+    def _get_mcp_url(self) -> str:
+        """Get the full MCP endpoint URL.
+
+        Note: Always uses /mcp endpoint (streamable-http) since it supports
+        proper request/response with session management. The /sse endpoint
+        is for SSE streaming which requires different client handling.
+        """
+        base_url = self.mcp_endpoint.rstrip("/")
+        return f"{base_url}/mcp"
+
+    async def _initialize_mcp_session(self, client: httpx.AsyncClient) -> str:
+        """Initialize MCP session and return session ID.
+
+        The MCP streamable-http transport requires session management:
+        1. Call initialize to get a session ID from Mcp-Session-Id header
+        2. Use that session ID in all subsequent requests
+
+        Args:
+            client: httpx AsyncClient to use for the request
+
+        Returns:
+            Session ID string
+
+        Raises:
+            ValueError: If initialization fails
+        """
+        mcp_url = self._get_mcp_url()
+
+        # Check if we have a cached session for this endpoint
+        if mcp_url in self._mcp_sessions:
+            logger.debug(f"Using cached MCP session for {mcp_url}")
+            return self._mcp_sessions[mcp_url]
+
+        init_request = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+                "protocolVersion": "2024-11-05",
+                "capabilities": {},
+                "clientInfo": {
+                    "name": "langbuilder-atlassian-mcp",
+                    "version": "1.0.0",
+                },
+            },
+        }
+
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json, text/event-stream",
+            **self._get_auth_headers(),
+        }
+
+        logger.debug(f"Initializing MCP session at {mcp_url}")
+
+        response = await client.post(
+            mcp_url,
+            json=init_request,
+            headers=headers,
+            timeout=self.timeout,
+        )
+
+        if response.status_code != 200:
+            error_msg = f"MCP initialization failed: {response.status_code} - {response.text}"
+            logger.error(error_msg)
+            raise ValueError(error_msg)
+
+        # Get session ID from response header
+        session_id = response.headers.get("Mcp-Session-Id")
+        if not session_id:
+            # Try to parse from SSE response format
+            text = response.text
+            if "event: message" in text:
+                # Parse SSE format - session ID should be in header, but check body too
+                logger.warning("MCP session ID not in header, server may not support sessions")
+                # Generate a placeholder - some MCP servers don't require sessions
+                session_id = "no-session-required"
+            else:
+                error_msg = "MCP server did not return session ID"
+                logger.error(error_msg)
+                raise ValueError(error_msg)
+
+        logger.info(f"MCP session initialized: {session_id[:16]}...")
+
+        # Cache the session
+        self._mcp_sessions[mcp_url] = session_id
+        return session_id
+
+    async def _call_mcp_tool(
+        self,
+        tool_name: str,
+        arguments: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Call a tool on the mcp-atlassian server.
+
+        Uses MCP streamable-http transport with proper session management.
+
+        Args:
+            tool_name: Name of the MCP tool to call
+            arguments: Tool arguments
+
+        Returns:
+            Tool execution result
+
+        Raises:
+            ValueError: If MCP call fails
+        """
+        mcp_url = self._get_mcp_url()
+
+        async with httpx.AsyncClient() as client:
+            # Initialize session first
+            session_id = await self._initialize_mcp_session(client)
+
+            # Build MCP JSON-RPC request
+            mcp_request = {
+                "jsonrpc": "2.0",
+                "id": 2,  # Use different ID than initialize
+                "method": "tools/call",
+                "params": {
+                    "name": tool_name,
+                    "arguments": arguments,
+                },
+            }
+
+            headers = {
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+                "Mcp-Session-Id": session_id,
+                **self._get_auth_headers(),
+            }
+
+            logger.debug(f"Calling MCP tool {tool_name} at {mcp_url}")
+
+            response = await client.post(
+                mcp_url,
+                json=mcp_request,
+                headers=headers,
+                timeout=self.timeout,
+            )
+
+            if response.status_code != 200:
+                # Clear cached session on error - it may have expired
+                self._mcp_sessions.pop(mcp_url, None)
+                error_msg = f"MCP call failed: {response.status_code} - {response.text}"
+                logger.error(error_msg)
+                raise ValueError(error_msg)
+
+            # Parse response - may be SSE format
+            text = response.text
+            if text.startswith("event:"):
+                # Parse SSE format: "event: message\ndata: {...}"
+                for line in text.split("\n"):
+                    if line.startswith("data:"):
+                        json_str = line[5:].strip()
+                        result = json.loads(json_str)
+                        break
+                else:
+                    raise ValueError(f"Could not parse SSE response: {text[:200]}")
+            else:
+                result = response.json()
+
+            # Check for JSON-RPC error
+            if "error" in result:
+                error = result["error"]
+                raise ValueError(f"MCP error: {error.get('message', 'Unknown error')}")
+
+            return result.get("result", {})
+
+    async def _list_mcp_tools(self) -> list[dict]:
+        """List available tools from MCP server.
+
+        Returns:
+            List of tool definitions
+        """
+        mcp_url = self._get_mcp_url()
+
+        async with httpx.AsyncClient() as client:
+            # Initialize session first
+            session_id = await self._initialize_mcp_session(client)
+
+            mcp_request = {
+                "jsonrpc": "2.0",
+                "id": 3,
+                "method": "tools/list",
+            }
+
+            headers = {
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+                "Mcp-Session-Id": session_id,
+                **self._get_auth_headers(),
+            }
+
+            response = await client.post(
+                mcp_url,
+                json=mcp_request,
+                headers=headers,
+                timeout=self.timeout,
+            )
+
+            if response.status_code == 200:
+                # Parse response - may be SSE format
+                text = response.text
+                if text.startswith("event:"):
+                    for line in text.split("\n"):
+                        if line.startswith("data:"):
+                            json_str = line[5:].strip()
+                            result = json.loads(json_str)
+                            break
+                    else:
+                        return []
+                else:
+                    result = response.json()
+                return result.get("result", {}).get("tools", [])
+
+        return []
+
+    def _substitute_user_email(self, query: str) -> str:
+        """Substitute user email placeholder in JQL/CQL queries.
+
+        Supported placeholders:
+        - {user_email} - Full email address
+        - {me} - Alias for user email
+        - currentUser() - JQL function (replaced when using service account)
+
+        Args:
+            query: Original JQL or CQL query
+
+        Returns:
+            Query with email substituted, or original if no email available
+        """
+        if not self.slack_user_email:
+            logger.debug("No slack_user_email available for substitution")
+            return query
+
+        email = self.slack_user_email
+
+        # Replace placeholders
+        substitutions = [
+            ("{user_email}", f'"{email}"'),
+            ("{me}", f'"{email}"'),
+            ("currentUser()", f'"{email}"'),
+        ]
+
+        result = query
+        for placeholder, replacement in substitutions:
+            if placeholder in result:
+                result = result.replace(placeholder, replacement)
+                logger.debug(f"Substituted {placeholder} with {replacement}")
+
+        return result
+
+    def run_model(self) -> Data:
+        """Execute the selected Atlassian MCP tool.
+
+        Returns:
+            Data object with tool execution result
+        """
+        try:
+            # Parse tool arguments
+            arguments = {}
+            if self.tool_arguments:
+                try:
+                    arguments = json.loads(self.tool_arguments)
+                except json.JSONDecodeError as e:
+                    self.status = "Error: invalid_json"
+                    return Data(data={
+                        "success": False,
+                        "error": f"Invalid JSON in tool arguments: {e}",
+                        "error_code": "invalid_json",
+                    })
+
+            # Apply email substitution for search queries
+            if self.tool_name == "jira_search" and "jql" in arguments:
+                original_jql = arguments["jql"]
+                arguments["jql"] = self._substitute_user_email(original_jql)
+                if arguments["jql"] != original_jql:
+                    logger.info(f"JQL substitution: {original_jql} -> {arguments['jql']}")
+
+            if self.tool_name == "confluence_search" and "query" in arguments:
+                original_cql = arguments["query"]
+                arguments["query"] = self._substitute_user_email(original_cql)
+                if arguments["query"] != original_cql:
+                    logger.info(f"CQL substitution: {original_cql} -> {arguments['query']}")
+
+            # Apply limit to search operations (MCP server uses 'limit' not 'maxResults')
+            if "search" in self.tool_name and "limit" not in arguments:
+                arguments["limit"] = self.max_results
+
+            # Execute MCP tool
+            self.status = f"Executing {self.tool_name}..."
+            result = asyncio.run(self._call_mcp_tool(self.tool_name, arguments))
+
+            self.status = f"Completed {self.tool_name}"
+            return Data(data={
+                "success": True,
+                "tool": self.tool_name,
+                "result": result,
+                "user_context": {
+                    "slack_user_id": self.slack_user_id,
+                    "slack_user_email": self.slack_user_email,
+                    "email_substituted": self.slack_user_email is not None,
+                },
+            })
+
+        except Exception as e:
+            logger.exception(f"Error executing Atlassian MCP tool: {e}")
+            self.status = f"Error: {e}"
+            return Data(data={
+                "success": False,
+                "error": str(e),
+                "error_code": "mcp_error",
+            })
+
+    async def _get_tools(self):
+        """Override to return named tools from build_tool() instead of generic outputs.
+
+        CRITICAL: Without this override, all tools get named "run_model" and
+        Agents cannot distinguish between different component tools.
+        """
+        tools = self.build_tool()
+        if isinstance(tools, list):
+            for tool in tools:
+                if tool and not tool.tags:
+                    tool.tags = [tool.name]
+            return tools
+        if tools and not tools.tags:
+            tools.tags = [tools.name]
+        return [tools] if tools else []
+
+    def build_tool(self) -> Tool | list[Tool]:
+        """Build LangChain tools for Agent use.
+
+        Returns:
+            List of tools exposing Atlassian MCP operations for JIRA Reviewer Agent
+        """
+        # Build email context note for tool descriptions
+        email_context = ""
+        if self.slack_user_email:
+            email_context = f"""
+
+IMPORTANT: The current user's email is {self.slack_user_email}.
+When the user says "my", "mine", or refers to themselves, use this email in queries.
+Examples:
+- "my tickets" -> assignee = "{self.slack_user_email}"
+- "bugs I created" -> reporter = "{self.slack_user_email}"
+You can also use {{user_email}} placeholder which will be auto-substituted."""
+
+        # ==================== JIRA READ TOOLS ====================
+
+        # Jira Search Tool
+        class JiraSearchInput(BaseModel):
+            jql: str = Field(description="JQL query string (e.g., 'project = PROJ AND status = Open')")
+            max_results: int = Field(default=50, description="Maximum results to return")
+
+        def _jira_search(jql: str, max_results: int = 50) -> str:
+            self.tool_name = "jira_search"
+            self.tool_arguments = json.dumps({"jql": jql, "limit": max_results})
+            result = self.run_model()
+            if result.data.get("error"):
+                return f"Error: {result.data['error']}"
+            return json.dumps(result.data.get("result", {}), indent=2)
+
+        jira_search_tool = StructuredTool.from_function(
+            name="atlassian_jira_search",
+            description=f"""Search Jira issues using JQL (Jira Query Language).
+
+Common JQL patterns:
+- assignee = "email" - Issues assigned to user
+- reporter = "email" - Issues created by user
+- project = KEY - Issues in a project
+- status = "In Progress" - Issues by status
+- type = Bug - Issues by type
+- created >= -7d - Recent issues
+- updated >= -1d - Recently updated{email_context}""",
+            args_schema=JiraSearchInput,
+            func=_jira_search,
+            return_direct=False,
+            tags=["atlassian_jira_search"],
+        )
+
+        # Jira Get Issue Tool
+        class JiraGetIssueInput(BaseModel):
+            issue_key: str = Field(description="Jira issue key (e.g., PROJ-123)")
+
+        def _jira_get_issue(issue_key: str) -> str:
+            self.tool_name = "jira_get_issue"
+            self.tool_arguments = json.dumps({"issue_key": issue_key})
+            result = self.run_model()
+            if result.data.get("error"):
+                return f"Error: {result.data['error']}"
+            return json.dumps(result.data.get("result", {}), indent=2)
+
+        jira_get_issue_tool = StructuredTool.from_function(
+            name="atlassian_jira_get_issue",
+            description="Get full details of a specific Jira issue by key (e.g., PROJ-123). Returns summary, description, status, assignee, reporter, comments, and all fields.",
+            args_schema=JiraGetIssueInput,
+            func=_jira_get_issue,
+            return_direct=False,
+            tags=["atlassian_jira_get_issue"],
+        )
+
+        # Jira Get Transitions Tool
+        class JiraGetTransitionsInput(BaseModel):
+            issue_key: str = Field(description="Jira issue key (e.g., PROJ-123)")
+
+        def _jira_get_transitions(issue_key: str) -> str:
+            self.tool_name = "jira_get_transitions"
+            self.tool_arguments = json.dumps({"issue_key": issue_key})
+            result = self.run_model()
+            if result.data.get("error"):
+                return f"Error: {result.data['error']}"
+            return json.dumps(result.data.get("result", {}), indent=2)
+
+        jira_get_transitions_tool = StructuredTool.from_function(
+            name="atlassian_jira_get_transitions",
+            description="Get available status transitions for a Jira issue. Use this BEFORE transitioning to know valid transition IDs and target statuses.",
+            args_schema=JiraGetTransitionsInput,
+            func=_jira_get_transitions,
+            return_direct=False,
+            tags=["atlassian_jira_get_transitions"],
+        )
+
+        # ==================== JIRA WRITE TOOLS ====================
+
+        # Jira Create Issue Tool
+        class JiraCreateIssueInput(BaseModel):
+            project_key: str = Field(description="Project key (e.g., PROJ)")
+            summary: str = Field(description="Issue summary/title")
+            issue_type: str = Field(default="Task", description="Issue type (Task, Bug, Story, Epic, etc.)")
+            description: str = Field(default="", description="Issue description (supports Jira markdown)")
+            assignee: str = Field(default="", description="Assignee email or account ID (optional)")
+            labels: list[str] = Field(default_factory=list, description="List of labels (optional)")
+
+        def _jira_create_issue(
+            project_key: str,
+            summary: str,
+            issue_type: str = "Task",
+            description: str = "",
+            assignee: str = "",
+            labels: list[str] | None = None,
+        ) -> str:
+            self.tool_name = "jira_create_issue"
+            args = {
+                "project_key": project_key,
+                "summary": summary,
+                "issue_type": issue_type,
+                "description": description,
+            }
+            if assignee:
+                args["assignee"] = assignee
+            if labels:
+                args["labels"] = labels
+            self.tool_arguments = json.dumps(args)
+            result = self.run_model()
+            if result.data.get("error"):
+                return f"Error: {result.data['error']}"
+            return json.dumps(result.data.get("result", {}), indent=2)
+
+        jira_create_issue_tool = StructuredTool.from_function(
+            name="atlassian_jira_create_issue",
+            description="Create a new Jira issue in a project. Returns the created issue key.",
+            args_schema=JiraCreateIssueInput,
+            func=_jira_create_issue,
+            return_direct=False,
+            tags=["atlassian_jira_create_issue"],
+        )
+
+        # Jira Update Issue Tool
+        class JiraUpdateIssueInput(BaseModel):
+            issue_key: str = Field(description="Jira issue key (e.g., PROJ-123)")
+            summary: str = Field(default="", description="New summary/title (optional)")
+            description: str = Field(default="", description="New description (optional)")
+            assignee: str = Field(default="", description="New assignee email or account ID (optional)")
+            labels: list[str] = Field(default_factory=list, description="New labels - replaces existing (optional)")
+            priority: str = Field(default="", description="New priority (e.g., High, Medium, Low) (optional)")
+
+        def _jira_update_issue(
+            issue_key: str,
+            summary: str = "",
+            description: str = "",
+            assignee: str = "",
+            labels: list[str] | None = None,
+            priority: str = "",
+        ) -> str:
+            self.tool_name = "jira_update_issue"
+            args = {"issue_key": issue_key}
+            # Only include fields that are provided
+            if summary:
+                args["summary"] = summary
+            if description:
+                args["description"] = description
+            if assignee:
+                args["assignee"] = assignee
+            if labels:
+                args["labels"] = labels
+            if priority:
+                args["priority"] = priority
+            self.tool_arguments = json.dumps(args)
+            result = self.run_model()
+            if result.data.get("error"):
+                return f"Error: {result.data['error']}"
+            return json.dumps(result.data.get("result", {}), indent=2)
+
+        jira_update_issue_tool = StructuredTool.from_function(
+            name="atlassian_jira_update_issue",
+            description="""Update fields on an existing Jira issue. Only provide fields you want to change.
+
+Examples:
+- Update description only: issue_key="PROJ-123", description="New description"
+- Update assignee: issue_key="PROJ-123", assignee="user@company.com"
+- Update multiple: issue_key="PROJ-123", summary="New title", priority="High"
+
+Note: To change STATUS, use jira_transition_issue instead.""",
+            args_schema=JiraUpdateIssueInput,
+            func=_jira_update_issue,
+            return_direct=False,
+            tags=["atlassian_jira_update_issue"],
+        )
+
+        # Jira Transition Issue Tool (Change Status)
+        class JiraTransitionIssueInput(BaseModel):
+            issue_key: str = Field(description="Jira issue key (e.g., PROJ-123)")
+            transition_id: str = Field(description="Transition ID (get from jira_get_transitions)")
+            comment: str = Field(default="", description="Optional comment to add with the transition")
+
+        def _jira_transition_issue(
+            issue_key: str,
+            transition_id: str,
+            comment: str = "",
+        ) -> str:
+            self.tool_name = "jira_transition_issue"
+            args = {
+                "issue_key": issue_key,
+                "transition_id": transition_id,
+            }
+            if comment:
+                args["comment"] = comment
+            self.tool_arguments = json.dumps(args)
+            result = self.run_model()
+            if result.data.get("error"):
+                return f"Error: {result.data['error']}"
+            return json.dumps(result.data.get("result", {}), indent=2)
+
+        jira_transition_issue_tool = StructuredTool.from_function(
+            name="atlassian_jira_transition_issue",
+            description="""Change the status of a Jira issue by executing a transition.
+
+IMPORTANT: First call jira_get_transitions to get valid transition IDs for the issue.
+
+Example workflow:
+1. Call jira_get_transitions(issue_key="PROJ-123") -> returns available transitions
+2. Find the transition ID for desired status (e.g., "31" for "In Progress")
+3. Call jira_transition_issue(issue_key="PROJ-123", transition_id="31")""",
+            args_schema=JiraTransitionIssueInput,
+            func=_jira_transition_issue,
+            return_direct=False,
+            tags=["atlassian_jira_transition_issue"],
+        )
+
+        # Jira Add Comment Tool
+        class JiraAddCommentInput(BaseModel):
+            issue_key: str = Field(description="Jira issue key (e.g., PROJ-123)")
+            body: str = Field(description="Comment text (supports Jira markdown)")
+
+        def _jira_add_comment(issue_key: str, body: str) -> str:
+            self.tool_name = "jira_add_comment"
+            self.tool_arguments = json.dumps({
+                "issue_key": issue_key,
+                "comment": body,  # MCP server expects "comment" not "body"
+            })
+            result = self.run_model()
+            if result.data.get("error"):
+                return f"Error: {result.data['error']}"
+            return json.dumps(result.data.get("result", {}), indent=2)
+
+        jira_add_comment_tool = StructuredTool.from_function(
+            name="atlassian_jira_add_comment",
+            description="""Add a comment to a Jira issue.
+
+Supports Jira markdown:
+- *bold* for bold text
+- _italic_ for italic
+- {code}code block{code} for code
+- [link text|https://url] for links
+- @mention for user mentions""",
+            args_schema=JiraAddCommentInput,
+            func=_jira_add_comment,
+            return_direct=False,
+            tags=["atlassian_jira_add_comment"],
+        )
+
+        # ==================== CONFLUENCE TOOLS ====================
+
+        # Confluence Search Tool
+        class ConfluenceSearchInput(BaseModel):
+            cql: str = Field(description="CQL query string (e.g., 'space = SPACE AND type = page')")
+            max_results: int = Field(default=25, description="Maximum results to return")
+
+        def _confluence_search(cql: str, max_results: int = 25) -> str:
+            self.tool_name = "confluence_search"
+            self.tool_arguments = json.dumps({"query": cql, "limit": max_results})
+            result = self.run_model()
+            if result.data.get("error"):
+                return f"Error: {result.data['error']}"
+            return json.dumps(result.data.get("result", {}), indent=2)
+
+        confluence_search_tool = StructuredTool.from_function(
+            name="atlassian_confluence_search",
+            description=f"""Search Confluence pages using CQL (Confluence Query Language).
+
+Common CQL patterns:
+- creator = "email" - Pages created by user
+- contributor = "email" - Pages edited by user
+- space = KEY - Pages in a space
+- type = page - Only pages (not blogs)
+- title ~ "keyword" - Title contains keyword
+- text ~ "keyword" - Content contains keyword{email_context}""",
+            args_schema=ConfluenceSearchInput,
+            func=_confluence_search,
+            return_direct=False,
+            tags=["atlassian_confluence_search"],
+        )
+
+        # Confluence Get Page Tool
+        class ConfluenceGetPageInput(BaseModel):
+            page_id: str = Field(description="Confluence page ID")
+
+        def _confluence_get_page(page_id: str) -> str:
+            self.tool_name = "confluence_get_page"
+            self.tool_arguments = json.dumps({"page_id": page_id})
+            result = self.run_model()
+            if result.data.get("error"):
+                return f"Error: {result.data['error']}"
+            return json.dumps(result.data.get("result", {}), indent=2)
+
+        confluence_get_page_tool = StructuredTool.from_function(
+            name="atlassian_confluence_get_page",
+            description="Get content of a specific Confluence page by ID.",
+            args_schema=ConfluenceGetPageInput,
+            func=_confluence_get_page,
+            return_direct=False,
+            tags=["atlassian_confluence_get_page"],
+        )
+
+        self.status = "Tools built"
+        return [
+            # JIRA Read
+            jira_search_tool,
+            jira_get_issue_tool,
+            jira_get_transitions_tool,
+            # JIRA Write
+            jira_create_issue_tool,
+            jira_update_issue_tool,
+            jira_transition_issue_tool,
+            jira_add_comment_tool,
+            # Confluence
+            confluence_search_tool,
+            confluence_get_page_tool,
+        ]
