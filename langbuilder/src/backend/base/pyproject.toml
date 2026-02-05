@@ -94,6 +94,8 @@ dependencies = [
     "composio-langchain==0.7.20",
     "pymysql==1.1.1",
     "weasyprint",
+    "google-api-python-client>=2.100.0",
+    "google-auth>=2.23.0",
 ]
 
 [dependency-groups]
