@@ -50,7 +50,7 @@ class ComposioSlackAPIComponent(ComposioBaseComponent):
             ],
         },
         "SLACK_SENDS_A_MESSAGE_TO_A_SLACK_CHANNEL": {
-            "display_name": "Post Message To Channel",
+            "display_name": "Send Message (Channel or DM)",
             "action_fields": [
                 "SLACK_SENDS_A_MESSAGE_TO_A_SLACK_CHANNEL_as_user",
                 "SLACK_SENDS_A_MESSAGE_TO_A_SLACK_CHANNEL_attachments",
@@ -116,6 +116,20 @@ class ComposioSlackAPIComponent(ComposioBaseComponent):
                 "SLACK_CREATE_A_REMINDER_user",
             ],
         },
+        "SLACK_OPEN_DM": {
+            "display_name": "Open DM Channel",
+            "action_fields": [
+                "SLACK_OPEN_DM_users",
+                "SLACK_OPEN_DM_channel",
+                "SLACK_OPEN_DM_return_im",
+            ],
+        },
+        "SLACK_FIND_USER_BY_EMAIL_ADDRESS": {
+            "display_name": "Find User by Email",
+            "action_fields": [
+                "SLACK_FIND_USER_BY_EMAIL_ADDRESS_email",
+            ],
+        },
     }
 
     _all_fields = {field for action_data in _actions_data.values() for field in action_data["action_fields"]}
@@ -135,6 +149,7 @@ class ComposioSlackAPIComponent(ComposioBaseComponent):
         "SLACK_SCHEDULES_A_MESSAGE_TO_A_CHANNEL_AT_A_SPECIFIED_TIME_unfurl_media",
         "SLACK_LIST_ALL_SLACK_TEAM_CHANNELS_WITH_VARIOUS_FILTERS_exclude_archived",
         "SLACK_SEARCH_FOR_MESSAGES_WITH_QUERY_highlight",
+        "SLACK_OPEN_DM_return_im",
     }
 
     inputs = [
@@ -182,8 +197,8 @@ class ComposioSlackAPIComponent(ComposioBaseComponent):
         ),
         MessageTextInput(
             name="SLACK_SENDS_A_MESSAGE_TO_A_SLACK_CHANNEL_channel",
-            display_name="Channel",
-            info="Channel, private group, or IM channel to send message to. Can be an encoded ID, or a name ",
+            display_name="Channel or User ID",
+            info="Channel ID, channel name, or User ID. To send a DM to a user, pass their user ID (e.g., U12345678) - Slack will automatically open the DM. Use 'List Users' action to find user IDs.",  # noqa: E501
             show=False,
             required=True,
         ),
@@ -528,6 +543,34 @@ class ComposioSlackAPIComponent(ComposioBaseComponent):
             display_name="User",
             info="The user who will receive the reminder. If no user is specified, the reminder will go to user who created it. ",  # noqa: E501
             show=False,
+        ),
+        MessageTextInput(
+            name="SLACK_OPEN_DM_users",
+            display_name="Users",
+            info="Comma-separated list of user IDs to open a DM with. If only one user is provided, opens a 1:1 DM. Use 'Find User by Email' or 'List Users' action to get user IDs.",  # noqa: E501
+            show=False,
+            required=True,
+        ),
+        MessageTextInput(
+            name="SLACK_OPEN_DM_channel",
+            display_name="Channel",
+            info="Resume a conversation by supplying an existing DM channel's ID. Optional - use this to reopen an existing DM.",  # noqa: E501
+            show=False,
+            advanced=True,
+        ),
+        BoolInput(
+            name="SLACK_OPEN_DM_return_im",
+            display_name="Return IM",
+            info="Set to true to receive the full DM channel definition in the response.",
+            show=False,
+            advanced=True,
+        ),
+        MessageTextInput(
+            name="SLACK_FIND_USER_BY_EMAIL_ADDRESS_email",
+            display_name="Email",
+            info="Email address of the user to look up. Returns the user's Slack ID and profile info.",
+            show=False,
+            required=True,
         ),
     ]
 
