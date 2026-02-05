@@ -1,6 +1,8 @@
 from .gmail import GmailLoaderComponent
 from .google_bq_sql_executor import BigQueryExecutorComponent
 from .google_drive import GoogleDriveComponent
+from .google_drive_docs_parser import GoogleDriveDocsParserSA
+from .google_drive_docs_watcher import GoogleDriveDocsWatcher
 from .google_drive_search import GoogleDriveSearchComponent
 from .google_generative_ai import GoogleGenerativeAIComponent
 from .google_generative_ai_embeddings import GoogleGenerativeAIEmbeddingsComponent
@@ -10,6 +12,8 @@ __all__ = [
     "BigQueryExecutorComponent",
     "GmailLoaderComponent",
     "GoogleDriveComponent",
+    "GoogleDriveDocsParserSA",
+    "GoogleDriveDocsWatcher",
     "GoogleDriveSearchComponent",
     "GoogleGenerativeAIComponent",
     "GoogleGenerativeAIEmbeddingsComponent",
