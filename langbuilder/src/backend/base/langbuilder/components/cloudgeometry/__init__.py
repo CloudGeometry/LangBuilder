@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from langbuilder.components.cloudgeometry.jinja2_renderer import Jinja2Renderer
     from langbuilder.components.cloudgeometry.pinecone_search_tool import PineconeSearchToolComponent
     from langbuilder.components.cloudgeometry.pinecone_store_tool import PineconeStoreToolComponent
+    from langbuilder.components.cloudgeometry.transcript_trigger import TranscriptTrigger
 
 _dynamic_imports = {
     "ContactInfoExtractorComponent": "contact_info_extractor",
@@ -17,6 +18,7 @@ _dynamic_imports = {
     "Jinja2Renderer": "jinja2_renderer",
     "PineconeSearchToolComponent": "pinecone_search_tool",
     "PineconeStoreToolComponent": "pinecone_store_tool",
+    "TranscriptTrigger": "transcript_trigger",
 }
 
 __all__ = [
@@ -25,6 +27,7 @@ __all__ = [
     "Jinja2Renderer",
     "PineconeSearchToolComponent",
     "PineconeStoreToolComponent",
+    "TranscriptTrigger",
 ]
 
 
