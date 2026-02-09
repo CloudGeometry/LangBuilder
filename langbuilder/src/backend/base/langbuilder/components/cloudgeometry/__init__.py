@@ -8,6 +8,7 @@ if TYPE_CHECKING:
     from langbuilder.components.cloudgeometry.contact_info_extractor import ContactInfoExtractorComponent
     from langbuilder.components.cloudgeometry.dynamodb_pm_config_reader import DynamoDBPMConfigReaderComponent
     from langbuilder.components.cloudgeometry.jinja2_renderer import Jinja2Renderer
+    from langbuilder.components.cloudgeometry.json_field_extractor import JSONFieldExtractor
     from langbuilder.components.cloudgeometry.pinecone_search_tool import PineconeSearchToolComponent
     from langbuilder.components.cloudgeometry.pinecone_store_tool import PineconeStoreToolComponent
     from langbuilder.components.cloudgeometry.transcript_trigger import TranscriptTrigger
@@ -16,6 +17,7 @@ _dynamic_imports = {
     "ContactInfoExtractorComponent": "contact_info_extractor",
     "DynamoDBPMConfigReaderComponent": "dynamodb_pm_config_reader",
     "Jinja2Renderer": "jinja2_renderer",
+    "JSONFieldExtractor": "json_field_extractor",
     "PineconeSearchToolComponent": "pinecone_search_tool",
     "PineconeStoreToolComponent": "pinecone_store_tool",
     "TranscriptTrigger": "transcript_trigger",
@@ -25,6 +27,7 @@ __all__ = [
     "ContactInfoExtractorComponent",
     "DynamoDBPMConfigReaderComponent",
     "Jinja2Renderer",
+    "JSONFieldExtractor",
     "PineconeSearchToolComponent",
     "PineconeStoreToolComponent",
     "TranscriptTrigger",
