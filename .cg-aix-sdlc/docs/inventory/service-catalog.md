@@ -1,209 +1,103 @@
-# Service Catalog - LangBuilder
+# Service Catalog
 
-## Overview
+> Generated: 2026-02-09 | LangBuilder v1.6.5
 
-LangBuilder consists of multiple services working together to provide a visual AI workflow builder platform.
+> **Terminology Note**: This catalog lists **deployable application units** (services you can run independently).
+> Internal service classes (e.g., backend component packages, frontend stores) are counted separately
+> in `technology-stack.md` under module counts.
 
----
+**Summary**: 4 deployable services
 
-## Backend Services
+## LangBuilder Backend
 
-### 1. LangBuilder API Server
+- **Type**: Backend API
+- **Stack**: Python >=3.10, FastAPI >=0.115.2
+- **Location**: `langbuilder/src/backend/`
+- **Entry Point**: `langbuilder/src/backend/base/langbuilder/main.py`
+- **Port**: 7860 (default)
+- **API**: REST API (v1, v2) with 157 endpoints
+- **Database**: SQLModel ORM, SQLite (dev) / PostgreSQL (prod)
+- **README**: Yes
 
-**Type**: FastAPI Application
-**Package**: `langbuilder-base`
-**Version**: 0.6.5
-**Entry Point**: `langbuilder/__main__.py`
-**Default Port**: 8002 (configurable via `BACKEND_PORT`)
-
-**Responsibilities**:
-- REST API for flow management
-- WebSocket for real-time build events
-- Authentication (JWT + API keys)
-- Database operations
-- Flow execution engine
-- MCP (Model Context Protocol) server
+### Key Capabilities
+- Flow/workflow execution engine (graph processing)
+- 96 pluggable component packages (LLM providers, vector stores, tools)
+- Custom component infrastructure with lazy loading
 - OpenAI-compatible API endpoint
-
-**Key Dependencies**:
-- FastAPI, Uvicorn, Gunicorn
-- SQLModel, Alembic
-- LangChain ecosystem
-- Pydantic for validation
-
-### 2. Flow Execution Engine
-
-**Type**: Internal Service
-**Location**: `langbuilder/graph/`
-
-**Responsibilities**:
-- Parse flow definitions (nodes + edges)
-- Build and execute individual vertices
-- Manage execution state
-- Stream results via SSE
+- MCP (Model Context Protocol) server support
+- Voice mode with WebSocket streaming
+- File management and document processing
+- User management with JWT authentication
 
 ---
 
-## Frontend Application
+## LangBuilder Frontend
 
-### LangBuilder Web UI
+- **Type**: Frontend SPA
+- **Stack**: TypeScript 5.4.5, React 18.3.1
+- **Location**: `langbuilder/src/frontend/`
+- **Entry Point**: `langbuilder/src/frontend/src/App.tsx`
+- **Port**: 3000 (dev)
+- **Build Tool**: Vite 5.4.19 with SWC
+- **README**: Yes
 
-**Type**: React SPA
-**Version**: 1.6.5
-**Build Tool**: Vite
-**Default Port**: 5175 (configurable via `FRONTEND_PORT`)
-
-**Responsibilities**:
-- Visual flow canvas (React Flow)
-- Component library browser
-- Flow management CRUD
-- Real-time build monitoring
-- Chat interface
-- User authentication
-
-**Key Dependencies**:
-- React 18.3.1
-- @xyflow/react (React Flow)
-- Zustand (state management)
-- shadcn/ui components
-- TailwindCSS
-- TypeScript
+### Key Capabilities
+- Visual flow/graph editor (React Flow)
+- Component store browser
+- 16 Zustand state management stores
+- 135 reusable UI components
+- Real-time streaming responses
+- Dark mode support
+- Keyboard shortcuts system
+- File and knowledge base management
 
 ---
 
-## Integration Services
+## OpenWebUI Backend
 
-### 3. OpenWebUI (ActionBridge)
+- **Type**: Backend API
+- **Stack**: Python, FastAPI
+- **Location**: `openwebui/backend/`
+- **Entry Point**: `openwebui/backend/open_webui/main.py`
+- **Port**: 8767 (default)
+- **Database**: SQLite (default)
+- **README**: Yes
 
-**Type**: Separate Python Application
-**Package**: `open-webui`
-**Location**: `openwebui/`
-
-**Responsibilities**:
-- Chat-based UI alternative
-- Model management
-- Integration with LangBuilder flows
-- External LLM providers
-
-**Key Dependencies**:
-- FastAPI, SQLAlchemy, Peewee
-- OpenAI, Anthropic, Google GenAI
-- ChromaDB, OpenSearch
-- Transformers, Sentence-Transformers
+### Key Capabilities
+- Chat interface backend for published LangBuilder flows
+- Corporate authentication (Google Workspace, Zoho OAuth)
+- User and session management
+- Integration bridge between LangBuilder and chat UI
 
 ---
 
-## Shared Libraries
+## OpenWebUI Frontend
 
-### 4. langbuilder-base
+- **Type**: Frontend SPA
+- **Stack**: TypeScript, Svelte
+- **Location**: `openwebui/src/`
+- **Entry Point**: `openwebui/src/app.html`
+- **Port**: 5175 (dev)
+- **README**: Yes
 
-**Type**: Python Library
-**Version**: 0.6.5
-**Location**: `langbuilder/src/backend/base/`
-
-**Provides**:
-- Core component framework
-- Database models and migrations
-- API router definitions
-- Authentication utilities
-- Service abstractions
-
----
-
-## Component Categories
-
-### LLM Providers (24 integrations)
-
-| Component | Provider | Description |
-|-----------|----------|-------------|
-| openai | OpenAI | GPT-4, GPT-3.5-turbo |
-| anthropic | Anthropic | Claude models |
-| google | Google | Gemini, PaLM |
-| azure | Microsoft | Azure OpenAI |
-| ollama | Ollama | Local LLMs |
-| groq | Groq | Fast inference |
-| cohere | Cohere | Command models |
-| mistral | Mistral AI | Mistral/Mixtral |
-| deepseek | DeepSeek | DeepSeek models |
-| nvidia | NVIDIA | NIM endpoints |
-| amazon | AWS | Bedrock |
-| vertexai | GCP | Vertex AI |
-| huggingface | HuggingFace | Hub models |
-| ibm | IBM | watsonx.ai |
-
-### Vector Stores (20+ integrations)
-
-| Component | Description |
-|-----------|-------------|
-| ChromaDB | Local/embedded vector DB |
-| Pinecone | Managed vector DB |
-| Qdrant | Open-source vector DB |
-| Milvus | Distributed vector DB |
-| PGVector | PostgreSQL extension |
-| AstraDB | DataStax Astra DB |
-| Elasticsearch | Search + vectors |
-| OpenSearch | AWS OpenSearch |
-| Redis | In-memory vectors |
-| Weaviate | GraphQL vector DB |
-
-### Tools & Utilities (30+ integrations)
-
-| Category | Components |
-|----------|------------|
-| Search | DuckDuckGo, SerpAPI, Tavily, Exa, Glean |
-| Knowledge | Wikipedia, Arxiv, YouTube |
-| Enterprise | Jira, Confluence, HubSpot, Salesforce |
-| Web Scraping | Firecrawl, ScrapeGraph, Apify |
-| Data Processing | Docling, Unstructured |
+### Key Capabilities
+- Chat-style interface for interacting with published flows
+- User authentication UI
+- Session management
 
 ---
 
-## Service Communication
+## Internal Module Counts
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     Frontend (React)                        │
-│                    Port: 5175 (default)                     │
-└───────────────────────────┬─────────────────────────────────┘
-                            │ HTTP/WebSocket
-                            ▼
-┌─────────────────────────────────────────────────────────────┐
-│                  Backend API (FastAPI)                      │
-│                    Port: 8002 (default)                     │
-├─────────────────────────────────────────────────────────────┤
-│  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐        │
-│  │   REST API   │ │  WebSocket   │ │  MCP Server  │        │
-│  │    /api/*    │ │   /build/*   │ │   /mcp/*     │        │
-│  └──────────────┘ └──────────────┘ └──────────────┘        │
-├─────────────────────────────────────────────────────────────┤
-│                    Flow Execution Engine                    │
-├─────────────────────────────────────────────────────────────┤
-│                     Database (SQLite/PostgreSQL)            │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                            ▼
-              ┌─────────────────────────────┐
-              │    External Services        │
-              │  - LLM APIs (OpenAI, etc.)  │
-              │  - Vector DBs               │
-              │  - Tool APIs                │
-              └─────────────────────────────┘
-```
+> For reference only - these are NOT separate deployable services.
 
----
-
-## Deployment Options
-
-1. **Local Development**: `start_all.sh` script
-2. **Docker**: `docker-compose.dev.yml`
-3. **Production**: Gunicorn + Nginx reverse proxy
-
----
-
-## Health Endpoints
-
-| Endpoint | Purpose |
-|----------|---------|
-| `/health` | Backend health check |
-| `/api/v1/version` | API version info |
-| `/api/v1/config` | Application config |
+| Application | Module Type | Count |
+|-------------|-------------|-------|
+| LangBuilder Backend | Component packages | 96 |
+| LangBuilder Backend | API routers | 23 |
+| LangBuilder Backend | Database models | 10 |
+| LangBuilder Frontend | React components | 135+ directories |
+| LangBuilder Frontend | Zustand stores | 16 |
+| LangBuilder Frontend | Page routes | ~20 |
+| LangBuilder Frontend | Modal components | 30 |
+| LangBuilder Frontend | Icon components | 139 |

@@ -1,82 +1,37 @@
 # Data Architecture - LangBuilder
 
+> Generated: 2026-02-09 | LangBuilder v1.6.5
+
 ## Overview
 
-This document describes the data architecture for LangBuilder, including database schema, data flows, storage patterns, and caching strategies.
+This document describes the data architecture for LangBuilder, including the database schema, entity relationships, data flow patterns, caching strategies, data consistency mechanisms, and the variable encryption approach. LangBuilder uses SQLModel (SQLAlchemy + Pydantic) as its ORM, with SQLite for development and PostgreSQL for production, Alembic for schema migrations, and Redis for caching and task result storage.
 
-## Data Flow Diagram
+---
 
-```mermaid
-flowchart TB
-    subgraph Users["User Interactions"]
-        Browser[Web Browser]
-        API[API Clients]
-    end
+## Entity Relationship Diagram
 
-    subgraph Frontend["Frontend Layer"]
-        UIState[Zustand Stores]
-        LocalStorage[Local Storage]
-    end
-
-    subgraph Backend["Backend Layer"]
-        APIRouters[API Routers]
-        GraphEngine[Graph Engine]
-        Services[Services]
-    end
-
-    subgraph DataStores["Data Storage"]
-        PostgreSQL[(PostgreSQL)]
-        Redis[(Redis Cache)]
-        FileStorage[File Storage]
-    end
-
-    subgraph External["External Data"]
-        LLMAPIs[LLM APIs]
-        VectorDBs[(Vector Stores)]
-        IntegrationAPIs[Integration APIs]
-    end
-
-    Browser --> UIState
-    UIState --> LocalStorage
-    UIState --> APIRouters
-    API --> APIRouters
-
-    APIRouters --> Services
-    Services --> PostgreSQL
-    Services --> Redis
-    Services --> FileStorage
-    Services --> GraphEngine
-
-    GraphEngine --> LLMAPIs
-    GraphEngine --> VectorDBs
-    GraphEngine --> IntegrationAPIs
-    GraphEngine --> PostgreSQL
-```
-
-## Database Schema
-
-### Entity Relationship Diagram
+The following ER diagram captures all 10 data models, 3 enums, and the relationships between them.
 
 ```mermaid
 erDiagram
-    User ||--o{ Flow : owns
-    User ||--o{ Folder : owns
-    User ||--o{ ApiKey : owns
-    User ||--o{ Variable : owns
-    User ||--o{ File : uploads
+    User ||--o{ Flow : "owns (1:N)"
+    User ||--o{ ApiKey : "owns (1:N)"
+    User ||--o{ Variable : "owns (1:N)"
+    User ||--o{ File : "uploads (1:N)"
+    User ||--o{ Folder : "owns (1:N)"
 
-    Folder ||--o{ Flow : contains
-    Folder ||--o{ Folder : contains
+    Folder ||--o{ Flow : "contains (1:N)"
+    Folder ||--o{ Folder : "parent of (self-referential)"
 
-    Flow ||--o{ MessageTable : generates
-    Flow ||--o{ TransactionTable : produces
-    Flow ||--o{ VertexBuildTable : builds
-    Flow ||--o{ PublishRecord : publishes
+    Flow ||--o{ MessageTable : "generates (1:N)"
+    Flow ||--o{ TransactionTable : "produces (1:N)"
+    Flow ||--o{ VertexBuildTable : "builds (1:N)"
+    Flow ||--o{ PublishRecord : "publishes (1:N)"
 
     User {
         uuid id PK
-        string username
-        string email
+        string username UK
+        string email UK
         string password_hash
         string profile_image
         boolean is_active
@@ -89,13 +44,15 @@ erDiagram
         uuid id PK
         string name
         string description
-        json data
+        json data "Graph nodes and edges"
         string icon
         string icon_bg_color
         string gradient
         string endpoint_name
-        uuid folder_id FK
+        uuid folder_id FK "Nullable"
         uuid user_id FK
+        enum access_type "PRIVATE | PUBLIC"
+        enum tags "CHATBOTS | AGENTS"
         timestamp created_at
         timestamp updated_at
     }
@@ -104,7 +61,7 @@ erDiagram
         uuid id PK
         string name
         string description
-        uuid parent_id FK
+        uuid parent_id FK "Self-referential, nullable"
         uuid user_id FK
         timestamp created_at
         timestamp updated_at
@@ -113,7 +70,7 @@ erDiagram
     ApiKey {
         uuid id PK
         string name
-        string api_key
+        string api_key "Hashed"
         boolean is_active
         uuid user_id FK
         timestamp created_at
@@ -123,8 +80,8 @@ erDiagram
     Variable {
         uuid id PK
         string name
-        string value_encrypted
-        string type
+        string value "Fernet-encrypted"
+        string type "credential or secret"
         uuid user_id FK
         timestamp created_at
         timestamp updated_at
@@ -133,7 +90,7 @@ erDiagram
     MessageTable {
         uuid id PK
         uuid flow_id FK
-        string sender
+        string sender "user or ai"
         string sender_name
         json content_blocks
         text text
@@ -169,7 +126,7 @@ erDiagram
         string path
         integer size
         uuid user_id FK
-        uuid flow_id FK
+        uuid flow_id FK "Nullable"
         timestamp created_at
     }
 
@@ -178,372 +135,402 @@ erDiagram
         uuid flow_id FK
         string target
         string target_id
-        string status
+        enum status "ACTIVE | UNPUBLISHED | ERROR | PENDING"
         json metadata
         timestamp published_at
     }
 ```
 
-## Core Data Models
+### Enumeration Types
 
-### User Model
+| Enum | Values | Used By |
+|------|--------|---------|
+| **AccessTypeEnum** | `PRIVATE`, `PUBLIC` | Flow (visibility control) |
+| **PublishStatusEnum** | `ACTIVE`, `UNPUBLISHED`, `ERROR`, `PENDING` | PublishRecord (lifecycle state) |
+| **Tags** | `CHATBOTS`, `AGENTS` | Flow (categorization) |
 
-**Table**: `user`
+### Key Relationship Summary
 
-| Column | Type | Description |
-|--------|------|-------------|
-| id | UUID | Primary key |
-| username | VARCHAR(255) | Unique username |
-| email | VARCHAR(255) | Unique email address |
-| password | VARCHAR(255) | Bcrypt hashed password |
-| profile_image | VARCHAR(512) | Profile image URL |
-| is_active | BOOLEAN | Account active status |
-| is_superuser | BOOLEAN | Admin privileges |
-| created_at | TIMESTAMP | Creation timestamp |
-| updated_at | TIMESTAMP | Last update timestamp |
+| Relationship | Type | Description |
+|-------------|------|-------------|
+| User to Flow | One-to-Many | A user owns zero or more flows |
+| User to ApiKey | One-to-Many | A user owns zero or more API keys |
+| User to Variable | One-to-Many | A user owns zero or more encrypted variables |
+| User to Folder | One-to-Many | A user owns zero or more folders |
+| User to File | One-to-Many | A user uploads zero or more files |
+| Flow to Folder | Many-to-One | A flow optionally belongs to one folder |
+| Folder to Folder | Self-referential | A folder optionally has a parent folder (nested hierarchy) |
+| Flow to MessageTable | One-to-Many | A flow generates zero or more chat messages |
+| Flow to TransactionTable | One-to-Many | A flow produces zero or more execution transactions |
+| Flow to VertexBuildTable | One-to-Many | A flow produces zero or more vertex build records |
+| PublishRecord to Flow | Many-to-One | Multiple publish records can reference a single flow |
 
-### Flow Model
+---
 
-**Table**: `flow`
+## Data Flow Diagram
 
-| Column | Type | Description |
-|--------|------|-------------|
-| id | UUID | Primary key |
-| name | VARCHAR(255) | Flow name |
-| description | TEXT | Flow description |
-| data | JSONB | Flow graph data (nodes, edges) |
-| icon | VARCHAR(50) | Display icon |
-| icon_bg_color | VARCHAR(20) | Icon background color |
-| gradient | VARCHAR(100) | UI gradient |
-| endpoint_name | VARCHAR(255) | API endpoint name |
-| folder_id | UUID | Parent folder (FK) |
-| user_id | UUID | Owner user (FK) |
-| created_at | TIMESTAMP | Creation timestamp |
-| updated_at | TIMESTAMP | Last update timestamp |
+The following diagram traces data movement from user interaction through the full execution pipeline, including persistence and caching layers.
 
-**Flow Data Structure (JSONB)**:
-```json
-{
-  "nodes": [
-    {
-      "id": "node-1",
-      "type": "genericNode",
-      "position": { "x": 100, "y": 200 },
-      "data": {
-        "type": "OpenAIModel",
-        "node": {
-          "template": { ... },
-          "outputs": [ ... ],
-          "display_name": "OpenAI"
-        }
-      }
-    }
-  ],
-  "edges": [
-    {
-      "id": "edge-1",
-      "source": "node-1",
-      "target": "node-2",
-      "sourceHandle": "output",
-      "targetHandle": "input"
-    }
-  ],
-  "viewport": { "x": 0, "y": 0, "zoom": 1 }
-}
+```mermaid
+flowchart TB
+    subgraph UserLayer["User Layer"]
+        Browser["Web Browser"]
+        APIClient["API Client / SDK"]
+    end
+
+    subgraph FrontendLayer["Frontend (React + XY Flow)"]
+        UIState["Zustand State Stores"]
+        FlowCanvas["Flow Canvas Editor"]
+        LocalStorage["Browser Local Storage"]
+    end
+
+    subgraph BackendAPI["Backend API (FastAPI)"]
+        Routers["API Routers"]
+        AuthMiddleware["Auth Middleware (JWT)"]
+        Services["Service Layer"]
+    end
+
+    subgraph ExecutionEngine["Graph Execution Engine"]
+        GraphBuilder["Graph Builder"]
+        TopologicalSort["Topological Sort"]
+        VertexExecutor["Vertex Executor"]
+        SSEStream["SSE Event Stream"]
+    end
+
+    subgraph ComponentLayer["Component Layer (62 Integrations)"]
+        LLMComponents["LLM Components (28 providers)"]
+        VectorDBComponents["Vector DB Components (13 stores)"]
+        ToolComponents["Tool Components"]
+        IOComponents["I/O Components"]
+    end
+
+    subgraph ExternalServices["External Services"]
+        LLMProviders["LLM Providers\n(OpenAI, Anthropic, Google, etc.)"]
+        VectorDBs["Vector Databases\n(Pinecone, Chroma, Qdrant, etc.)"]
+        AuthProviders["Auth Providers\n(OAuth, LDAP, etc.)"]
+        Observability["Observability\n(LangSmith, Langfuse, etc.)"]
+    end
+
+    subgraph DataPersistence["Data Persistence"]
+        PostgreSQL[("PostgreSQL\n(Production)")]
+        SQLite[("SQLite\n(Development)")]
+        FileStorage["File Storage\n(uploads, exports)"]
+    end
+
+    subgraph CachingLayer["Caching Layer"]
+        Redis[("Redis\nSessions + Celery Results")]
+        InMemoryCache["In-Memory Cache\nComponent Registry"]
+    end
+
+    subgraph BackgroundWorkers["Background Workers"]
+        Celery["Celery Workers"]
+    end
+
+    Browser --> FlowCanvas
+    APIClient --> Routers
+
+    FlowCanvas --> UIState
+    UIState --> LocalStorage
+    UIState -->|"HTTP / WebSocket"| Routers
+
+    Routers --> AuthMiddleware
+    AuthMiddleware --> Services
+    Services --> GraphBuilder
+
+    GraphBuilder --> TopologicalSort
+    TopologicalSort --> VertexExecutor
+    VertexExecutor --> SSEStream
+    SSEStream -->|"Server-Sent Events"| Browser
+
+    VertexExecutor --> LLMComponents
+    VertexExecutor --> VectorDBComponents
+    VertexExecutor --> ToolComponents
+    VertexExecutor --> IOComponents
+
+    LLMComponents -->|"SDK / REST"| LLMProviders
+    VectorDBComponents -->|"SDK / REST"| VectorDBs
+    Services -->|"OAuth / LDAP"| AuthProviders
+    VertexExecutor -->|"Traces / Metrics"| Observability
+
+    Services -->|"SQLModel async"| PostgreSQL
+    Services -->|"SQLModel async"| SQLite
+    Services --> FileStorage
+
+    Services -->|"Session data"| Redis
+    Celery -->|"Task results"| Redis
+    Services --> Celery
+
+    VertexExecutor -->|"Build results"| PostgreSQL
+    GraphBuilder -->|"Component lookup"| InMemoryCache
 ```
 
-### Message Model
+### Data Flow Narrative
 
-**Table**: `message`
+1. **User Interaction**: The user interacts via the web browser (React frontend with XY Flow canvas) or directly through the REST API.
+2. **Frontend State**: The Zustand state stores manage the flow graph locally. Changes are persisted to the browser's local storage for session continuity and synchronized to the backend via HTTP requests.
+3. **API Layer**: FastAPI routers receive requests, apply JWT authentication middleware, and route to the service layer.
+4. **Graph Execution**: When a flow is executed, the Graph Builder constructs the execution graph from the stored JSONB flow data. Topological sorting determines execution order, and the Vertex Executor processes each vertex -- potentially in parallel for independent branches. Real-time progress is streamed back to the client via Server-Sent Events (SSE).
+5. **Component Invocation**: Each vertex invokes its corresponding component, which communicates with external services (LLM providers, vector databases, tools) via SDK calls or REST APIs.
+6. **Persistence**: Flow definitions, messages, transactions, and vertex build results are written to PostgreSQL (production) or SQLite (development) through SQLModel's async session.
+7. **Caching**: Redis handles session storage and Celery task result caching. The component registry is cached in-memory for fast lookup during graph construction.
+8. **Background Processing**: Celery workers handle long-running tasks (e.g., batch processing, scheduled jobs) with Redis as the result backend.
 
-| Column | Type | Description |
-|--------|------|-------------|
-| id | UUID | Primary key |
-| flow_id | UUID | Associated flow (FK) |
-| sender | VARCHAR(50) | Sender type (user/ai) |
-| sender_name | VARCHAR(255) | Display name |
-| content_blocks | JSONB | Rich content blocks |
-| text | TEXT | Plain text content |
-| session_id | VARCHAR(255) | Chat session identifier |
-| properties | JSONB | Additional metadata |
-| timestamp | TIMESTAMP | Message timestamp |
-
-### Variable Model (Encrypted Credentials)
-
-**Table**: `variable`
-
-| Column | Type | Description |
-|--------|------|-------------|
-| id | UUID | Primary key |
-| name | VARCHAR(255) | Variable name |
-| value | TEXT | Encrypted value (Fernet) |
-| type | VARCHAR(50) | Variable type (credential, secret) |
-| user_id | UUID | Owner user (FK) |
-| created_at | TIMESTAMP | Creation timestamp |
-| updated_at | TIMESTAMP | Last update timestamp |
-
-**Encryption**: Values encrypted using Fernet symmetric encryption with a per-installation key.
-
-## Data Flow Patterns
-
-### Flow Execution Data Flow
-
-```
-┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐
-│ Client  │───>│ Backend │───>│  Graph  │───>│   LLM   │
-│ Request │    │   API   │    │ Engine  │    │   API   │
-└─────────┘    └─────────┘    └─────────┘    └─────────┘
-                    │              │              │
-                    v              v              v
-              ┌─────────┐    ┌─────────┐    ┌─────────┐
-              │Load Flow│    │ Execute │    │  Store  │
-              │from DB  │    │ Vertices│    │ Results │
-              └─────────┘    └─────────┘    └─────────┘
-                                  │
-                    ┌─────────────┼─────────────┐
-                    v             v             v
-              ┌─────────┐  ┌─────────┐  ┌─────────┐
-              │ Messages│  │  Vertex │  │  Trans- │
-              │  Table  │  │  Builds │  │ actions │
-              └─────────┘  └─────────┘  └─────────┘
-```
-
-### Chat Session Data Flow
-
-```
-1. User sends message
-   └─> POST /api/v1/build/{flow_id}
-
-2. Backend loads flow and creates session
-   └─> Query: SELECT * FROM flow WHERE id = ?
-   └─> Insert: INSERT INTO message (sender='user', ...)
-
-3. Graph executes and streams response
-   └─> SSE: Server-Sent Events for real-time updates
-   └─> Insert: INSERT INTO vertex_build (...)
-
-4. AI response stored
-   └─> Insert: INSERT INTO message (sender='ai', ...)
-   └─> Insert: INSERT INTO transaction (...)
-```
+---
 
 ## Caching Strategy
 
-### Redis Cache Layers
+### Cache Tiers
+
+LangBuilder employs a three-tier caching strategy:
+
+| Tier | Technology | Purpose | TTL | Invalidation |
+|------|-----------|---------|-----|--------------|
+| **L1: In-Memory** | Python dict / LRU | Component type registry, category metadata | Until process restart | Application restart or explicit reload |
+| **L2: Redis Sessions** | Redis | User sessions, JWT token validation cache | 24 hours | User logout, token expiration |
+| **L3: Redis Task Results** | Redis (Celery backend) | Celery task results, flow execution state | 1 hour (configurable) | Task completion, manual purge |
+
+### Redis Key Structure
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                      Redis Cache                             │
-├─────────────────────────────────────────────────────────────┤
-│  Layer 1: Session Data                                       │
-│  ├─ session:{session_id} -> User session data               │
-│  ├─ token:{token} -> Token validation cache                 │
-│  └─ TTL: 24 hours                                           │
-├─────────────────────────────────────────────────────────────┤
-│  Layer 2: Flow Execution State                               │
-│  ├─ flow:{flow_id}:state -> Execution state                 │
-│  ├─ flow:{flow_id}:build:{vertex_id} -> Build results       │
-│  └─ TTL: 1 hour (or until flow completion)                  │
-├─────────────────────────────────────────────────────────────┤
-│  Layer 3: Component Registry                                 │
-│  ├─ components:types -> Component type definitions          │
-│  ├─ components:categories -> Category metadata              │
-│  └─ TTL: Until application restart                          │
-├─────────────────────────────────────────────────────────────┤
-│  Layer 4: Rate Limiting                                      │
-│  ├─ ratelimit:{user_id}:{endpoint} -> Request count         │
-│  └─ TTL: Window duration (e.g., 1 minute)                   │
-└─────────────────────────────────────────────────────────────┘
+session:{session_id}                    -> User session data (JSON)
+token:{token_hash}                      -> Token validation result (JSON)
+flow:{flow_id}:state                    -> Flow execution state (JSON)
+flow:{flow_id}:build:{vertex_id}        -> Vertex build result (JSON)
+celery-task-meta-{task_id}              -> Celery task result (serialized)
+ratelimit:{user_id}:{endpoint}          -> Request counter (integer)
 ```
 
-### Cache Invalidation
+### Cache Invalidation Rules
 
 | Event | Invalidation Action |
-|-------|-------------------|
-| Flow update | Clear `flow:{id}:*` keys |
-| User logout | Clear `session:{id}` |
-| Component reload | Clear `components:*` |
-| Deployment | Full cache flush |
+|-------|---------------------|
+| Flow saved or updated | Clear `flow:{flow_id}:*` keys |
+| User logout | Clear `session:{session_id}` |
+| Component code reload | Flush in-memory component registry |
+| Deployment / restart | Full Redis cache flush; in-memory cache rebuilt on startup |
+| API key rotation | Clear associated `token:*` entries |
 
-## File Storage
+### In-Memory Component Cache
 
-### Storage Patterns
-
-```
-storage/
-├── uploads/                    # User uploaded files
-│   └── {user_id}/
-│       └── {file_id}/
-│           └── {filename}
-├── flows/                      # Exported flow files
-│   └── {flow_id}.json
-└── temp/                       # Temporary processing
-    └── {session_id}/
-```
-
-### File Metadata
-
-Files are tracked in the database with actual content stored in filesystem or object storage (S3-compatible).
+The component registry is loaded at application startup and cached in process memory. This avoids repeated filesystem scanning and module introspection during graph construction:
 
 ```python
-# File model
-class File(SQLModel, table=True):
-    id: UUID
-    name: str                    # Original filename
-    path: str                    # Storage path
-    size: int                    # File size in bytes
-    content_type: str            # MIME type
-    user_id: UUID                # Owner
-    flow_id: Optional[UUID]      # Associated flow
-    created_at: datetime
+# Simplified component cache pattern
+class ComponentRegistry:
+    _cache: Dict[str, Type[Component]] = {}
+
+    @classmethod
+    def get_all(cls) -> Dict[str, Type[Component]]:
+        if not cls._cache:
+            cls._cache = cls._discover_components()
+        return cls._cache
+
+    @classmethod
+    def invalidate(cls):
+        cls._cache.clear()
 ```
 
-## Data Migration Strategy
+---
 
-### Alembic Migrations
+## Data Consistency Patterns
 
-**Path**: `langbuilder/src/backend/base/langbuilder/alembic/`
+### SQLModel Transactions
 
+All write operations are wrapped in SQLModel async transactions to ensure atomicity. The service layer manages transaction boundaries:
+
+```python
+async def create_flow_with_folder(
+    session: AsyncSession,
+    flow_data: FlowCreate,
+    folder_data: FolderCreate,
+    user_id: UUID
+) -> Flow:
+    async with session.begin():
+        folder = Folder(**folder_data.dict(), user_id=user_id)
+        session.add(folder)
+        await session.flush()  # Get folder.id without committing
+
+        flow = Flow(**flow_data.dict(), folder_id=folder.id, user_id=user_id)
+        session.add(flow)
+        # Commit happens automatically at end of `begin()` block
+    await session.refresh(flow)
+    return flow
 ```
-alembic/
-├── env.py                      # Migration environment
-├── script.py.mako              # Migration template
-└── versions/                   # Migration scripts
-    ├── 001_initial.py
-    ├── 002_add_variables.py
-    └── ...
+
+### Connection Pool Configuration
+
+| Parameter | Value | Description |
+|-----------|-------|-------------|
+| `pool_size` | 20 | Number of persistent connections |
+| `max_overflow` | 30 | Additional connections under load (total max: 50) |
+| `pool_pre_ping` | True | Validate connections before use |
+| `pool_recycle` | 3600 | Recycle connections after 1 hour |
+
+The async engine is created with `create_async_engine` and sessions are managed via `async_sessionmaker`:
+
+```python
+engine = create_async_engine(
+    database_url,
+    pool_size=20,
+    max_overflow=30,
+    pool_pre_ping=True,
+    pool_recycle=3600,
+)
+async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 ```
 
-**Migration Commands**:
+### Alembic Migration Management
+
+LangBuilder uses Alembic for schema migrations with **50 migrations** accumulated over the project's lifetime.
+
+**Migration workflow**:
 ```bash
-# Create migration
-alembic revision --autogenerate -m "description"
+# Auto-generate a new migration from model changes
+alembic revision --autogenerate -m "add publish_record table"
 
-# Apply migrations
+# Apply all pending migrations
 alembic upgrade head
 
-# Rollback
+# Roll back one migration
 alembic downgrade -1
+
+# View migration history
+alembic history --verbose
 ```
 
-## Data Security
+**Migration safety practices**:
+- All migrations are reviewed before merging to ensure reversibility
+- Destructive operations (column drops, table drops) are split into separate migrations with a deprecation period
+- Data migrations are separated from schema migrations
+- The `alembic upgrade head` command runs automatically on application startup in production
 
-### Encryption at Rest
+### Optimistic Locking
 
-| Data Type | Encryption Method |
+For resources with concurrent access (e.g., flow editing), LangBuilder uses timestamp-based optimistic locking via the `updated_at` column:
+
+```python
+async def update_flow(
+    session: AsyncSession,
+    flow_id: UUID,
+    update_data: FlowUpdate,
+    expected_updated_at: datetime
+) -> Flow:
+    stmt = (
+        update(Flow)
+        .where(
+            Flow.id == flow_id,
+            Flow.updated_at == expected_updated_at  # Optimistic lock check
+        )
+        .values(**update_data.dict(exclude_unset=True), updated_at=datetime.utcnow())
+        .returning(Flow)
+    )
+    result = await session.execute(stmt)
+    flow = result.scalar_one_or_none()
+    if flow is None:
+        raise ConcurrentModificationError(
+            "Flow was modified by another request. Please reload and try again."
+        )
+    await session.commit()
+    return flow
+```
+
+This approach prevents silent overwrites when two users edit the same flow simultaneously. The frontend includes the `updated_at` value in update requests, and the backend rejects the update if the value has changed since the flow was loaded.
+
+---
+
+## Variable Encryption
+
+### Encryption Approach
+
+LangBuilder encrypts sensitive user-defined variables (API keys, credentials, secrets) using **Fernet symmetric encryption** from the `cryptography` library. Fernet provides authenticated encryption (AES-128-CBC + HMAC-SHA256), ensuring both confidentiality and integrity.
+
+### Encryption Lifecycle
+
+```
+ Store Variable:
+   plaintext value
+       |
+       v
+   Fernet.encrypt(value.encode())
+       |
+       v
+   encrypted token (base64)
+       |
+       v
+   Stored in `variable.value` column (TEXT)
+
+ Retrieve Variable:
+   encrypted token from DB
+       |
+       v
+   Fernet.decrypt(token)
+       |
+       v
+   plaintext value returned to component at runtime
+```
+
+### Key Management
+
+| Aspect | Detail |
+|--------|--------|
+| **Algorithm** | Fernet (AES-128-CBC + HMAC-SHA256) |
+| **Key source** | Per-installation `SECRET_KEY` environment variable |
+| **Key derivation** | The secret key is used to derive the Fernet key |
+| **Storage** | Encrypted values stored as base64-encoded tokens in the `variable` table |
+| **Access** | Decryption occurs only at runtime when a component needs the credential |
+| **Rotation** | Key rotation requires re-encrypting all existing variables with the new key |
+
+### Encryption in Practice
+
+```python
+from cryptography.fernet import Fernet
+
+class VariableService:
+    def __init__(self, encryption_key: str):
+        self.fernet = Fernet(encryption_key)
+
+    def encrypt_value(self, plaintext: str) -> str:
+        return self.fernet.encrypt(plaintext.encode()).decode()
+
+    def decrypt_value(self, encrypted: str) -> str:
+        return self.fernet.decrypt(encrypted.encode()).decode()
+
+    async def create_variable(
+        self, session: AsyncSession, name: str, value: str, user_id: UUID
+    ) -> Variable:
+        variable = Variable(
+            name=name,
+            value=self.encrypt_value(value),
+            type="credential",
+            user_id=user_id,
+        )
+        session.add(variable)
+        await session.commit()
+        return variable
+```
+
+### Data Security Summary
+
+| Data Type | Protection Method |
 |-----------|------------------|
-| Passwords | Bcrypt hashing |
-| Variables/Secrets | Fernet symmetric encryption |
-| API Keys | Hashed storage |
-| Database | PostgreSQL encryption (optional) |
+| User passwords | Bcrypt hashing (one-way) |
+| Variables / Secrets | Fernet symmetric encryption (reversible) |
+| API keys (user-facing) | Hashed storage; plaintext shown only once at creation |
+| Flow data (JSONB) | Access-controlled by user ownership; no field-level encryption |
+| Session tokens | Redis TTL expiration; JWT signature verification |
+| Database at rest | PostgreSQL TDE (optional, infrastructure-level) |
 
-### Access Control
+---
 
-```
-┌─────────────────────────────────────────┐
-│            Access Control               │
-├─────────────────────────────────────────┤
-│  User Scope:                            │
-│  ├─ User can access own flows           │
-│  ├─ User can access own folders         │
-│  ├─ User can access own variables       │
-│  └─ User can access own API keys        │
-├─────────────────────────────────────────┤
-│  Admin Scope:                           │
-│  ├─ Admin can access all users          │
-│  ├─ Admin can manage system settings    │
-│  └─ Admin can view all flows            │
-├─────────────────────────────────────────┤
-│  API Key Scope:                         │
-│  ├─ Read/Execute specific flow          │
-│  └─ Limited to endpoint operations      │
-└─────────────────────────────────────────┘
-```
+## Database Environment Configuration
 
-## Data Retention
+| Environment | Database | Engine | Notes |
+|-------------|----------|--------|-------|
+| **Development** | SQLite | `aiosqlite` | Single-file, no server required |
+| **Production** | PostgreSQL | `asyncpg` | Connection pooling, JSONB support, concurrent access |
+| **Testing** | SQLite (in-memory) | `aiosqlite` | Fast, isolated per test run |
 
-### Retention Policies
-
-| Data Type | Retention Period | Cleanup Strategy |
-|-----------|-----------------|------------------|
-| Messages | 90 days (configurable) | Scheduled job |
-| Transactions | 30 days | Scheduled job |
-| Vertex Builds | 7 days | Per-flow cleanup |
-| Temp Files | 24 hours | Scheduled cleanup |
-| Sessions | 24 hours | TTL expiration |
-
-### Backup Strategy
-
-```
-Daily Backups:
-├─ PostgreSQL: pg_dump full backup
-├─ Redis: RDB snapshot
-└─ Files: Incremental backup
-
-Weekly:
-├─ Full database backup
-└─ Offsite replication
-
-Retention:
-├─ Daily: 7 days
-├─ Weekly: 4 weeks
-└─ Monthly: 12 months
-```
-
-## Query Patterns
-
-### Common Queries
-
-**List user flows**:
-```sql
-SELECT f.*, fo.name as folder_name
-FROM flow f
-LEFT JOIN folder fo ON f.folder_id = fo.id
-WHERE f.user_id = :user_id
-ORDER BY f.updated_at DESC
-LIMIT :limit OFFSET :offset;
-```
-
-**Get flow with messages**:
-```sql
-SELECT f.*,
-       json_agg(m.* ORDER BY m.timestamp) as messages
-FROM flow f
-LEFT JOIN message m ON m.flow_id = f.id
-                    AND m.session_id = :session_id
-WHERE f.id = :flow_id
-GROUP BY f.id;
-```
-
-**Execution history**:
-```sql
-SELECT t.*, f.name as flow_name
-FROM transaction t
-JOIN flow f ON t.flow_id = f.id
-WHERE f.user_id = :user_id
-ORDER BY t.timestamp DESC
-LIMIT 100;
-```
-
-### Index Strategy
-
-```sql
--- User queries
-CREATE INDEX idx_flow_user_id ON flow(user_id);
-CREATE INDEX idx_folder_user_id ON folder(user_id);
-
--- Flow lookup
-CREATE INDEX idx_flow_folder_id ON flow(folder_id);
-CREATE INDEX idx_flow_endpoint_name ON flow(endpoint_name);
-
--- Message queries
-CREATE INDEX idx_message_flow_session ON message(flow_id, session_id);
-CREATE INDEX idx_message_timestamp ON message(timestamp);
-
--- Transaction queries
-CREATE INDEX idx_transaction_flow_id ON transaction(flow_id);
-CREATE INDEX idx_transaction_timestamp ON transaction(timestamp);
-```
+The `AsyncEngine` is configured via a database URL environment variable, and SQLModel transparently handles dialect differences between SQLite and PostgreSQL for standard operations.
 
 ---
 

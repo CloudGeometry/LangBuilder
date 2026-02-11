@@ -1,6 +1,6 @@
 {
   "profile_type": "foundation-context",
-  "generated_at": "2026-01-21T11:19:00Z",
+  "generated_at": "2026-02-09T10:15:00Z",
   "source": "core-metadata.json",
 
   "project": {
@@ -15,7 +15,7 @@
   "monorepo": {
     "is_monorepo": true,
     "tool": "uv-workspace",
-    "package_count": 3,
+    "package_count": 2,
     "packages": [
       {
         "name": "langbuilder",
@@ -28,11 +28,6 @@
         "version": "0.6.5",
         "path": "langbuilder/src/backend/base/",
         "type": "library"
-      },
-      {
-        "name": "open-webui",
-        "path": "openwebui/",
-        "type": "integration"
       }
     ]
   },
@@ -55,6 +50,22 @@
       "path": "langbuilder/src/frontend/",
       "port": 5175,
       "build_tool": "Vite"
+    },
+    "openwebui_backend": {
+      "name": "openwebui-backend",
+      "type": "api",
+      "framework": "FastAPI",
+      "language": "Python",
+      "path": "openwebui/backend/",
+      "port": 8767
+    },
+    "openwebui_frontend": {
+      "name": "openwebui-frontend",
+      "type": "web",
+      "framework": "Svelte",
+      "language": "TypeScript",
+      "path": "openwebui/src/",
+      "port": 5175
     }
   },
 
@@ -89,24 +100,29 @@
   },
 
   "api_summary": {
-    "total_routers": 20,
+    "total_routers": 23,
     "v1_routers": 18,
     "v2_routers": 2,
+    "utility_routers": 3,
+    "total_endpoints": 157,
     "key_endpoints": [
       "/api/v1/flows - Flow management",
       "/api/v1/build - Chat/build operations",
       "/api/v1/run - Endpoint execution",
       "/api/v1/mcp - MCP protocol",
+      "/api/v1/projects - Project management",
       "/v1/chat/completions - OpenAI compatible"
     ]
   },
 
   "database_summary": {
     "model_count": 10,
-    "key_models": ["User", "Flow", "Folder", "ApiKey", "MessageTable"]
+    "enum_count": 3,
+    "key_models": ["User", "Flow", "Folder", "ApiKey", "MessageTable", "Variable", "File"]
   },
 
   "component_summary": {
+    "total_packages": 96,
     "categories": 12,
     "llm_providers": 24,
     "vector_stores": 19,
