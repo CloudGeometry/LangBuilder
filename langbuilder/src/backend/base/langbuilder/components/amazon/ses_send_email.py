@@ -257,13 +257,8 @@ class SESSendEmailComponent(LCToolComponent):
         Returns:
             Data object with message_id and send status
         """
-        # Check if we have direct tool parameters (like DynamoDB pattern - just use inputs)
-        has_direct_params = bool(self.to_addresses and self.subject and self.body_text)
-
-        if has_direct_params:
-            self.log("Using direct parameters (tool invocation)")
-        elif self.email_data:
-            # Data mode: check email_data from upstream component
+        # Upstream data (Webhook, Email Composer) takes priority over UI/tool fields
+        if self.email_data:
             data = self.email_data
             if hasattr(data, "data"):
                 data = data.data
@@ -278,9 +273,10 @@ class SESSendEmailComponent(LCToolComponent):
                 self.status = "Skipped"
                 return Data(data={"sent": False, "_skipped": True})
             self.log("Using email_data from upstream component")
+        elif self.to_addresses and self.subject and self.body_text:
+            self.log("Using direct parameters (tool/UI)")
         else:
-            # No parameters and no email_data - skip
-            self.log("Skipped: no to_addresses/subject/body_text and no email_data")
+            self.log("Skipped: no email_data and no complete direct params (to+subject+body)")
             self.status = "Skipped: no input"
             return Data(data={"sent": False, "_skipped": True})
 
