@@ -11,6 +11,7 @@ if TYPE_CHECKING:
     from langbuilder.components.cloudgeometry.json_field_extractor import JSONFieldExtractor
     from langbuilder.components.cloudgeometry.pinecone_search_tool import PineconeSearchToolComponent
     from langbuilder.components.cloudgeometry.pinecone_store_tool import PineconeStoreToolComponent
+    from langbuilder.components.cloudgeometry.text_analytics import TextAnalyticsComponent
     from langbuilder.components.cloudgeometry.transcript_trigger import TranscriptTrigger
 
 _dynamic_imports = {
@@ -20,6 +21,7 @@ _dynamic_imports = {
     "JSONFieldExtractor": "json_field_extractor",
     "PineconeSearchToolComponent": "pinecone_search_tool",
     "PineconeStoreToolComponent": "pinecone_store_tool",
+    "TextAnalyticsComponent": "text_analytics",
     "TranscriptTrigger": "transcript_trigger",
 }
 
@@ -30,6 +32,7 @@ __all__ = [
     "JSONFieldExtractor",
     "PineconeSearchToolComponent",
     "PineconeStoreToolComponent",
+    "TextAnalyticsComponent",
     "TranscriptTrigger",
 ]
 
