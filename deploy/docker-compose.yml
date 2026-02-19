@@ -1,0 +1,18 @@
+# =============================================================================
+# Top-level compose — brings up all services at once
+# =============================================================================
+# Usage:
+#   cd deploy
+#   docker network create langbuilder-network   # once
+#   docker compose --env-file .env up -d
+#
+# Or run individual stacks:
+#   docker compose -f docker-compose.langbuilder.yml --env-file .env up -d
+#   docker compose -f docker-compose.openwebui.yml --env-file .env up -d
+#   docker compose -f docker-compose.langwatch.yml --env-file .env up -d
+# =============================================================================
+
+include:
+  - docker-compose.langbuilder.yml
+  - docker-compose.openwebui.yml
+  - docker-compose.langwatch.yml

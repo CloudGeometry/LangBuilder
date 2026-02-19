@@ -1,0 +1,107 @@
+# =============================================================================
+# LangBuilder — Backend + Frontend (+ optional Postgres)
+# =============================================================================
+# Usage:
+#   docker compose -f docker-compose.langbuilder.yml --env-file .env up -d
+#
+# Requires: docker network create langbuilder-network (once)
+#
+# Database: SQLite by default (stored in langbuilder-app-data volume).
+# To use Postgres instead:
+#   1. Uncomment the langbuilder-postgres service below
+#   2. Set LANGBUILDER_DATABASE_URL in .env:
+#      LANGBUILDER_DATABASE_URL=postgresql://langbuilder:changeme@langbuilder-postgres:5432/langbuilder
+#   3. Uncomment the depends_on block for langbuilder-postgres
+# =============================================================================
+
+services:
+  langbuilder-backend:
+    image: ghcr.io/cloudgeometry/langbuilder-backend:${LB_BACKEND_TAG:-latest}
+    container_name: langbuilder-backend
+    pull_policy: always
+    restart: unless-stopped
+    # Uncomment to wait for Postgres when switching from SQLite:
+    # depends_on:
+    #   langbuilder-postgres:
+    #     condition: service_healthy
+    ports:
+      - "${LB_BACKEND_PORT:-7860}:7860"
+    environment:
+      - LANGBUILDER_DATABASE_URL=${LANGBUILDER_DATABASE_URL:-}
+      - LANGBUILDER_CONFIG_DIR=${LANGBUILDER_CONFIG_DIR:-app/langbuilder}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - LANGWATCH_API_KEY=${LANGWATCH_API_KEY:-}
+      - LANGWATCH_ENDPOINT=${LANGWATCH_ENDPOINT:-http://langwatch:5560}
+      - LANGBUILDER_SUPERUSER=${LANGBUILDER_SUPERUSER:-}
+      - LANGBUILDER_SUPERUSER_PASSWORD=${LANGBUILDER_SUPERUSER_PASSWORD:-}
+    volumes:
+      - langbuilder-app-data:/app/langbuilder
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7860/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - langbuilder-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  langbuilder-frontend:
+    image: ghcr.io/cloudgeometry/langbuilder-frontend:${LB_FRONTEND_TAG:-latest}
+    container_name: langbuilder-frontend
+    pull_policy: always
+    restart: unless-stopped
+    depends_on:
+      langbuilder-backend:
+        condition: service_healthy
+    ports:
+      - "${LB_FRONTEND_PORT:-3000}:80"
+    environment:
+      - BACKEND_URL=http://langbuilder-backend:7860
+    networks:
+      - langbuilder-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ── Uncomment to use Postgres instead of SQLite ──────────────────────────
+  # langbuilder-postgres:
+  #   image: postgres:16-alpine
+  #   container_name: langbuilder-postgres
+  #   restart: unless-stopped
+  #   ports:
+  #     - "${LB_POSTGRES_PORT:-5433}:5432"
+  #   environment:
+  #     POSTGRES_USER: ${LB_POSTGRES_USER:-langbuilder}
+  #     POSTGRES_PASSWORD: ${LB_POSTGRES_PASSWORD:-langbuilder}
+  #     POSTGRES_DB: ${LB_POSTGRES_DB:-langbuilder}
+  #     PGDATA: /var/lib/postgresql/data/pgdata
+  #   volumes:
+  #     - langbuilder-postgres-data:/var/lib/postgresql/data/pgdata
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U ${LB_POSTGRES_USER:-langbuilder} -d ${LB_POSTGRES_DB:-langbuilder}"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #     start_period: 10s
+  #   networks:
+  #     - langbuilder-network
+  #   logging:
+  #     driver: json-file
+  #     options:
+  #       max-size: "10m"
+  #       max-file: "3"
+
+volumes:
+  langbuilder-app-data:
+  # langbuilder-postgres-data:
+
+networks:
+  langbuilder-network:
+    external: true
