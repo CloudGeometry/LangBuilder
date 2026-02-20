@@ -36,6 +36,11 @@ services:
       - SCARF_NO_ANALYTICS=${SCARF_NO_ANALYTICS:-true}
       - DO_NOT_TRACK=${DO_NOT_TRACK:-true}
       - ANONYMIZED_TELEMETRY=${ANONYMIZED_TELEMETRY:-false}
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+          cpus: "1.0"
     volumes:
       - openwebui-app-data:/app/backend/data
     extra_hosts:

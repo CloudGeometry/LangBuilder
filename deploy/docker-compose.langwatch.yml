@@ -5,6 +5,9 @@
 #   docker compose -f docker-compose.langwatch.yml --env-file .env up -d
 #
 # Requires: docker network create langbuilder-network (once)
+#
+# Note: LangWatch images use :latest — official compose does the same and
+# versioned tags are inconsistent across sub-images. Pin when they stabilize.
 # =============================================================================
 
 services:
@@ -34,6 +37,11 @@ services:
       - NODE_ENV=production
       - SKIP_ENV_VALIDATION=true
       - INSTALL_METHOD=docker
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+          cpus: "1.0"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5560"]
       interval: 30s
@@ -52,10 +60,13 @@ services:
     image: langwatch/langwatch_nlp:latest
     container_name: langwatch-nlp
     restart: unless-stopped
-    ports:
-      - "${LW_NLP_PORT:-5561}:5561"
     environment:
       - LANGWATCH_ENDPOINT=http://langwatch:5560
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: "0.5"
     networks:
       - langbuilder-network
     logging:
@@ -68,10 +79,13 @@ services:
     image: langwatch/langevals:latest
     container_name: langwatch-langevals
     restart: unless-stopped
-    ports:
-      - "${LW_LANGEVALS_PORT:-5562}:5562"
     environment:
       - DISABLE_EVALUATORS_PRELOAD=true
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: "0.5"
     networks:
       - langbuilder-network
     logging:
@@ -81,16 +95,19 @@ services:
         max-file: "3"
 
   langwatch-postgres:
-    image: postgres:16-alpine
+    image: postgres:16.6-alpine
     container_name: langwatch-postgres
     restart: unless-stopped
-    ports:
-      - "${LW_POSTGRES_PORT:-5434}:5432"
     environment:
       POSTGRES_USER: ${LW_POSTGRES_USER:-langwatch}
       POSTGRES_PASSWORD: ${LW_POSTGRES_PASSWORD:-langwatch}
       POSTGRES_DB: ${LW_POSTGRES_DB:-langwatch}
       PGDATA: /var/lib/postgresql/data/pgdata
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: "0.5"
     volumes:
       - langwatch-postgres-data:/var/lib/postgresql/data/pgdata
     healthcheck:
@@ -108,11 +125,14 @@ services:
         max-file: "3"
 
   langwatch-redis:
-    image: redis:alpine
+    image: redis:7.4-alpine
     container_name: langwatch-redis
     restart: unless-stopped
-    ports:
-      - "${LW_REDIS_PORT:-6379}:6379"
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+          cpus: "0.25"
     volumes:
       - langwatch-redis-data:/data
     healthcheck:
@@ -133,8 +153,6 @@ services:
     image: langwatch/opensearch-lite:latest
     container_name: langwatch-opensearch
     restart: unless-stopped
-    ports:
-      - "${LW_OPENSEARCH_PORT:-9200}:9200"
     environment:
       - discovery.type=single-node
       - DISABLE_SECURITY_PLUGIN=true
@@ -142,6 +160,11 @@ services:
       - cluster.routing.allocation.disk.threshold_enabled=false
       - bootstrap.memory_lock=false
       - node.store.allow_mmap=false
+    deploy:
+      resources:
+        limits:
+          memory: 768m
+          cpus: "0.5"
     volumes:
       - langwatch-opensearch-data:/usr/share/opensearch/data
     healthcheck:
