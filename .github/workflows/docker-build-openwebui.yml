@@ -35,14 +35,17 @@ jobs:
 
       - name: Determine image tag
         id: tag
+        env:
+          TAG_INPUT: ${{ inputs.tag }}
+          EVENT_NAME: ${{ github.event_name }}
+          FULL_SHA: ${{ github.sha }}
         run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            TAG="${{ inputs.tag }}"
+          if [[ "$EVENT_NAME" == "workflow_dispatch" && -n "$TAG_INPUT" ]]; then
+            TAG="$TAG_INPUT"
           else
             TAG="latest"
           fi
-          SHA="${{ github.sha }}"
-          SHORT_SHA="${SHA:0:7}"
+          SHORT_SHA="${FULL_SHA:0:7}"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "short_sha=$SHORT_SHA" >> "$GITHUB_OUTPUT"
 
@@ -70,7 +73,7 @@ jobs:
             context: ./openwebui
             file: ./openwebui/Dockerfile
             push: true
-            tags: ghcr.io/CloudGeometry/openwebui:${{ steps.tag.outputs.tag }},ghcr.io/CloudGeometry/openwebui:${{ steps.tag.outputs.short_sha }}
+            tags: ghcr.io/cloudgeometry/openwebui:${{ steps.tag.outputs.tag }},ghcr.io/cloudgeometry/openwebui:${{ steps.tag.outputs.short_sha }}
             build-args: |
               USE_OLLAMA=false
               USE_CUDA=false

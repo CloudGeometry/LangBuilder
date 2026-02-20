@@ -31,7 +31,7 @@ docker compose --env-file .env up -d
 
 All services share a single external Docker network (`langbuilder-network`) for inter-service communication. Each stack has its own compose file and can be run independently.
 
-```
+```text
 ┌────────────────────────────────────────────────────────────────────┐
 │  langbuilder-network                                               │
 │                                                                    │
@@ -151,7 +151,7 @@ LangWatch uses official images from Docker Hub (`langwatch/langwatch:latest`) �
 
 ## Files
 
-```
+```text
 deploy/
 ├── .env.example                      # Environment template — copy to .env
 ├── docker-compose.yml                # Top-level: includes all 3 stacks

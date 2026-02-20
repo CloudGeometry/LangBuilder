@@ -31,7 +31,7 @@ services:
       - IS_OPENSEARCH=true
       - LANGWATCH_NLP_SERVICE=http://langwatch-nlp:5561
       - LANGEVALS_ENDPOINT=http://langwatch-langevals:5562
-      - NEXTAUTH_SECRET=${LW_NEXTAUTH_SECRET:-changeme-in-production}
+      - NEXTAUTH_SECRET=${LW_NEXTAUTH_SECRET:?LW_NEXTAUTH_SECRET is required}
       - NEXTAUTH_URL=${LW_NEXTAUTH_URL:-http://localhost:5560}
       - BASE_HOST=${LW_BASE_HOST:-http://localhost:5560}
       - NODE_ENV=production
@@ -163,7 +163,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 768m
+          memory: 1g
           cpus: "0.5"
     volumes:
       - langwatch-opensearch-data:/usr/share/opensearch/data

@@ -25,7 +25,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_PREFIX: ghcr.io/CloudGeometry
+  IMAGE_PREFIX: ghcr.io/cloudgeometry
 
 jobs:
   build-main:
@@ -45,14 +45,17 @@ jobs:
 
       - name: Determine image tag
         id: tag
+        env:
+          TAG_INPUT: ${{ inputs.tag }}
+          EVENT_NAME: ${{ github.event_name }}
+          FULL_SHA: ${{ github.sha }}
         run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" && -n "${{ inputs.tag }}" ]]; then
-            TAG="${{ inputs.tag }}"
+          if [[ "$EVENT_NAME" == "workflow_dispatch" && -n "$TAG_INPUT" ]]; then
+            TAG="$TAG_INPUT"
           else
             TAG="latest"
           fi
-          SHORT_SHA="${{ github.sha }}"
-          SHORT_SHA="${SHORT_SHA:0:7}"
+          SHORT_SHA="${FULL_SHA:0:7}"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "short_sha=$SHORT_SHA" >> "$GITHUB_OUTPUT"
 
@@ -82,8 +85,8 @@ jobs:
             push: true
             tags: ${{ env.IMAGE_PREFIX }}/langbuilder:${{ steps.tag.outputs.tag }},${{ env.IMAGE_PREFIX }}/langbuilder:${{ steps.tag.outputs.short_sha }}
             platforms: linux/amd64
-            cache-from: type=gha
-            cache-to: type=gha,mode=max
+            cache-from: type=gha,scope=langbuilder-main
+            cache-to: type=gha,mode=max,scope=langbuilder-main
             provenance: false
 
   build-backend:
@@ -127,8 +130,8 @@ jobs:
             build-args: |
               LANGBUILDER_IMAGE=${{ env.IMAGE_PREFIX }}/langbuilder:${{ needs.build-main.outputs.tag }}
             platforms: linux/amd64
-            cache-from: type=gha
-            cache-to: type=gha,mode=max
+            cache-from: type=gha,scope=langbuilder-backend
+            cache-to: type=gha,mode=max,scope=langbuilder-backend
             provenance: false
 
   build-frontend:
@@ -145,14 +148,17 @@ jobs:
 
       - name: Determine image tag
         id: tag
+        env:
+          TAG_INPUT: ${{ inputs.tag }}
+          EVENT_NAME: ${{ github.event_name }}
+          FULL_SHA: ${{ github.sha }}
         run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" && -n "${{ inputs.tag }}" ]]; then
-            TAG="${{ inputs.tag }}"
+          if [[ "$EVENT_NAME" == "workflow_dispatch" && -n "$TAG_INPUT" ]]; then
+            TAG="$TAG_INPUT"
           else
             TAG="latest"
           fi
-          SHORT_SHA="${{ github.sha }}"
-          SHORT_SHA="${SHORT_SHA:0:7}"
+          SHORT_SHA="${FULL_SHA:0:7}"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "short_sha=$SHORT_SHA" >> "$GITHUB_OUTPUT"
 
@@ -182,6 +188,6 @@ jobs:
             push: true
             tags: ${{ env.IMAGE_PREFIX }}/langbuilder-frontend:${{ steps.tag.outputs.tag }},${{ env.IMAGE_PREFIX }}/langbuilder-frontend:${{ steps.tag.outputs.short_sha }}
             platforms: linux/amd64
-            cache-from: type=gha
-            cache-to: type=gha,mode=max
+            cache-from: type=gha,scope=langbuilder-frontend
+            cache-to: type=gha,mode=max,scope=langbuilder-frontend
             provenance: false
