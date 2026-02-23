@@ -1,0 +1,84 @@
+name: Build and Push OpenWebUI
+run-name: Build OpenWebUI Docker image by @${{ github.actor }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Image tag (e.g., latest, v1.0.0)"
+        required: false
+        type: string
+        default: "latest"
+      ref:
+        description: "Git ref to build from (branch, tag, SHA)"
+        required: false
+        type: string
+
+  push:
+    branches: [main]
+    paths:
+      - "openwebui/**"
+      - ".github/workflows/docker-build-openwebui.yml"
+
+jobs:
+  build:
+    name: Build & Push OpenWebUI
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Determine image tag
+        id: tag
+        env:
+          TAG_INPUT: ${{ inputs.tag }}
+          EVENT_NAME: ${{ github.event_name }}
+          FULL_SHA: ${{ github.sha }}
+        run: |
+          if [[ "$EVENT_NAME" == "workflow_dispatch" && -n "$TAG_INPUT" ]]; then
+            TAG="$TAG_INPUT"
+          else
+            TAG="latest"
+          fi
+          SHORT_SHA="${FULL_SHA:0:7}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "short_sha=$SHORT_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          version: latest
+          driver: docker-container
+          driver-opts: |
+            image=moby/buildkit:v0.22.0
+            network=host
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: Wandalen/wretry.action@v3.8.0
+        with:
+          action: docker/build-push-action@v6
+          with: |
+            context: ./openwebui
+            file: ./openwebui/Dockerfile
+            push: true
+            tags: ghcr.io/cloudgeometry/openwebui:${{ steps.tag.outputs.tag }},ghcr.io/cloudgeometry/openwebui:${{ steps.tag.outputs.short_sha }}
+            build-args: |
+              USE_OLLAMA=false
+              USE_CUDA=false
+              BUILD_HASH=${{ github.sha }}
+            platforms: linux/amd64
+            cache-from: type=gha
+            cache-to: type=gha,mode=max
+            provenance: false
