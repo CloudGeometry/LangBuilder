@@ -50,13 +50,14 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 COPY ./src /app/src
 
-# COPY src/frontend /tmp/src/frontend
-# WORKDIR /tmp/src/frontend
-# RUN --mount=type=cache,target=/root/.npm \
-#     npm ci \
-#     && npm run build \
-#     && cp -r build /app/src/backend/langbuilder/frontend \
-#     && rm -rf /tmp/src/frontend
+COPY src/frontend /tmp/src/frontend
+WORKDIR /tmp/src/frontend
+COPY src/frontend/package.json src/frontend/package-lock.json ./
+RUN --mount=type=cache,target=/root/.npm \
+  npm ci --legacy-peer-deps \
+  && npm run build \
+  && cp -r build /app/src/backend/langbuilder/frontend \
+  && rm -rf /tmp/src/frontend
 
 WORKDIR /app
 COPY ./pyproject.toml /app/pyproject.toml
