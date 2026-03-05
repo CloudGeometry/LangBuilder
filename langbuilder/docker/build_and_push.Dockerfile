@@ -48,23 +48,32 @@ COPY ./src/lfx/pyproject.toml /app/src/lfx/pyproject.toml
 
 RUN --mount=type=cache,target=/root/.cache/uv \
     RUSTFLAGS='--cfg reqwest_unstable' \
-    uv sync --frozen --no-install-project --no-editable --extra postgresql
+    uv sync --frozen --no-install-project --no-editable --extra postgresql --extra audio
 
 COPY ./src /app/src
+COPY ./langbuilder_compat /app/langbuilder_compat
 
 COPY src/frontend /tmp/src/frontend
+COPY ./docker/favicon.ico /tmp/favicon.ico
 WORKDIR /tmp/src/frontend
 RUN --mount=type=cache,target=/root/.npm \
     npm ci \
     && ESBUILD_BINARY_PATH="" NODE_OPTIONS="--max-old-space-size=12288" JOBS=1 npm run build \
     && cp -r build /app/src/backend/langflow/frontend \
+    && cp /tmp/favicon.ico /app/src/backend/langflow/frontend/favicon.ico \
     && rm -rf /tmp/src/frontend
 
 WORKDIR /app
 
 RUN --mount=type=cache,target=/root/.cache/uv \
     RUSTFLAGS='--cfg reqwest_unstable' \
-    uv sync --frozen --no-editable --extra postgresql
+    uv sync --frozen --no-editable --extra postgresql --extra audio
+
+# Install the langbuilder→langflow compatibility shim (no deps, no lockfile needed)
+RUN /app/.venv/bin/pip install --no-deps /app/langbuilder_compat
+
+# Auto-import the shim on every Python startup via sitecustomize
+RUN echo "import langbuilder" >> /app/.venv/lib/python3.12/site-packages/sitecustomize.py
 
 ################################
 # RUNTIME
@@ -96,11 +105,11 @@ ENV PATH="/app/.venv/bin:$PATH"
 RUN /app/.venv/bin/pip install --upgrade playwright \
     && /app/.venv/bin/playwright install
 
-LABEL org.opencontainers.image.title=langflow
-LABEL org.opencontainers.image.authors=['Langflow']
+LABEL org.opencontainers.image.title=langbuilder
+LABEL org.opencontainers.image.authors=['CloudGeometry']
 LABEL org.opencontainers.image.licenses=MIT
-LABEL org.opencontainers.image.url=https://github.com/langflow-ai/langflow
-LABEL org.opencontainers.image.source=https://github.com/langflow-ai/langflow
+LABEL org.opencontainers.image.url=https://github.com/cloudgeometry/langbuilder
+LABEL org.opencontainers.image.source=https://github.com/cloudgeometry/langbuilder
 
 USER user
 WORKDIR /app
