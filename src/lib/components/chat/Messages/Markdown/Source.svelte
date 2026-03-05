@@ -1,4 +1,9 @@
 <script lang="ts">
+	import { getContext } from 'svelte';
+	import { decodeString } from '$lib/utils';
+
+	const i18n = getContext('i18n');
+
 	export let id;
 
 	export let title: string = 'N/A';
@@ -15,6 +20,14 @@
 		return domain;
 	}
 
+	const getDisplayTitle = (title: string) => {
+		if (!title) return 'N/A';
+		if (title.length > 30) {
+			return title.slice(0, 15) + '...' + title.slice(-10);
+		}
+		return title;
+	};
+
 	// Helper function to check if text is a URL and return the domain
 	function formattedTitle(title: string): string {
 		if (title.startsWith('http')) {
@@ -23,25 +36,18 @@
 
 		return title;
 	}
-
-	const getDisplayTitle = (title: string) => {
-		if (!title) return 'N/A';
-		if (title.length > 30) {
-			return title.slice(0, 15) + '...' + title.slice(-10);
-		}
-		return title;
-	};
 </script>
 
 {#if title !== 'N/A'}
 	<button
+		aria-label={$i18n.t('View source: {{title}}', { title: formattedTitle(decodeString(title)) })}
 		class="text-[10px] w-fit translate-y-[2px] px-2 py-0.5 dark:bg-white/5 dark:text-white/80 dark:hover:text-white bg-gray-50 text-black/80 hover:text-black transition rounded-xl"
 		on:click={() => {
 			onClick(id);
 		}}
 	>
 		<span class="line-clamp-1">
-			{getDisplayTitle(formattedTitle(decodeURIComponent(title)))}
+			{getDisplayTitle(formattedTitle(decodeString(title)))}
 		</span>
 	</button>
 {/if}

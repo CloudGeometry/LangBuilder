@@ -133,6 +133,7 @@
 			<div class=" text-lg font-medium self-center">{$i18n.t('Add User')}</div>
 			<button
 				class="self-center"
+				aria-label={$i18n.t('Close')}
 				on:click={() => {
 					show = false;
 				}}
@@ -182,6 +183,7 @@
 									<select
 										class="w-full capitalize rounded-lg text-sm bg-transparent dark:disabled:text-gray-500 outline-hidden"
 										bind:value={_user.role}
+										aria-label={$i18n.t('Role')}
 										placeholder={$i18n.t('Enter Your Role')}
 										required
 									>
@@ -200,6 +202,7 @@
 										class="w-full text-sm bg-transparent disabled:text-gray-500 dark:disabled:text-gray-500 outline-hidden"
 										type="text"
 										bind:value={_user.name}
+										aria-label={$i18n.t('Name')}
 										placeholder={$i18n.t('Enter Your Full Name')}
 										autocomplete="off"
 										required
@@ -207,7 +210,7 @@
 								</div>
 							</div>
 
-							<hr class=" border-gray-100 dark:border-gray-850 my-2.5 w-full" />
+							<hr class=" border-gray-100/30 dark:border-gray-850/30 my-2.5 w-full" />
 
 							<div class="flex flex-col w-full">
 								<div class=" mb-1 text-xs text-gray-500">{$i18n.t('Email')}</div>
@@ -217,6 +220,7 @@
 										class="w-full text-sm bg-transparent disabled:text-gray-500 dark:disabled:text-gray-500 outline-hidden"
 										type="email"
 										bind:value={_user.email}
+										aria-label={$i18n.t('Email')}
 										placeholder={$i18n.t('Enter Your Email')}
 										required
 									/>
@@ -231,6 +235,7 @@
 										class="w-full text-sm bg-transparent disabled:text-gray-500 dark:disabled:text-gray-500 outline-hidden"
 										type="password"
 										bind:value={_user.password}
+										aria-label={$i18n.t('Password')}
 										placeholder={$i18n.t('Enter Your Password')}
 										autocomplete="off"
 										required
