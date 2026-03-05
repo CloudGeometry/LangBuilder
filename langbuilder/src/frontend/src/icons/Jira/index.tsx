@@ -1,9 +1,8 @@
 import React, { forwardRef } from "react";
-import SvgJira from "./Jira";
+import JiraIconSVG from "./jira";
 
-export const Jira = forwardRef<
-  SVGSVGElement,
-  React.PropsWithChildren<{}>
->((props, ref) => {
-  return <SvgJira ref={ref} {...props} />;
-});
+export const JiraIcon = forwardRef<SVGSVGElement, React.PropsWithChildren<{}>>(
+  (props, ref) => {
+    return <JiraIconSVG ref={ref} {...props} />;
+  },
+);

@@ -1,9 +1,9 @@
 from typing import TYPE_CHECKING, Literal
 
 import pytest
-from langbuilder.components.input_output import ChatInput
-from langbuilder.inputs.inputs import DropdownInput, FileInput, IntInput, NestedDictInput, StrInput
-from langbuilder.io.schema import create_input_schema
+from lfx.components.input_output import ChatInput
+from lfx.inputs.inputs import DropdownInput, FileInput, IntInput, NestedDictInput, StrInput
+from lfx.io.schema import create_input_schema
 
 if TYPE_CHECKING:
     from pydantic.fields import FieldInfo

@@ -3,21 +3,23 @@ title: Contribute templates
 slug: /contributing-templates
 ---
 
-Follow these best practices when submitting a template to LangBuilder.
+import Icon from "@site/src/components/icon";
 
-For template formatting examples, see [`/starter_projects`](https://github.com/CloudGeometry/langbuilder/tree/main/src/backend/base/langbuilder/initial_setup/starter_projects) in the LangBuilder repository.
+Follow these best practices when submitting a template to Langflow.
+
+For template formatting examples, see [`/starter_projects`](https://github.com/langflow-ai/langflow/tree/main/src/backend/base/langflow/initial_setup/starter_projects) in the Langflow repository.
 
 ## Create a PR to submit your template
 
 Follow these steps to submit your template:
 
-1. Fork the [LangBuilder repository](https://github.com/CloudGeometry/langbuilder) on GitHub.
+1. Fork the [Langflow repository](https://github.com/langflow-ai/langflow) on GitHub.
 2. On your fork, add your `template.json` file to `/starter_projects`.
 3. Include the [required items for template submission](#required-items-for-template-submission).
-4. Create a Pull Request (PR) from your fork to the main LangBuilder repository.
+4. Create a Pull Request (PR) from your fork to the main Langflow repository.
 5. Include a screenshot of your template in the PR.
 
-The LangBuilder team will review your PR, offer feedback, and, if approved, merge the template.
+The Langflow team will review your PR, offer feedback, and, if approved, merge the template.
 
 ## Required items for template submission
 
@@ -44,10 +46,10 @@ Use icons from the [Lucide](https://lucide.dev/icons/) icon library.
 
 ### Flow
 
-Use only the components that are available in the **Components** menu in the visual editor.
-Don't use custom components.
+Use only <Icon name="Component" aria-hidden="true" /> **Core components** and <Icon name="Blocks" aria-hidden="true" /> **Bundles**.
+Don't use custom components that aren't part of the Langflow codebase.
 
-Include brief README, quickstart, or other essential details in a note. Notes accept Markdown syntax.
+Include brief README, quickstart, or other essential details in a <Icon name="StickyNote" aria-hidden="true"/> **Note**. Notes accept Markdown syntax.
 For example:
 
 ```text
@@ -86,4 +88,4 @@ Assign the template to one of the following categories:
 - RAG
 - Agents
 
-For more information, see the LangBuilder repository's [template categories](https://github.com/CloudGeometry/langbuilder/blob/main/src/frontend/src/modals/templatesModal/index.tsx#L27-L57).
+For more information, see the Langflow repository's [template categories](https://github.com/langflow-ai/langflow/blob/main/src/frontend/src/modals/templatesModal/index.tsx#L27-L57).

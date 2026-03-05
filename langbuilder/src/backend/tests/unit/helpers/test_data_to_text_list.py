@@ -1,6 +1,6 @@
 import pytest
-from langbuilder.helpers.data import data_to_text_list
-from langbuilder.schema import Data
+from langflow.helpers.data import data_to_text_list
+from lfx.schema import Data
 
 
 @pytest.mark.parametrize(

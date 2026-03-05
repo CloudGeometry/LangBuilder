@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "../../fixtures";
 import { adjustScreenView } from "../../utils/adjust-screen-view";
 import { awaitBootstrapTest } from "../../utils/await-bootstrap-test";
 
@@ -13,6 +13,10 @@ test(
     });
 
     await page.getByTestId("blank-flow").click();
+
+    // Allow for legacy components
+    await page.getByTestId("sidebar-options-trigger").click();
+    await page.getByTestId("sidebar-legacy-switch").click();
 
     await page.getByTestId("sidebar-search-input").click();
     await page.getByTestId("sidebar-search-input").fill("amazon");
@@ -133,12 +137,12 @@ test(
     await page.locator("textarea").press("Control+a");
     const emptyOptionsCode = `from langchain_community.chat_models.bedrock import BedrockChat
 
-from langbuilder.base.constants import STREAM_INFO_TEXT
-from langbuilder.base.models.model import LCModelComponent
-from langbuilder.field_typing import BaseLanguageModel, Text
-from langbuilder.io import BoolInput, DictInput, DropdownInput, StrInput
-from langbuilder.io import MessageInput
-from langbuilder.io import Output
+from langflow.base.constants import STREAM_INFO_TEXT
+from langflow.base.models.model import LCModelComponent
+from langflow.field_typing import BaseLanguageModel, Text
+from langflow.io import BoolInput, DictInput, DropdownInput, StrInput
+from langflow.io import MessageInput
+from langflow.io import Output
 
 
 class AmazonBedrockComponent(LCModelComponent):

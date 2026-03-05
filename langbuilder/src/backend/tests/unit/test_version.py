@@ -1,4 +1,4 @@
-from langbuilder.utils.version import _compute_non_prerelease_version, get_version_info
+from langflow.utils.version import _compute_non_prerelease_version, get_version_info
 
 
 def test_version():

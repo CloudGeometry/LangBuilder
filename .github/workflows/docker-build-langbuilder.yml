@@ -21,6 +21,7 @@ on:
       - "langbuilder/pyproject.toml"
       - "langbuilder/uv.lock"
       - "langbuilder/docker/**"
+      - "langbuilder/langbuilder_compat/**"
       - ".github/workflows/docker-build-langbuilder.yml"
 
 env:

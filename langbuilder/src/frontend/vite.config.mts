@@ -14,18 +14,18 @@ import {
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
 
-  const envLangbuilderResult = dotenv.config({
+  const envLangflowResult = dotenv.config({
     path: path.resolve(__dirname, "../../.env"),
   });
 
-  const envLangbuilder = envLangbuilderResult.parsed || {};
+  const envLangflow = envLangflowResult.parsed || {};
 
   const apiRoutes = API_ROUTES || ["^/api/v1/", "^/api/v2/", "/health"];
 
   const target =
-    envLangbuilder.VITE_PROXY_TARGET || env.VITE_PROXY_TARGET || PROXY_TARGET || "http://localhost:7860";
-  
-  const port = Number(envLangbuilder.VITE_PORT || env.VITE_PORT) || PORT || 3000;
+    env.VITE_PROXY_TARGET || PROXY_TARGET || "http://localhost:7860";
+
+  const port = Number(env.VITE_PORT) || PORT || 3000;
 
   const proxyTargets = apiRoutes.reduce((proxyObj, route) => {
     proxyObj[route] = {
@@ -43,18 +43,18 @@ export default defineConfig(({ mode }) => {
       outDir: "build",
     },
     define: {
-      "process.env.BACKEND_URL": JSON.stringify(
-        envLangbuilder.BACKEND_URL ?? "http://localhost:7860",
+      "import.meta.env.BACKEND_URL": JSON.stringify(
+        envLangflow.BACKEND_URL ?? "http://localhost:7860",
       ),
-      "process.env.ACCESS_TOKEN_EXPIRE_SECONDS": JSON.stringify(
-        envLangbuilder.ACCESS_TOKEN_EXPIRE_SECONDS ?? 60,
+      "import.meta.env.ACCESS_TOKEN_EXPIRE_SECONDS": JSON.stringify(
+        envLangflow.ACCESS_TOKEN_EXPIRE_SECONDS ?? 60,
       ),
-      "process.env.CI": JSON.stringify(envLangbuilder.CI ?? false),
-      "process.env.LANGBUILDER_AUTO_LOGIN": JSON.stringify(
-        envLangbuilder.LANGBUILDER_AUTO_LOGIN ?? true,
+      "import.meta.env.CI": JSON.stringify(envLangflow.CI ?? false),
+      "import.meta.env.LANGFLOW_AUTO_LOGIN": JSON.stringify(
+        envLangflow.LANGFLOW_AUTO_LOGIN ?? true,
       ),
-      "process.env.LANGBUILDER_MCP_COMPOSER_ENABLED": JSON.stringify(
-        envLangbuilder.LANGBUILDER_MCP_COMPOSER_ENABLED ?? "true",
+      "import.meta.env.LANGFLOW_MCP_COMPOSER_ENABLED": JSON.stringify(
+        envLangflow.LANGFLOW_MCP_COMPOSER_ENABLED ?? "true",
       ),
     },
     plugins: [react(), svgr(), tsconfigPaths()],

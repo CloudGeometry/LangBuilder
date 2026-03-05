@@ -1,6 +1,6 @@
 import pytest
 from httpx import AsyncClient
-from langbuilder.services.database.models.api_key import ApiKeyCreate
+from langflow.services.database.models.api_key import ApiKeyCreate
 
 
 @pytest.fixture

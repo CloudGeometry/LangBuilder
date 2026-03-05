@@ -13,7 +13,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { DEFAULT_FOLDER } from "@/constants/constants";
 import { useUpdateUser } from "@/controllers/API/queries/auth";
 import {
   usePatchFolders,
@@ -24,7 +23,7 @@ import { useGetDownloadFolders } from "@/controllers/API/queries/folders/use-get
 import { CustomStoreButton } from "@/customization/components/custom-store-button";
 import {
   ENABLE_CUSTOM_PARAM,
-  ENABLE_DATASTAX_LANGBUILDER,
+  ENABLE_DATASTAX_LANGFLOW,
   ENABLE_FILE_MANAGEMENT,
   ENABLE_KNOWLEDGE_BASES,
   ENABLE_MCP_NOTICE,
@@ -41,6 +40,7 @@ import type { FolderType } from "../../../../../pages/MainPage/entities";
 import useAlertStore from "../../../../../stores/alertStore";
 import useFlowsManagerStore from "../../../../../stores/flowsManagerStore";
 import { useFolderStore } from "../../../../../stores/foldersStore";
+import { useUtilityStore } from "../../../../../stores/utilityStore";
 import { handleKeyDown } from "../../../../../utils/reactflowUtils";
 import { cn } from "../../../../../utils/utils";
 import useFileDrop from "../../hooks/use-on-file-drop";
@@ -86,6 +86,7 @@ const SideBarFoldersButtonsComponent = ({
   const folderIdDragging = useFolderStore((state) => state.folderIdDragging);
   const myCollectionId = useFolderStore((state) => state.myCollectionId);
   const takeSnapshot = useFlowsManagerStore((state) => state.takeSnapshot);
+  const defaultFolderName = useUtilityStore((state) => state.defaultFolderName);
 
   const folderId = useParams().folderId ?? myCollectionId ?? "";
 
@@ -275,7 +276,7 @@ const SideBarFoldersButtonsComponent = ({
   };
 
   const handleDoubleClick = (event, item) => {
-    if (item.name === DEFAULT_FOLDER) {
+    if (item.name === defaultFolderName) {
       return;
     }
 
@@ -478,7 +479,7 @@ const SideBarFoldersButtonsComponent = ({
         <SidebarFooter className="border-t">
           <div className="grid w-full items-center gap-2 p-2">
             {/* TODO: Remove this on cleanup */}
-            {ENABLE_DATASTAX_LANGBUILDER && <CustomStoreButton />}{" "}
+            {ENABLE_DATASTAX_LANGFLOW && <CustomStoreButton />}{" "}
             {ENABLE_KNOWLEDGE_BASES && (
               <SidebarMenuButton
                 onClick={handleKnowledgeNavigation}

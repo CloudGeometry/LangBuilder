@@ -1,6 +1,6 @@
-import { expect, test } from "@playwright/test";
 import * as dotenv from "dotenv";
 import path from "path";
+import { expect, test } from "../../fixtures";
 import { awaitBootstrapTest } from "../../utils/await-bootstrap-test";
 
 test(
@@ -37,7 +37,7 @@ test(
       timeout: 200000,
     });
 
-    await newPageStore.getByTestId("sidebar-nav-LangBuilder Store").click();
+    await newPageStore.getByTestId("sidebar-nav-Langflow Store").click();
 
     await newPageStore
       .getByPlaceholder("Insert your API Key")
@@ -107,7 +107,7 @@ test(
       timeout: 200000,
     });
 
-    await newPageStore.getByTestId("sidebar-nav-LangBuilder Store").click();
+    await newPageStore.getByTestId("sidebar-nav-Langflow Store").click();
 
     await newPageStore
       .getByPlaceholder("Insert your API Key")

@@ -1,5 +1,6 @@
-from langbuilder.processing.process import process_tweaks
-from langbuilder.services.deps import get_session_service
+from langflow.processing.process import process_tweaks
+from langflow.services.deps import get_session_service
+from langflow.services.utils import register_all_service_factories
 
 
 def test_no_tweaks():
@@ -263,6 +264,7 @@ def test_tweak_not_in_template():
 
 async def test_load_langchain_object_with_cached_session(basic_graph_data):
     # Provide a non-existent session_id
+    register_all_service_factories()
     session_service = get_session_service()
     session_id1 = "non-existent-session-id"
     graph1, artifacts1 = await session_service.load_session(session_id1, basic_graph_data)
@@ -312,7 +314,7 @@ def test_apply_tweaks_code_override_prevention():
     """Test that code tweaks are prevented and logged as warning."""
     from unittest.mock import patch
 
-    from langbuilder.processing.process import apply_tweaks
+    from langflow.processing.process import apply_tweaks
 
     # Create a simple node with template including code field
     node = {
@@ -331,7 +333,7 @@ def test_apply_tweaks_code_override_prevention():
     node_tweaks = {"code": "malicious_code_injection", "param1": "new_value"}
 
     # Capture log output
-    with patch("langbuilder.processing.process.logger") as mock_logger:
+    with patch("langflow.processing.process.logger") as mock_logger:
         apply_tweaks(node, node_tweaks)
 
         # Verify warning was logged for code override attempt
@@ -348,7 +350,7 @@ def test_apply_tweaks_code_only_prevention():
     """Test that only code tweaks are prevented when trying to override code alone."""
     from unittest.mock import patch
 
-    from langbuilder.processing.process import apply_tweaks
+    from langflow.processing.process import apply_tweaks
 
     # Create a simple node with template including code field
     node = {
@@ -366,7 +368,7 @@ def test_apply_tweaks_code_only_prevention():
     node_tweaks = {"code": "attempted_code_injection"}
 
     # Capture log output
-    with patch("langbuilder.processing.process.logger") as mock_logger:
+    with patch("langflow.processing.process.logger") as mock_logger:
         apply_tweaks(node, node_tweaks)
 
         # Verify warning was logged

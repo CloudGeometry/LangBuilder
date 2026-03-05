@@ -25,7 +25,7 @@ export const CategoryGroup = memo(function CategoryGroup({
   setShowConfig,
 }: CategoryGroupProps) {
   return (
-    <SidebarGroup className="p-3">
+    <SidebarGroup className="p-3 pr-2">
       {ENABLE_NEW_SIDEBAR && (
         <SidebarGroupLabel className="cursor-default flex items-center justify-between w-full">
           <span>Components</span>
@@ -40,10 +40,8 @@ export const CategoryGroup = memo(function CategoryGroup({
           {Object.entries(dataFilter)
             .filter(
               ([categoryName, items]) =>
-                // filter out bundles and MCP (keep cloudgeometry in both tabs)
-                (!SIDEBAR_BUNDLES.some((cat) => cat.name === categoryName) ||
-                  categoryName === "cloudgeometry" ||
-                  categoryName === "chez_antoine") &&
+                // filter out bundles and MCP
+                !SIDEBAR_BUNDLES.some((cat) => cat.name === categoryName) &&
                 categoryName !== "custom_component" &&
                 categoryName !== "MCP" &&
                 Object.keys(items).length > 0,

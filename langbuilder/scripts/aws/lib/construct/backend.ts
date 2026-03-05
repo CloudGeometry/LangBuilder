@@ -27,7 +27,7 @@ interface BackEndProps {
 }
 
 export class BackEndCluster extends Construct {
-  
+
   constructor(scope: Construct, id: string, props:BackEndProps) {
     super(scope, id)
     const backendServiceName = 'backend'
@@ -52,15 +52,15 @@ export class BackEndCluster extends Construct {
     );
     backendTaskDefinition.addContainer('backendContainer', {
       image: ecs.ContainerImage.fromEcrRepository(props.ecrBackEndRepository, "latest"),
-      containerName:'langbuilder-back-container',
+      containerName:'langflow-back-container',
       logging: ecs.LogDriver.awsLogs({
         streamPrefix: 'my-stream',
         logGroup: props.backendLogGroup,
       }),
       environment:{
-        "LANGBUILDER_AUTO_LOGIN" : process.env.LANGBUILDER_AUTO_LOGIN ?? 'false',
-        "LANGBUILDER_SUPERUSER" : process.env.LANGBUILDER_SUPERUSER ?? "admin",
-        "LANGBUILDER_SUPERUSER_PASSWORD" : process.env.LANGBUILDER_SUPERUSER_PASSWORD ?? "123456"
+        "LANGFLOW_AUTO_LOGIN" : process.env.LANGFLOW_AUTO_LOGIN ?? 'false',
+        "LANGFLOW_SUPERUSER" : process.env.LANGFLOW_SUPERUSER ?? "admin",
+        "LANGFLOW_SUPERUSER_PASSWORD" : process.env.LANGFLOW_SUPERUSER_PASSWORD ?? "123456"
       },
       portMappings: [
           {
@@ -76,7 +76,7 @@ export class BackEndCluster extends Construct {
         "password": ecs.Secret.fromSecretsManager(secretsDB, 'password'),
       },
     });
-    
+
     const backendService = new ecs.FargateService(this, 'BackEndService', {
       cluster: props.cluster,
       serviceName: backendServiceName,

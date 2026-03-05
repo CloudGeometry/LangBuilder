@@ -1,6 +1,6 @@
 import pytest
-from langbuilder.custom.custom_component.custom_component import CustomComponent
-from langbuilder.field_typing.constants import Data
+from langflow.custom.custom_component.custom_component import CustomComponent
+from lfx.field_typing.constants import Data
 
 
 @pytest.fixture

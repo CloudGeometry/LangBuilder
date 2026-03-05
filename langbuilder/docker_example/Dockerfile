@@ -1,3 +1,3 @@
-FROM cloudgeometry/langbuilder:latest
+FROM langflowai/langflow:latest
 
-CMD ["python", "-m", "langbuilder", "run", "--host", "0.0.0.0", "--port", "7860"]
+CMD ["python", "-m", "langflow", "run", "--host", "0.0.0.0", "--port", "7860"]

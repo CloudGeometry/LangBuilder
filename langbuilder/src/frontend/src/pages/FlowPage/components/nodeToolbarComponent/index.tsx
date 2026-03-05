@@ -7,7 +7,6 @@ import useHandleNodeClass from "@/CustomNodes/hooks/use-handle-node-class";
 import ShadTooltip from "@/components/common/shadTooltipComponent";
 import ToggleShadComponent from "@/components/core/parameterRenderComponent/components/toggleShadComponent";
 import { Button } from "@/components/ui/button";
-import { LANGBUILDER_SUPPORTED_TYPES } from "@/constants/constants";
 import { usePostTemplateValue } from "@/controllers/API/queries/nodes/use-post-template-value";
 import { usePostRetrieveVertexOrder } from "@/controllers/API/queries/vertex";
 import { customOpenNewTab } from "@/customization/utils/custom-open-new-tab";
@@ -56,7 +55,10 @@ const NodeToolbarComponent = memo(
     isUserEdited,
     hasBreakingChange,
     setOpenShowMoreOptions,
-  }: nodeToolbarPropsType): JSX.Element => {
+    openDropdownOnRightClick = false,
+  }: nodeToolbarPropsType & {
+    openDropdownOnRightClick?: boolean;
+  }): JSX.Element => {
     const version = useDarkStore((state) => state.version);
     const [showModalAdvanced, setShowModalAdvanced] = useState(false);
     const [showconfirmShare, setShowconfirmShare] = useState(false);
@@ -75,6 +77,7 @@ const NodeToolbarComponent = memo(
     const shortcuts = useShortcutsStore((state) => state.shortcuts);
     const currentFlowId = useFlowsManagerStore((state) => state.currentFlowId);
     const [openModal, setOpenModal] = useState(false);
+    const [dropdownOpen, setDropdownOpen] = useState(false);
     const frozen = data.node?.frozen ?? false;
     const updateNodeInternals = useUpdateNodeInternals();
 
@@ -119,30 +122,16 @@ const NodeToolbarComponent = memo(
     );
     const addFlow = useAddFlow();
 
-    const groupOutputs =
-      data.node?.outputs?.filter?.(
-        (output) => (output.group_outputs ?? false) === false,
-      ) ?? [];
+    const hasGroupOutputs = data.node?.outputs?.some?.(
+      (output) => output.group_outputs,
+    );
+    const hasOutputs =
+      data.node?.outputs?.length && data.node?.outputs?.length > 1;
 
-    const inputsWithHandle =
-      Object.values(data.node?.template ?? {}).filter((input) => {
-        return (
-          (!LANGBUILDER_SUPPORTED_TYPES.has(input.type ?? "") ||
-            (input.input_types && input.input_types.length > 0)) &&
-          (!input.tool_mode || !data.node?.tool_mode) &&
-          !input.refresh_button &&
-          input.show &&
-          !input.advanced
-        );
-      }) ?? [];
-
-    const hasSelectOutput =
-      groupOutputs.length > 0 &&
-      groupOutputs.length === data.node?.outputs?.length;
+    const hasSelectOutput = hasOutputs && !hasGroupOutputs;
     const hasOnlyOneOutput = data.node?.outputs?.length === 1;
 
-    const isMinimal =
-      (hasSelectOutput || hasOnlyOneOutput) && inputsWithHandle.length <= 1;
+    const isMinimal = hasSelectOutput || hasOnlyOneOutput;
 
     const [toolMode, setToolMode] = useState(
       () =>
@@ -269,6 +258,22 @@ const NodeToolbarComponent = memo(
       });
     }, [data.id, data.node?.documentation]);
 
+    const handleDownloadNode = useCallback(async () => {
+      try {
+        await downloadNode(flowComponent!);
+        setSuccessData({
+          title: `${flowComponent?.name || "Node"} downloaded successfully`,
+        });
+      } catch (error) {
+        console.error("Error downloading node:", error);
+        const nodeName = flowComponent?.name || "Node";
+        setErrorData({
+          title: `Failed to download ${nodeName}`,
+          list: [error instanceof Error ? error.message : "Unknown error"],
+        });
+      }
+    }, [flowComponent]);
+
     useShortcuts({
       showOverrideModal,
       showModalAdvanced,
@@ -294,6 +299,15 @@ const NodeToolbarComponent = memo(
         onCloseAdvancedModal!(false);
       }
     }, [showModalAdvanced]);
+
+    // Open dropdown when right-clicked
+    useEffect(() => {
+      if (openDropdownOnRightClick) {
+        setDropdownOpen(true);
+      } else {
+        setDropdownOpen(false);
+      }
+    }, [openDropdownOnRightClick]);
 
     const setLastCopiedSelection = useFlowStore(
       (state) => state.setLastCopiedSelection,
@@ -322,6 +336,13 @@ const NodeToolbarComponent = memo(
         let nodes;
         setSelectedValue(event);
 
+        // Clear right-clicked state when user selects an option
+        if (openDropdownOnRightClick) {
+          const setRightClickedNodeId =
+            useFlowStore.getState().setRightClickedNodeId;
+          setRightClickedNodeId(null);
+        }
+
         switch (event) {
           case "save":
             saveComponent();
@@ -344,7 +365,7 @@ const NodeToolbarComponent = memo(
             shareComponent();
             break;
           case "Download":
-            downloadNode(flowComponent!);
+            handleDownloadNode();
             break;
           case "SaveAll":
             addFlow({
@@ -436,6 +457,14 @@ const NodeToolbarComponent = memo(
 
     const handleOpenChange = (open: boolean) => {
       setOpenShowMoreOptions && setOpenShowMoreOptions(open);
+      setDropdownOpen(open);
+
+      // Clear right-clicked state when dropdown closes without selection
+      if (!open && openDropdownOnRightClick) {
+        const setRightClickedNodeId =
+          useFlowStore.getState().setRightClickedNodeId;
+        setRightClickedNodeId(null);
+      }
     };
 
     const isCustomComponent = useMemo(() => {
@@ -564,6 +593,7 @@ const NodeToolbarComponent = memo(
               onValueChange={handleSelectChange}
               value={selectedValue!}
               onOpenChange={handleOpenChange}
+              open={dropdownOpen}
             >
               <SelectTrigger className="w-62">
                 <ShadTooltip content="Show More" side="top">

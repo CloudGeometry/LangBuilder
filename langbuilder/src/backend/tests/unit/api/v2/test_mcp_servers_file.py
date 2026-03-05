@@ -7,11 +7,11 @@ import pytest
 from fastapi import UploadFile
 
 # Module under test
-from langbuilder.api.v2.files import upload_user_file
-from langbuilder.api.v2.mcp import get_mcp_file
+from langflow.api.v2.files import upload_user_file
+from langflow.api.v2.mcp import get_mcp_file
 
 if TYPE_CHECKING:
-    from langbuilder.services.database.models.file.model import File as UserFile
+    from langflow.services.database.models.file.model import File as UserFile
 
 
 class FakeStorageService:  # Minimal stub for storage interactions
@@ -19,8 +19,12 @@ class FakeStorageService:  # Minimal stub for storage interactions
         # key -> bytes
         self._store: dict[str, bytes] = {}
 
-    async def save_file(self, flow_id: str, file_name: str, data: bytes):
-        self._store[f"{flow_id}/{file_name}"] = data
+    async def save_file(self, flow_id: str, file_name: str, data: bytes, *, append: bool = False):
+        key = f"{flow_id}/{file_name}"
+        if append and key in self._store:
+            self._store[key] += data
+        else:
+            self._store[key] = data
 
     async def get_file_size(self, flow_id: str, file_name: str):
         return len(self._store.get(f"{flow_id}/{file_name}", b""))

@@ -1,4 +1,5 @@
-import { BASE_URL_API, BASE_URL_API_V2 } from "../../../constants/constants";
+import { getBaseUrl } from "@/customization/utils/urls";
+import { BASE_URL_API_V2 } from "../../../constants/constants";
 
 export const URLs = {
   TRANSACTIONS: `monitor/transactions`,
@@ -30,6 +31,9 @@ export const URLs = {
   MCP: `mcp/project`,
   MCP_SERVERS: `mcp/servers`,
   KNOWLEDGE_BASES: `knowledge_bases`,
+  RUN: `run`,
+  RUN_SESSION: `run/session`,
+  REGISTRATION: `registration`,
 } as const;
 
 // IMPORTANT: FOLDERS endpoint now points to 'projects' for backward compatibility
@@ -43,7 +47,7 @@ export function getURL(
   for (const paramKey of Object.keys(params)) {
     url += `/${params[paramKey]}`;
   }
-  return `${v2 ? BASE_URL_API_V2 : BASE_URL_API}${url}`;
+  return `${v2 ? BASE_URL_API_V2 : getBaseUrl()}${url}`;
 }
 
 export type URLsType = typeof URLs;

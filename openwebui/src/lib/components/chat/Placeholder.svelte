@@ -23,7 +23,6 @@
 	import { WEBUI_API_BASE_URL, WEBUI_BASE_URL } from '$lib/constants';
 
 	import Suggestions from './Suggestions.svelte';
-	import FlowShortcuts from './FlowShortcuts.svelte';
 	import Tooltip from '$lib/components/common/Tooltip.svelte';
 	import EyeSlash from '$lib/components/icons/EyeSlash.svelte';
 	import MessageInput from './MessageInput.svelte';
@@ -55,10 +54,13 @@
 	export let codeInterpreterEnabled = false;
 	export let webSearchEnabled = false;
 
+	export let onUpload: Function = (e) => {};
 	export let onSelect = (e) => {};
 	export let onChange = (e) => {};
 
 	export let toolServers = [];
+
+	export let dragged = false;
 
 	let models = [];
 	let selectedModelIdx = 0;
@@ -212,14 +214,13 @@
 					bind:webSearchEnabled
 					bind:atSelectedModel
 					bind:showCommands
+					bind:dragged
 					{toolServers}
 					{stopResponse}
 					{createMessagePair}
 					placeholder={$i18n.t('How can I help you today?')}
 					{onChange}
-					on:upload={(e) => {
-						dispatch('upload', e.detail);
-					}}
+					{onUpload}
 					on:submit={(e) => {
 						dispatch('submit', e.detail);
 					}}
@@ -238,14 +239,6 @@
 	{:else}
 		<div class="mx-auto max-w-2xl font-primary mt-2" in:fade={{ duration: 200, delay: 200 }}>
 			<div class="mx-5">
-				<FlowShortcuts
-					{onSelect}
-					{selectedModels}
-					onModelChange={(modelIds) => {
-						selectedModels = modelIds;
-					}}
-				/>
-
 				<Suggestions
 					suggestionPrompts={atSelectedModel?.info?.meta?.suggestion_prompts ??
 						models[selectedModelIdx]?.info?.meta?.suggestion_prompts ??

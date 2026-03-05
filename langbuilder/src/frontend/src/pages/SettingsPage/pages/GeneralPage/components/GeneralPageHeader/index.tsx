@@ -5,7 +5,10 @@ const GeneralPageHeaderComponent = () => {
     <>
       <div className="flex w-full items-center justify-between gap-4 space-y-0.5">
         <div className="flex w-full flex-col">
-          <h2 className="flex items-center text-lg font-semibold tracking-tight">
+          <h2
+            className="flex items-center text-lg font-semibold tracking-tight"
+            data-testid="settings_menu_header"
+          >
             General
             <ForwardedIconComponent
               name="SlidersHorizontal"
@@ -13,7 +16,7 @@ const GeneralPageHeaderComponent = () => {
             />
           </h2>
           <p className="text-sm text-muted-foreground">
-            Manage settings related to LangBuilder and your account.
+            Manage settings related to Langflow and your account.
           </p>
         </div>
       </div>

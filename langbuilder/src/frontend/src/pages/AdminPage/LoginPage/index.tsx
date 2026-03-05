@@ -1,5 +1,6 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useContext, useState } from "react";
-import LangBuilderLogo from "@/assets/LangBuilderLogo.svg?react";
+import LangflowLogo from "@/assets/LangflowLogo.svg?react";
 import { useLoginUser } from "@/controllers/API/queries/auth";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
@@ -17,7 +18,7 @@ export default function LoginAdminPage() {
   const [inputState, setInputState] =
     useState<loginInputStateType>(CONTROL_LOGIN_STATE);
   const { login } = useContext(AuthContext);
-
+  const queryClient = useQueryClient();
   const { password, username } = inputState;
   const setErrorData = useAlertStore((state) => state.setErrorData);
   function handleInput({
@@ -37,6 +38,7 @@ export default function LoginAdminPage() {
     mutate(user, {
       onSuccess: (res) => {
         login(res.access_token, "login", res.refresh_token);
+        queryClient.clear();
       },
       onError: (error) => {
         setErrorData({
@@ -50,7 +52,7 @@ export default function LoginAdminPage() {
   return (
     <div className="flex h-full w-full flex-col items-center justify-center bg-muted">
       <div className="flex w-72 flex-col items-center justify-center gap-2">
-        <LangBuilderLogo title="LangBuilder logo" className="h-10 w-10 scale-[1.5]" />
+        <LangflowLogo title="Langflow logo" className="h-10 w-10 scale-[1.5]" />
         <span className="mb-6 text-2xl font-semibold text-primary">Admin</span>
         <Input
           onChange={({ target: { value } }) => {

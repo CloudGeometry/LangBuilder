@@ -1,6 +1,6 @@
-import { expect, test } from "@playwright/test";
 import * as dotenv from "dotenv";
 import path from "path";
+import { expect, test } from "../../fixtures";
 import { awaitBootstrapTest } from "../../utils/await-bootstrap-test";
 import { initialGPTsetup } from "../../utils/initialGPTsetup";
 import { withEventDeliveryModes } from "../../utils/withEventDeliveryModes";
@@ -28,12 +28,10 @@ withEventDeliveryModes(
 
     await page.getByTestId("side_nav_options_all-templates").click();
     await page.getByRole("heading", { name: "News Aggregator" }).click();
-    await page.getByTestId("canvas_controls_dropdown").click();
 
-    await page.waitForSelector('[data-testid="fit_view"]', {
+    await page.waitForSelector('[data-testid="canvas_controls_dropdown"]', {
       timeout: 100000,
     });
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await initialGPTsetup(page, {
       skipAdjustScreenView: true,
@@ -57,7 +55,7 @@ withEventDeliveryModes(
       timeout: 3000,
     });
 
-    await page.getByTestId("input-chat-playground").fill("what is langbuilder?");
+    await page.getByTestId("input-chat-playground").fill("what is langflow?");
 
     await page.getByTestId("button-send").click();
 
@@ -74,7 +72,7 @@ withEventDeliveryModes(
 
     expect(concatAllText.length).toBeGreaterThan(100);
 
-    expect(concatAllText).toContain("LangBuilder");
+    expect(concatAllText).toContain("Langflow");
     expect(concatAllText).toContain("open-source");
     expect(concatAllText).toContain("framework");
   },

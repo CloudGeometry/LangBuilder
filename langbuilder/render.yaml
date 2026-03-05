@@ -1,24 +1,24 @@
 services:
   # A Docker web service
   - type: web
-    name: langbuilder
+    name: langflow
     runtime: docker
     dockerfilePath: ./docker/render.Dockerfile
-    repo: https://github.com/CloudGeometry/langbuilder
+    repo: https://github.com/langflow-ai/langflow
     branch: main
     plan: standard
     healthCheckPath: /health_check
     autoDeploy: false
     envVars:
-      - key: LANGBUILDER_DATABASE_URL
-        value: sqlite:////app/data/.cache/langbuilder/langbuilder.db
-      - key: LANGBUILDER_HOST
+      - key: LANGFLOW_DATABASE_URL
+        value: sqlite:////app/data/.cache/langflow/langflow.db
+      - key: LANGFLOW_HOST
         value: 0.0.0.0
-      - key: LANGBUILDER_PORT
+      - key: LANGFLOW_PORT
         # default render port https://docs.render.com/web-services#port-binding
         value: 10000
-      - key: LANGBUILDER_LOG_LEVEL
+      - key: LANGFLOW_LOG_LEVEL
         value: INFO
     disk:
-      name: langbuilder-data
+      name: langflow-data
       mountPath: /app/data

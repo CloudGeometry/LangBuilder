@@ -1,4 +1,5 @@
 <script>
+	import { onDestroy } from 'svelte';
 	import { marked } from 'marked';
 	import { replaceTokens, processResponseContent } from '$lib/utils';
 	import { user } from '$lib/stores';
@@ -19,6 +20,7 @@
 	export let save = false;
 	export let preview = false;
 
+	export let paragraphTag = 'p';
 	export let editCodeBlock = true;
 	export let topPadding = false;
 
@@ -33,6 +35,7 @@
 	export let onTaskClick = () => {};
 
 	let tokens = [];
+	let pendingUpdate = null;
 
 	const options = {
 		throwOnError: false,
@@ -45,16 +48,34 @@
 	marked.use(footnoteExtension(options));
 	marked.use(disableSingleTilde);
 	marked.use({
-		extensions: [mentionExtension({ triggerChar: '@' }), mentionExtension({ triggerChar: '#' })]
+		extensions: [
+			mentionExtension({ triggerChar: '@' }),
+			mentionExtension({ triggerChar: '#' }),
+			mentionExtension({ triggerChar: '$' })
+		]
 	});
 
-	$: (async () => {
-		if (content) {
-			tokens = marked.lexer(
-				replaceTokens(processResponseContent(content), model?.name, $user?.name)
-			);
+	const parseTokens = () => {
+		tokens = marked.lexer(replaceTokens(processResponseContent(content), model?.name, $user?.name));
+	};
+
+	// Throttle parsing to once per animation frame while streaming
+	$: if (content) {
+		if (done) {
+			cancelAnimationFrame(pendingUpdate);
+			pendingUpdate = null;
+			parseTokens();
+		} else if (!pendingUpdate) {
+			pendingUpdate = requestAnimationFrame(() => {
+				pendingUpdate = null;
+				parseTokens();
+			});
 		}
-	})();
+	}
+
+	onDestroy(() => {
+		cancelAnimationFrame(pendingUpdate);
+	});
 </script>
 
 {#key id}
@@ -64,6 +85,7 @@
 		{done}
 		{save}
 		{preview}
+		{paragraphTag}
 		{editCodeBlock}
 		{sourceIds}
 		{topPadding}

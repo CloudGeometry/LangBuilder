@@ -31,7 +31,7 @@
 		const _chat = chat.chat;
 		console.log('share', _chat);
 
-		toast.success($i18n.t('Redirecting you to ActionBridge Community'));
+		toast.success($i18n.t('Redirecting you to Open WebUI Community'));
 		const url = 'https://openwebui.com';
 		// const url = 'http://localhost:5173';
 
@@ -87,6 +87,7 @@
 			<div class=" text-lg font-medium self-center">{$i18n.t('Share Chat')}</div>
 			<button
 				class="self-center"
+				aria-label={$i18n.t('Close')}
 				on:click={() => {
 					show = false;
 				}}
@@ -135,7 +136,7 @@
 										show = false;
 									}}
 								>
-									{$i18n.t('Share to ActionBridge Community')}
+									{$i18n.t('Share to Open WebUI Community')}
 								</button>
 							{/if}
 

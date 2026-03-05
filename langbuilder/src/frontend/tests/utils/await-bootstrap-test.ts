@@ -1,5 +1,5 @@
-import type { Page } from "playwright/test";
-import { addFlowToTestOnEmptyLangBuilder } from "./add-flow-to-test-on-empty-langbuilder";
+import type { Page } from "@playwright/test";
+import { addFlowToTestOnEmptyLangflow } from "./add-flow-to-test-on-empty-langflow";
 
 export const awaitBootstrapTest = async (
   page: Page,
@@ -20,7 +20,7 @@ export const awaitBootstrapTest = async (
     .getByTestId("new_project_btn_empty_page")
     .count();
   if (countEmptyButton > 0) {
-    await addFlowToTestOnEmptyLangBuilder(page);
+    await addFlowToTestOnEmptyLangflow(page);
   }
 
   await page.waitForSelector('[id="new-project-btn"]', {
@@ -38,12 +38,30 @@ export const awaitBootstrapTest = async (
       modalCount = 0;
     }
 
-    while (modalCount === 0) {
-      await page.getByTestId("new-project-btn").click();
-      await page.waitForSelector('[data-testid="modal-title"]', {
-        timeout: 3000,
-      });
-      modalCount = await page.getByTestId("modal-title")?.count();
+    let attempts = 0;
+    const maxAttempts = 5;
+
+    while (modalCount === 0 && attempts < maxAttempts) {
+      attempts++;
+      try {
+        await page.getByTestId("new-project-btn").click();
+        await page.waitForSelector('[data-testid="modal-title"]', {
+          timeout: 5000,
+        });
+        modalCount = await page.getByTestId("modal-title")?.count();
+      } catch (error) {
+        if (attempts >= maxAttempts) {
+          throw new Error(
+            `Failed to open modal after ${maxAttempts} attempts: ${error}`,
+          );
+        }
+        // Wait a bit before retrying
+        await page.waitForTimeout(1000);
+      }
+    }
+
+    if (modalCount === 0) {
+      throw new Error(`Modal did not appear after ${maxAttempts} attempts`);
     }
   }
 };

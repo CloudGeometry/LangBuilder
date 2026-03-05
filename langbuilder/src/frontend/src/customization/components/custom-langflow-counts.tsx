@@ -1,7 +1,7 @@
-import { LangBuilderCounts } from "@/components/core/appHeaderComponent/components/langbuilder-counts";
+import { LangflowCounts } from "@/components/core/appHeaderComponent/components/langflow-counts";
 
-export function CustomLangBuilderCounts() {
-  return <LangBuilderCounts />;
+export function CustomLangflowCounts() {
+  return <LangflowCounts />;
 }
 
-export default CustomLangBuilderCounts;
+export default CustomLangflowCounts;

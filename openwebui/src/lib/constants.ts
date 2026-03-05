@@ -1,27 +1,10 @@
-import { browser } from '$app/environment';
+import { browser, dev } from '$app/environment';
 // import { version } from '../../package.json';
 
-export const APP_NAME = 'ActionBridge';
+export const APP_NAME = 'Open WebUI';
 
-// Leer ENV desde import.meta.env (expuesto por Vite)
-const ENV = import.meta.env.ENV;
-const DEV_BACKEND_DOMAIN = 'dev-langbuilder-app.cloudgeometry.com';
-const PROD_BACKEND_DOMAIN = 'langbuilder-app.cloudgeometry.com';
-
-export const WEBUI_HOSTNAME = browser
-	? ENV === 'dev'
-		? DEV_BACKEND_DOMAIN
-		: ENV === 'prod'
-		? PROD_BACKEND_DOMAIN
-		: location.host
-	: '';
-
-export const WEBUI_BASE_URL = browser
-	? ENV === 'dev' || ENV === 'prod'
-		? `https://${WEBUI_HOSTNAME}`
-		: `${location.protocol}//${location.host}`
-	: '';
-
+export const WEBUI_HOSTNAME = browser ? (dev ? `${location.hostname}:8080` : ``) : '';
+export const WEBUI_BASE_URL = browser ? (dev ? `http://${WEBUI_HOSTNAME}` : ``) : ``;
 export const WEBUI_API_BASE_URL = `${WEBUI_BASE_URL}/api/v1`;
 
 export const OLLAMA_API_BASE_URL = `${WEBUI_BASE_URL}/ollama`;
@@ -29,10 +12,6 @@ export const OPENAI_API_BASE_URL = `${WEBUI_BASE_URL}/openai`;
 export const AUDIO_API_BASE_URL = `${WEBUI_BASE_URL}/api/v1/audio`;
 export const IMAGES_API_BASE_URL = `${WEBUI_BASE_URL}/api/v1/images`;
 export const RETRIEVAL_API_BASE_URL = `${WEBUI_BASE_URL}/api/v1/retrieval`;
-
-// These are defined in vite.config.ts via defineConfig.define
-declare const APP_VERSION: string;
-declare const APP_BUILD_HASH: string;
 
 export const WEBUI_VERSION = APP_VERSION;
 export const WEBUI_BUILD_HASH = APP_BUILD_HASH;
@@ -115,6 +94,19 @@ export const SUPPORTED_FILE_EXTENSIONS = [
 	'ppt',
 	'msg'
 ];
+
+export const DEFAULT_CAPABILITIES = {
+	file_context: true,
+	vision: true,
+	file_upload: true,
+	web_search: true,
+	image_generation: true,
+	code_interpreter: true,
+	citations: true,
+	status_updates: true,
+	usage: undefined,
+	builtin_tools: true
+};
 
 export const PASTED_TEXT_CHARACTER_LIMIT = 1000;
 

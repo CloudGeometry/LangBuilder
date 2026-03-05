@@ -1,5 +1,5 @@
 import { Background, Panel } from "@xyflow/react";
-import { memo } from "react";
+import { memo, useCallback } from "react";
 import { useShallow } from "zustand/react/shallow";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import CanvasControlButton from "@/components/core/canvasControlsComponent/CanvasControlButton";
@@ -8,6 +8,7 @@ import LogCanvasControls from "@/components/core/logCanvasControlsComponent";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { ENABLE_NEW_SIDEBAR } from "@/customization/feature-flags";
+import useSaveFlow from "@/hooks/flows/use-save-flow";
 import useFlowStore from "@/stores/flowStore";
 import { cn } from "@/utils/utils";
 import { useSearchContext } from "../flowSidebarComponent";
@@ -31,9 +32,21 @@ export const MemoizedCanvasControls = memo(
     shadowBoxWidth,
     shadowBoxHeight,
   }: MemoizedCanvasControlsProps) => {
-    const isLocked = useFlowStore(
-      useShallow((state) => state.currentFlow?.locked),
+    const { currentFlow, setCurrentFlow } = useFlowStore(
+      useShallow((state) => ({
+        currentFlow: state.currentFlow,
+        setCurrentFlow: state.setCurrentFlow,
+      })),
     );
+    const isLocked = currentFlow?.locked ?? false;
+    const saveFlow = useSaveFlow();
+
+    const toggleLock = useCallback(() => {
+      if (!currentFlow) return;
+      const updatedFlow = { ...currentFlow, locked: !isLocked };
+      setCurrentFlow(updatedFlow);
+      saveFlow(updatedFlow);
+    }, [currentFlow, isLocked, setCurrentFlow, saveFlow]);
 
     return (
       <CanvasControls>
@@ -42,8 +55,9 @@ export const MemoizedCanvasControls = memo(
           unselectable="on"
           size="icon"
           data-testid="lock-status"
-          className="flex items-center justify-center px-2 rounded-none gap-1 cursor-default"
-          title={`Lock status: ${isLocked ? "Locked" : "Unlocked"}`}
+          className="flex items-center justify-center px-2 rounded-none gap-1 cursor-pointer hover:text-primary"
+          title={isLocked ? "Unlock flow" : "Lock flow"}
+          onClick={toggleLock}
         >
           <ForwardedIconComponent
             name={isLocked ? "Lock" : "Unlock"}
@@ -78,6 +92,7 @@ export const MemoizedSidebarTrigger = memo(() => {
             data-testid={`sidebar-trigger-${item.id}`}
             iconName={item.icon}
             iconClasses={item.id === "mcp" ? "h-8 w-8" : ""}
+            key={item.id}
             tooltipText={item.tooltip}
             onClick={() => {
               setActiveSection(item.id);

@@ -1,5 +1,5 @@
 import pytest
-from langbuilder.inputs.inputs import (
+from lfx.inputs.inputs import (
     BoolInput,
     CodeInput,
     DataInput,
@@ -21,9 +21,9 @@ from langbuilder.inputs.inputs import (
     StrInput,
     TabInput,
     TableInput,
+    instantiate_input,
 )
-from langbuilder.inputs.utils import instantiate_input
-from langbuilder.schema.message import Message
+from lfx.schema.message import Message
 from pydantic import ValidationError
 
 

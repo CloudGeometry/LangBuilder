@@ -1,1 +1,1 @@
-"""Tests package for langbuilder."""
+"""Tests package for langflow."""
