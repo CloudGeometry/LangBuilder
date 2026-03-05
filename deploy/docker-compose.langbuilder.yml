@@ -9,7 +9,7 @@
 # Database: SQLite by default (stored in langbuilder-app-data volume).
 # To use Postgres instead:
 #   1. Uncomment the langbuilder-postgres service below
-#   2. Set LANGFLOW_DATABASE_URL in .env:
+#   2. Set LANGBUILDER_DATABASE_URL in .env:
 #      LANGBUILDER_DATABASE_URL=postgresql://langbuilder:changeme@langbuilder-postgres:5432/langbuilder
 #   3. Uncomment the depends_on block for langbuilder-postgres
 # =============================================================================
@@ -30,12 +30,11 @@ services:
       - LANGFLOW_DATABASE_URL=${LANGBUILDER_DATABASE_URL:-}
       - LANGFLOW_CONFIG_DIR=${LANGBUILDER_CONFIG_DIR:-/app/langbuilder}
       - LANGFLOW_AUTO_LOGIN=${LANGBUILDER_AUTO_LOGIN:-false}
-      - LANGFLOW_SECRET_KEY=${LANGBUILDER_SECRET_KEY:-}
+      - LANGFLOW_SUPERUSER=${LANGBUILDER_SUPERUSER:-}
+      - LANGFLOW_SUPERUSER_PASSWORD=${LANGBUILDER_SUPERUSER_PASSWORD:-}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - LANGWATCH_API_KEY=${LANGWATCH_API_KEY:-}
       - LANGWATCH_ENDPOINT=${LANGWATCH_ENDPOINT:-http://langwatch:5560}
-      - LANGFLOW_SUPERUSER=${LANGBUILDER_SUPERUSER:-}
-      - LANGFLOW_SUPERUSER_PASSWORD=${LANGBUILDER_SUPERUSER_PASSWORD:-}
     deploy:
       resources:
         limits:
