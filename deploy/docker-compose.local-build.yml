@@ -1,0 +1,47 @@
+# =============================================================================
+# Local build override — builds images from source instead of pulling GHCR
+# =============================================================================
+# Usage (from repo root):
+#
+#   # One-time setup
+#   docker network create langbuilder-network
+#   cp deploy/.env.example deploy/.env   # fill in LANGBUILDER_SUPERUSER_PASSWORD etc.
+#
+#   # LangBuilder (builds main Dockerfile, runs frontend+backend on :7860)
+#   docker compose \
+#     -f deploy/docker-compose.langbuilder.yml \
+#     -f deploy/docker-compose.local-build.yml \
+#     --env-file deploy/.env up -d --build
+#
+#   # OpenWebUI (builds from openwebui/Dockerfile, runs on :8080)
+#   docker compose \
+#     -f deploy/docker-compose.openwebui.yml \
+#     -f deploy/docker-compose.local-build.yml \
+#     --env-file deploy/.env up -d --build
+#
+# LangBuilder UI:  http://localhost:7860
+# OpenWebUI:       http://localhost:8080
+#   → Connect OpenWebUI to LangBuilder: http://host.docker.internal:7860/api/v1
+# =============================================================================
+
+services:
+  # Build LangBuilder from source.
+  # Runs `langflow run` (frontend + backend together on :7860).
+  # The separate nginx frontend container is not needed for local testing.
+  langbuilder-backend:
+    build:
+      context: ../langbuilder
+      dockerfile: docker/build_and_push.Dockerfile
+    image: langbuilder-local:latest
+    command: ["langflow", "run", "--host", "0.0.0.0", "--port", "7860"]
+
+  # Skip the nginx frontend — langflow run already serves the UI at :7860
+  langbuilder-frontend:
+    profiles: ["skip"]
+
+  # Build OpenWebUI from source
+  openwebui:
+    build:
+      context: ../openwebui
+      dockerfile: Dockerfile
+    image: openwebui-local:latest
