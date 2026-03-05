@@ -58,6 +58,7 @@
 	let insertFollowUpPrompt = false;
 
 	let regenerateMenu = true;
+	let enableMessageQueue = true;
 
 	let landingPageMode = '';
 	let chatBubble = true;
@@ -69,6 +70,7 @@
 	let chatFadeStreamingText = true;
 	let collapseCodeBlocks = false;
 	let expandDetails = false;
+	let renderMarkdownInPreviews = true;
 	let showChatTitleInTab = true;
 
 	let showFloatingActionButtons = true;
@@ -101,11 +103,6 @@
 	let showManageImageCompressionModal = false;
 
 	let textScale = null;
-
-	// Shortcuts
-	let flowShortcutsEnabled = true;
-	let flowShortcutsLayout = '2x2';
-	let importFileInput = null;
 
 	const toggleLandingPageMode = async () => {
 		landingPageMode = landingPageMode === '' ? 'chat' : '';
@@ -199,117 +196,6 @@
 		saveSettings({ textScale });
 	};
 
-	// Import/Export handlers for Flow Shortcuts
-	const handleImportFileSelected = async (event) => {
-		const file = event.target.files?.[0];
-		if (!file) return;
-
-		try {
-			const text = await file.text();
-			const importedData = JSON.parse(text);
-
-			if (!importedData.shortcuts || !Array.isArray(importedData.shortcuts)) {
-				toast.error($i18n.t('Invalid file format. Expected JSON with "shortcuts" array.'));
-				return;
-			}
-
-			const isValid = importedData.shortcuts.every(
-				(shortcut) => shortcut.id && shortcut.functionId && shortcut.title
-			);
-
-			if (!isValid) {
-				toast.error($i18n.t('Invalid shortcut format. Each shortcut must have id, functionId, and title.'));
-				return;
-			}
-
-			const currentShortcuts = $settings.ui?.flowShortcuts?.shortcuts || [];
-			const existingIds = new Set(currentShortcuts.map((s) => s.id));
-			const newShortcuts = importedData.shortcuts.filter((s) => !existingIds.has(s.id));
-			const mergedShortcuts = [...currentShortcuts, ...newShortcuts];
-
-			await saveSettings({
-				ui: {
-					...$settings.ui,
-					flowShortcuts: {
-						...$settings.ui?.flowShortcuts,
-						shortcuts: mergedShortcuts
-					}
-				}
-			});
-
-			toast.success($i18n.t(`Imported ${newShortcuts.length} shortcuts`));
-
-			if (importFileInput) {
-				importFileInput.value = '';
-			}
-		} catch (error) {
-			console.error('Import error:', error);
-			toast.error($i18n.t('Failed to import shortcuts. Please check the file format.'));
-		}
-	};
-
-	const handleExportShortcuts = () => {
-		try {
-			const shortcuts = $settings.ui?.flowShortcuts?.shortcuts || [];
-
-			if (shortcuts.length === 0) {
-				toast.error($i18n.t('No shortcuts to export'));
-				return;
-			}
-
-			const exportData = {
-				version: '1.0',
-				exportedAt: new Date().toISOString(),
-				shortcuts: shortcuts
-			};
-
-			const blob = new Blob([JSON.stringify(exportData, null, 2)], {
-				type: 'application/json'
-			});
-
-			const url = URL.createObjectURL(blob);
-			const a = document.createElement('a');
-			a.href = url;
-			a.download = `openwebui-shortcuts-${new Date().toISOString().split('T')[0]}.json`;
-			document.body.appendChild(a);
-			a.click();
-			document.body.removeChild(a);
-			URL.revokeObjectURL(url);
-
-			toast.success($i18n.t(`Exported ${shortcuts.length} shortcuts`));
-		} catch (error) {
-			console.error('Export error:', error);
-			toast.error($i18n.t('Failed to export shortcuts'));
-		}
-	};
-
-	const handleResetToDefaults = async () => {
-		const confirmed = confirm(
-			$i18n.t(
-				'Are you sure you want to reset all shortcuts to defaults? This will delete all your custom shortcuts and cannot be undone.'
-			)
-		);
-
-		if (!confirmed) return;
-
-		try {
-			await saveSettings({
-				ui: {
-					...$settings.ui,
-					flowShortcuts: {
-						...$settings.ui?.flowShortcuts,
-						shortcuts: []
-					}
-				}
-			});
-
-			toast.success($i18n.t('Shortcuts reset to defaults'));
-		} catch (error) {
-			console.error('Reset error:', error);
-			toast.error($i18n.t('Failed to reset shortcuts'));
-		}
-	};
-
 	onMount(async () => {
 		titleAutoGenerate = $settings?.title?.auto ?? true;
 		autoTags = $settings?.autoTags ?? true;
@@ -340,12 +226,14 @@
 		insertFollowUpPrompt = $settings?.insertFollowUpPrompt ?? false;
 
 		regenerateMenu = $settings?.regenerateMenu ?? true;
+		enableMessageQueue = $settings?.enableMessageQueue ?? true;
 
 		largeTextAsFile = $settings?.largeTextAsFile ?? false;
 		copyFormatted = $settings?.copyFormatted ?? false;
 
 		collapseCodeBlocks = $settings?.collapseCodeBlocks ?? false;
 		expandDetails = $settings?.expandDetails ?? false;
+		renderMarkdownInPreviews = $settings?.renderMarkdownInPreviews ?? true;
 
 		landingPageMode = $settings?.landingPageMode ?? '';
 		chatBubble = $settings?.chatBubble ?? true;
@@ -385,9 +273,6 @@
 		webSearch = $settings?.webSearch ?? null;
 
 		textScale = $settings?.textScale ?? null;
-
-		flowShortcutsEnabled = $settings?.ui?.flowShortcuts?.enabled ?? true;
-		flowShortcutsLayout = $settings?.ui?.flowShortcuts?.layout ?? '2x2';
 	});
 </script>
 
@@ -483,7 +368,7 @@
 							type="button"
 							class="rounded-lg p-1 transition outline-gray-200 hover:bg-gray-100 dark:outline-gray-700 dark:hover:bg-gray-800"
 							on:click={() => {
-								textScale = Math.max(1, textScale);
+								textScale = Math.max(1, parseFloat((textScale - 0.1).toFixed(2)));
 								setTextScaleHandler(textScale);
 							}}
 							aria-labelledby="ui-scale-label"
@@ -516,7 +401,7 @@
 							type="button"
 							class="rounded-lg p-1 transition outline-gray-200 hover:bg-gray-100 dark:outline-gray-700 dark:hover:bg-gray-800"
 							on:click={() => {
-								textScale = Math.min(1.5, textScale);
+								textScale = Math.min(1.5, parseFloat((textScale + 0.1).toFixed(2)));
 								setTextScaleHandler(textScale);
 							}}
 							aria-labelledby="ui-scale-label"
@@ -705,6 +590,25 @@
 
 			<div>
 				<div class=" py-0.5 flex w-full justify-between">
+					<div id="enable-message-queue-label" class=" self-center text-xs">
+						{$i18n.t('Enable Message Queue')}
+					</div>
+
+					<div class="flex items-center gap-2 p-1">
+						<Switch
+							ariaLabelledbyId="enable-message-queue-label"
+							tooltip={true}
+							bind:state={enableMessageQueue}
+							on:change={() => {
+								saveSettings({ enableMessageQueue });
+							}}
+						/>
+					</div>
+				</div>
+			</div>
+
+			<div>
+				<div class=" py-0.5 flex w-full justify-between">
 					<div id="chat-direction-label" class=" self-center text-xs">
 						{$i18n.t('Chat direction')}
 					</div>
@@ -832,24 +736,26 @@
 				</div>
 			</div>
 
-			<div>
-				<div class=" py-0.5 flex w-full justify-between">
-					<div id="temp-chat-default-label" class=" self-center text-xs">
-						{$i18n.t('Temporary Chat by Default')}
-					</div>
+			{#if $user.role === 'admin' || $user?.permissions?.chat?.temporary}
+				<div>
+					<div class=" py-0.5 flex w-full justify-between">
+						<div id="temp-chat-default-label" class=" self-center text-xs">
+							{$i18n.t('Temporary Chat by Default')}
+						</div>
 
-					<div class="flex items-center gap-2 p-1">
-						<Switch
-							ariaLabelledbyId="temp-chat-default-label"
-							tooltip={true}
-							bind:state={temporaryChatByDefault}
-							on:change={() => {
-								saveSettings({ temporaryChatByDefault });
-							}}
-						/>
+						<div class="flex items-center gap-2 p-1">
+							<Switch
+								ariaLabelledbyId="temp-chat-default-label"
+								tooltip={true}
+								bind:state={temporaryChatByDefault}
+								on:change={() => {
+									saveSettings({ temporaryChatByDefault });
+								}}
+							/>
+						</div>
 					</div>
 				</div>
-			</div>
+			{/if}
 
 			<div>
 				<div class=" py-0.5 flex w-full justify-between">
@@ -1062,6 +968,25 @@
 
 			<div>
 				<div class=" py-0.5 flex w-full justify-between">
+					<div id="render-markdown-in-previews-label" class=" self-center text-xs">
+						{$i18n.t('Render Markdown in Previews')}
+					</div>
+
+					<div class="flex items-center gap-2 p-1">
+						<Switch
+							ariaLabelledbyId="render-markdown-in-previews-label"
+							tooltip={true}
+							bind:state={renderMarkdownInPreviews}
+							on:change={() => {
+								saveSettings({ renderMarkdownInPreviews });
+							}}
+						/>
+					</div>
+				</div>
+			</div>
+
+			<div>
+				<div class=" py-0.5 flex w-full justify-between">
 					<div id="keep-followup-prompts-label" class=" self-center text-xs">
 						{$i18n.t('Display Multi-model Responses in Tabs')}
 					</div>
@@ -1168,117 +1093,6 @@
 						>
 					</button>
 				</div>
-			</div>
-
-			<div class=" my-2 text-sm font-medium">{$i18n.t('Shortcuts')}</div>
-
-			<div>
-				<div class=" py-0.5 flex w-full justify-between">
-					<div id="flow-shortcuts-enabled-label" class=" self-center text-xs">
-						{$i18n.t('Show Quick Shortcuts')}
-					</div>
-
-					<div class="flex items-center gap-2 p-1">
-						<Switch
-							ariaLabelledbyId="flow-shortcuts-enabled-label"
-							tooltip={true}
-							bind:state={flowShortcutsEnabled}
-							on:change={() => {
-								saveSettings({
-									ui: {
-										...$settings.ui,
-										flowShortcuts: {
-											...$settings.ui?.flowShortcuts,
-											enabled: flowShortcutsEnabled
-										}
-									}
-								});
-							}}
-						/>
-					</div>
-				</div>
-
-				{#if flowShortcutsEnabled}
-					<div class=" py-0.5 flex w-full justify-between">
-						<div id="flow-shortcuts-layout-label" class=" self-center text-xs">
-							{$i18n.t('Grid Layout')}
-						</div>
-
-						<button
-							aria-labelledby="flow-shortcuts-layout-label"
-							class="p-1 px-3 text-xs flex rounded transition"
-							on:click={() => {
-								const layouts = ['2x2', '3x3', '4x2'];
-								const currentIndex = layouts.indexOf(flowShortcutsLayout);
-								const nextIndex = (currentIndex + 1) % layouts.length;
-								flowShortcutsLayout = layouts[nextIndex];
-								saveSettings({
-									ui: {
-										...$settings.ui,
-										flowShortcuts: {
-											...$settings.ui?.flowShortcuts,
-											layout: flowShortcutsLayout
-										}
-									}
-								});
-							}}
-							type="button"
-						>
-							<span class="ml-2 self-center">{flowShortcutsLayout}</span>
-						</button>
-					</div>
-
-					<!-- Import/Export Shortcuts -->
-					<div class="py-0.5 flex w-full justify-between">
-						<div class="self-center text-xs">
-							{$i18n.t('Import / Export')}
-						</div>
-
-						<div class="flex items-center gap-2">
-							<input
-								bind:this={importFileInput}
-								type="file"
-								accept=".json"
-								class="hidden"
-								on:change={handleImportFileSelected}
-							/>
-
-							<button
-								class="p-1 px-3 text-xs flex rounded transition border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800"
-								on:click={() => importFileInput?.click()}
-								type="button"
-								aria-label={$i18n.t('Import shortcuts from JSON file')}
-							>
-								<span class="self-center">{$i18n.t('Import')}</span>
-							</button>
-
-							<button
-								class="p-1 px-3 text-xs flex rounded transition border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800"
-								on:click={handleExportShortcuts}
-								type="button"
-								aria-label={$i18n.t('Export shortcuts to JSON file')}
-							>
-								<span class="self-center">{$i18n.t('Export')}</span>
-							</button>
-						</div>
-					</div>
-
-					<!-- Reset to Defaults -->
-					<div class="py-0.5 flex w-full justify-between">
-						<div class="self-center text-xs">
-							{$i18n.t('Reset to Defaults')}
-						</div>
-
-						<button
-							class="p-1 px-3 text-xs flex rounded transition border border-red-500 dark:border-red-600 text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-950"
-							on:click={handleResetToDefaults}
-							type="button"
-							aria-label={$i18n.t('Reset all shortcuts to default values')}
-						>
-							<span class="self-center">{$i18n.t('Reset')}</span>
-						</button>
-					</div>
-				{/if}
 			</div>
 
 			<div class=" my-2 text-sm font-medium">{$i18n.t('Input')}</div>

@@ -87,6 +87,7 @@
 							<Tooltip content={$i18n.t(`Add Connection`)}>
 								<button
 									class="px-1"
+									aria-label={$i18n.t('Add Connection')}
 									on:click={() => {
 										showConnectionModal = true;
 									}}
@@ -135,7 +136,7 @@
 							{$i18n.t('Connect to your own OpenAI compatible API endpoints.')}
 							<br />
 							{$i18n.t(
-								'CORS must be properly configured by the provider to allow requests from ActionBridge.'
+								'CORS must be properly configured by the provider to allow requests from Open WebUI.'
 							)}
 						</div>
 					</div>

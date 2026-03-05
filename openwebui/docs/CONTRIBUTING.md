@@ -1,19 +1,19 @@
-# Contributing to ActionBridge
+# Contributing to Open WebUI
 
 🚀 **Welcome, Contributors!** 🚀
 
-Your interest in contributing to ActionBridge is greatly appreciated. This document is here to guide you through the process, ensuring your contributions enhance the project effectively. Let's make ActionBridge even better, together!
+Your interest in contributing to Open WebUI is greatly appreciated. This document is here to guide you through the process, ensuring your contributions enhance the project effectively. Let's make Open WebUI even better, together!
 
 ## 📌 Key Points
 
-### 🦙 Ollama vs. ActionBridge
+### 🦙 Ollama vs. Open WebUI
 
-It's crucial to distinguish between Ollama and ActionBridge:
+It's crucial to distinguish between Ollama and Open WebUI:
 
-- **ActionBridge** focuses on providing an intuitive and responsive web interface for chat interactions.
+- **Open WebUI** focuses on providing an intuitive and responsive web interface for chat interactions.
 - **Ollama** is the underlying technology that powers these interactions.
 
-If your issue or contribution pertains directly to the core Ollama technology, please direct it to the appropriate [Ollama project repository](https://ollama.com/). ActionBridge's repository is dedicated to the web interface aspect only.
+If your issue or contribution pertains directly to the core Ollama technology, please direct it to the appropriate [Ollama project repository](https://ollama.com/). Open WebUI's repository is dedicated to the web interface aspect only.
 
 ### 🚨 Reporting Issues
 
@@ -30,11 +30,11 @@ Noticed something off? Have an idea? Check our [Issues tab](https://github.com/o
 
 ### 🧭 Scope of Support
 
-We've noticed an uptick in issues not directly related to ActionBridge but rather to the environment it's run in, especially Docker setups. While we strive to support Docker deployment, understanding Docker fundamentals is crucial for a smooth experience.
+We've noticed an uptick in issues not directly related to Open WebUI but rather to the environment it's run in, especially Docker setups. While we strive to support Docker deployment, understanding Docker fundamentals is crucial for a smooth experience.
 
-- **Docker Deployment Support**: ActionBridge supports Docker deployment. Familiarity with Docker is assumed. For Docker basics, please refer to the [official Docker documentation](https://docs.docker.com/get-started/overview/).
+- **Docker Deployment Support**: Open WebUI supports Docker deployment. Familiarity with Docker is assumed. For Docker basics, please refer to the [official Docker documentation](https://docs.docker.com/get-started/overview/).
 
-- **Advanced Configurations**: Setting up reverse proxies for HTTPS and managing Docker deployments requires foundational knowledge. There are numerous online resources available to learn these skills. Ensuring you have this knowledge will greatly enhance your experience with ActionBridge and similar projects.
+- **Advanced Configurations**: Setting up reverse proxies for HTTPS and managing Docker deployments requires foundational knowledge. There are numerous online resources available to learn these skills. Ensuring you have this knowledge will greatly enhance your experience with Open WebUI and similar projects.
 
 - **Check the documentation and help improve it**: [Our documentation](https://docs.openwebui.com) has ever growing troubleshooting guides and detailed installation tutorials. Please verify if it is of help to your issue and help expand it by submitting issues and PRs on our [Docs Repository](https://github.com/open-webui/docs).
 
@@ -57,14 +57,14 @@ We welcome pull requests. Before submitting one, please:
 
 ### 📚 Documentation & Tutorials
 
-Help us make ActionBridge more accessible by improving the documentation, writing tutorials, or creating guides on setting up and optimizing the Web UI.
+Help us make Open WebUI more accessible by improving the documentation, writing tutorials, or creating guides on setting up and optimizing the Web UI.
 
 Help expand our documentation by submitting issues and PRs on our [Docs Repository](https://github.com/open-webui/docs).
 We welcome tutorials, guides and other documentation improvements!
 
 ### 🌐 Translations and Internationalization
 
-Help us make ActionBridge available to a wider audience. In this section, we'll guide you through the process of adding new translations to the project.
+Help us make Open WebUI available to a wider audience. In this section, we'll guide you through the process of adding new translations to the project.
 
 We use JSON files to store translations. You can find the existing translation files in the `src/lib/i18n/locales` directory. Each directory corresponds to a specific language, for example, `en-US` for English (US), `fr-FR` for French (France) and so on. You can refer to [ISO 639 Language Codes](http://www.lingoes.net/en/translator/langcode.htm) to find the appropriate code for a specific language.
 
@@ -83,6 +83,6 @@ Got questions or feedback? Join our [Discord community](https://discord.gg/5rJgQ
 
 ## 🙏 Thank You!
 
-Your contributions, big or small, make a significant impact on ActionBridge. We're excited to see what you bring to the project!
+Your contributions, big or small, make a significant impact on Open WebUI. We're excited to see what you bring to the project!
 
 Together, let's create an even more powerful tool for the community. 🌟

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { getContext, onMount } from 'svelte';
-	import { models, config, toolServers, tools } from '$lib/stores';
+	import { models, config, toolServers, tools, terminalServers } from '$lib/stores';
 
 	import { toast } from 'svelte-sonner';
 	import { deleteSharedChatById, getChatById, shareChatById } from '$lib/apis/chats';
@@ -27,6 +27,7 @@
 			<div class=" text-lg font-medium self-center">{$i18n.t('Available Tools')}</div>
 			<button
 				class="self-center"
+				aria-label={$i18n.t('Close')}
 				on:click={() => {
 					show = false;
 				}}
@@ -74,7 +75,7 @@
 
 			<div class="px-5 pb-5 w-full flex flex-col justify-center">
 				<div class=" text-xs text-gray-600 dark:text-gray-300 mb-2">
-					{$i18n.t('ActionBridge can use tools provided by any OpenAPI server.')} <br /><a
+					{$i18n.t('Open WebUI can use tools provided by any OpenAPI server.')} <br /><a
 						class="underline"
 						href="https://github.com/open-webui/openapi-servers"
 						target="_blank">{$i18n.t('Learn more about OpenAPI tool servers.')}</a

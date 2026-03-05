@@ -2,35 +2,69 @@ import asyncio
 from typing import Optional
 from contextlib import AsyncExitStack
 
+import anyio
+
 from mcp import ClientSession
 from mcp.client.auth import OAuthClientProvider, TokenStorage
 from mcp.client.streamable_http import streamablehttp_client
 from mcp.shared.auth import OAuthClientInformationFull, OAuthClientMetadata, OAuthToken
+import httpx
+from open_webui.env import AIOHTTP_CLIENT_SESSION_TOOL_SERVER_SSL
+
+
+def create_insecure_httpx_client(headers=None, timeout=None, auth=None):
+    """Create an httpx AsyncClient with SSL verification disabled.
+
+    Note: verify=False must be passed at construction time because httpx
+    configures the SSL context during __init__. Setting client.verify = False
+    after construction does not affect the underlying transport's SSL context.
+    """
+    kwargs = {
+        "follow_redirects": True,
+        "verify": False,
+    }
+    if timeout is not None:
+        kwargs["timeout"] = timeout
+    if headers is not None:
+        kwargs["headers"] = headers
+    if auth is not None:
+        kwargs["auth"] = auth
+    return httpx.AsyncClient(**kwargs)
 
 
 class MCPClient:
     def __init__(self):
         self.session: Optional[ClientSession] = None
-        self.exit_stack = AsyncExitStack()
+        self.exit_stack = None
 
     async def connect(self, url: str, headers: Optional[dict] = None):
-        try:
-            self._streams_context = streamablehttp_client(url, headers=headers)
+        async with AsyncExitStack() as exit_stack:
+            try:
+                if AIOHTTP_CLIENT_SESSION_TOOL_SERVER_SSL:
+                    self._streams_context = streamablehttp_client(url, headers=headers)
+                else:
+                    self._streams_context = streamablehttp_client(
+                        url,
+                        headers=headers,
+                        httpx_client_factory=create_insecure_httpx_client,
+                    )
 
-            transport = await self.exit_stack.enter_async_context(self._streams_context)
-            read_stream, write_stream, _ = transport
+                transport = await exit_stack.enter_async_context(self._streams_context)
+                read_stream, write_stream, _ = transport
 
-            self._session_context = ClientSession(
-                read_stream, write_stream
-            )  # pylint: disable=W0201
+                self._session_context = ClientSession(
+                    read_stream, write_stream
+                )  # pylint: disable=W0201
 
-            self.session = await self.exit_stack.enter_async_context(
-                self._session_context
-            )
-            await self.session.initialize()
-        except Exception as e:
-            await self.disconnect()
-            raise e
+                self.session = await exit_stack.enter_async_context(
+                    self._session_context
+                )
+                with anyio.fail_after(10):
+                    await self.session.initialize()
+                self.exit_stack = exit_stack.pop_all()
+            except Exception as e:
+                await asyncio.shield(self.disconnect())
+                raise e
 
     async def list_tool_specs(self) -> Optional[dict]:
         if not self.session:

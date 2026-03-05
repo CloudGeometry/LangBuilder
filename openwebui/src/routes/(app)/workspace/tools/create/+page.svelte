@@ -22,7 +22,7 @@
 			console.log('Version is lower than required');
 			toast.error(
 				$i18n.t(
-					'ActionBridge version (v{{OPEN_WEBUI_VERSION}}) is lower than required version (v{{REQUIRED_VERSION}})',
+					'Open WebUI version (v{{OPEN_WEBUI_VERSION}}) is lower than required version (v{{REQUIRED_VERSION}})',
 					{
 						OPEN_WEBUI_VERSION: WEBUI_VERSION,
 						REQUIRED_VERSION: manifest?.required_open_webui_version ?? '0.0.0'
@@ -37,7 +37,7 @@
 			name: data.name,
 			meta: data.meta,
 			content: data.content,
-			access_control: data.access_control
+			access_grants: data.access_grants
 		}).catch((error) => {
 			toast.error(`${error}`);
 			return null;
@@ -87,7 +87,7 @@
 			name={tool?.name ?? ''}
 			meta={tool?.meta ?? { description: '' }}
 			content={tool?.content ?? ''}
-			access_control={null}
+			accessGrants={tool?.access_grants !== undefined ? tool.access_grants : []}
 			{clone}
 			onSave={(value) => {
 				saveHandler(value);
