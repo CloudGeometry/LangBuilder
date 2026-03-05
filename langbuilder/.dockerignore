@@ -1,69 +1,12 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-*.egg-info/
-dist/
-build/
-.eggs/
-.venv/
-venv/
-ENV/
-env/
-
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-.mypy_cache/
-test-results/
-
-# IDEs
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.DS_Store
-
-# Git
-.git/
-.gitignore
-.gitattributes
-
-# Docker
-Dockerfile
-Dockerfile.*
-docker-compose*.yml
-
-# CI/CD
-.github/
-
-# Logs
-*.log
-
-# Node.js (frontend)
-node_modules/
-src/frontend/node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.npm
-
-# Frontend build artifacts
-src/frontend/build/
-src/frontend/dist/
-src/frontend/.vite/
-src/frontend/coverage/
-src/frontend/test-results/
-src/frontend/playwright-report/
-src/frontend/.dspy_cache/
-
-# Environment files
-.env.local
-.env.*.local
-
-# OS
-Thumbs.db
+src/frontend/node_modules
+src/frontend/build
+src/frontend/coverage
+src/frontend/test-results
+src/frontend/playwright-report
+src/frontend/.dspy_cache
+**/.DS_Store
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+**/.venv
+**/.env

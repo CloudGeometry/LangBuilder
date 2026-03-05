@@ -1,6 +1,6 @@
-# Running LangBuilder with Docker
+# Running LangFlow with Docker
 
-This guide will help you get LangBuilder up and running using Docker and Docker Compose.
+This guide will help you get LangFlow up and running using Docker and Docker Compose.
 
 ## Prerequisites
 
@@ -9,16 +9,16 @@ This guide will help you get LangBuilder up and running using Docker and Docker 
 
 ## Steps
 
-1. Clone the LangBuilder repository:
+1. Clone the LangFlow repository:
 
    ```sh
-   git clone https://github.com/CloudGeometry/langbuilder.git
+   git clone https://github.com/langflow-ai/langflow.git
    ```
 
 2. Navigate to the `docker_example` directory:
 
    ```sh
-   cd langbuilder/docker_example
+   cd langflow/docker_example
    ```
 
 3. Run the Docker Compose file:
@@ -27,24 +27,24 @@ This guide will help you get LangBuilder up and running using Docker and Docker 
    docker compose up
    ```
 
-LangBuilder will now be accessible at [http://localhost:7860/](http://localhost:7860/).
+LangFlow will now be accessible at [http://localhost:7860/](http://localhost:7860/).
 
 ## Docker Compose Configuration
 
-The Docker Compose configuration spins up two services: `langbuilder` and `postgres`.
+The Docker Compose configuration spins up two services: `langflow` and `postgres`.
 
-### LangBuilder Service
+### LangFlow Service
 
-The `langbuilder` service uses the `cloudgeometry/langbuilder:latest` Docker image and exposes port 7860. It depends on the `postgres` service.
+The `langflow` service uses the `langflowai/langflow:latest` Docker image and exposes port 7860. It depends on the `postgres` service.
 
 Environment variables:
 
-- `LANGBUILDER_DATABASE_URL`: The connection string for the PostgreSQL database.
-- `LANGBUILDER_CONFIG_DIR`: The directory where LangBuilder stores logs, file storage, monitor data, and secret keys.
+- `LANGFLOW_DATABASE_URL`: The connection string for the PostgreSQL database.
+- `LANGFLOW_CONFIG_DIR`: The directory where LangFlow stores logs, file storage, monitor data, and secret keys.
 
 Volumes:
 
-- `langbuilder-data`: This volume is mapped to `/app/langbuilder` in the container.
+- `langflow-data`: This volume is mapped to `/app/langflow` in the container.
 
 ### PostgreSQL Service
 
@@ -58,8 +58,8 @@ Environment variables:
 
 Volumes:
 
-- `langbuilder-postgres`: This volume is mapped to `/var/lib/postgresql/data` in the container.
+- `langflow-postgres`: This volume is mapped to `/var/lib/postgresql/data` in the container.
 
-## Switching to a Specific LangBuilder Version
+## Switching to a Specific LangFlow Version
 
-If you want to use a specific version of LangBuilder, you can modify the `image` field under the `langbuilder` service in the Docker Compose file. For example, to use version 1.0-alpha, change `cloudgeometry/langbuilder:latest` to `cloudgeometry/langbuilder:1.0-alpha`.
+If you want to use a specific version of LangFlow, you can modify the `image` field under the `langflow` service in the Docker Compose file. For example, to use version 1.0-alpha, change `langflowai/langflow:latest` to `langflowai/langflow:1.0-alpha`.

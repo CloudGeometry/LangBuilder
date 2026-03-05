@@ -1,5 +1,5 @@
 import pytest
-from langbuilder.components.datastax import (
+from lfx.components.datastax import (
     AssistantsCreateAssistant,
     AssistantsCreateThread,
     AssistantsGetAssistantName,

@@ -1,8 +1,8 @@
-import type { Page } from "playwright/test";
+import type { Page } from "@playwright/test";
 
-export const loginLangBuilder = async (page: Page) => {
+export const loginLangflow = async (page: Page) => {
   await page.goto("/");
-  await page.getByPlaceholder("Username").fill("langbuilder");
-  await page.getByPlaceholder("Password").fill("langbuilder");
+  await page.getByPlaceholder("Username").fill("langflow");
+  await page.getByPlaceholder("Password").fill("langflow");
   await page.getByRole("button", { name: "Sign In" }).click();
 };

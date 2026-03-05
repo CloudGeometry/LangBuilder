@@ -3,14 +3,14 @@ import uuid
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from langbuilder.services.settings.base import Settings
-from langbuilder.services.settings.service import SettingsService
-from langbuilder.services.tracing.base import BaseTracer
-from langbuilder.services.tracing.service import (
+from langflow.services.tracing.base import BaseTracer
+from langflow.services.tracing.service import (
     TracingService,
     component_context_var,
     trace_context_var,
 )
+from lfx.services.settings.base import Settings
+from lfx.services.settings.service import SettingsService
 
 
 class MockTracer(BaseTracer):
@@ -110,8 +110,10 @@ def tracing_service(mock_settings_service):
 @pytest.fixture
 def mock_component():
     component = MagicMock()
-    component._vertex = MagicMock()
-    component._vertex.id = "test_vertex_id"
+    mock_vertex = MagicMock()
+    mock_vertex.id = "test_vertex_id"
+    component._vertex = mock_vertex
+    component.get_vertex = MagicMock(return_value=mock_vertex)
     component.trace_type = "test_trace_type"
     return component
 
@@ -120,27 +122,27 @@ def mock_component():
 def mock_tracers():
     with (
         patch(
-            "langbuilder.services.tracing.service._get_langsmith_tracer",
+            "langflow.services.tracing.service._get_langsmith_tracer",
             return_value=MockTracer,
         ),
         patch(
-            "langbuilder.services.tracing.service._get_langwatch_tracer",
+            "langflow.services.tracing.service._get_langwatch_tracer",
             return_value=MockTracer,
         ),
         patch(
-            "langbuilder.services.tracing.service._get_langfuse_tracer",
+            "langflow.services.tracing.service._get_langfuse_tracer",
             return_value=MockTracer,
         ),
         patch(
-            "langbuilder.services.tracing.service._get_arize_phoenix_tracer",
+            "langflow.services.tracing.service._get_arize_phoenix_tracer",
             return_value=MockTracer,
         ),
         patch(
-            "langbuilder.services.tracing.service._get_opik_tracer",
+            "langflow.services.tracing.service._get_opik_tracer",
             return_value=MockTracer,
         ),
         patch(
-            "langbuilder.services.tracing.service._get_traceloop_tracer",
+            "langflow.services.tracing.service._get_traceloop_tracer",
             return_value=MockTracer,
         ),
     ):
@@ -388,7 +390,7 @@ async def test_start_tracers_with_exception(tracing_service):
             "_initialize_langsmith_tracer",
             side_effect=Exception("Mock exception"),
         ),
-        patch("langbuilder.services.tracing.service.logger") as mock_logger,
+        patch("langflow.services.tracing.service.logger") as mock_logger,
     ):
         # Configure async mock method
         mock_logger.adebug = AsyncMock()
@@ -424,7 +426,7 @@ async def test_trace_worker_with_exception(tracing_service):
         msg = "Mock trace function exception"
         raise ValueError(msg)
 
-    with patch("langbuilder.services.tracing.service.logger") as mock_logger:
+    with patch("langflow.services.tracing.service.logger") as mock_logger:
         # Configure async mock method
         mock_logger.aexception = AsyncMock()
 

@@ -1,13 +1,12 @@
 import asyncio
 import json
-import os
 import pathlib
 
 import httpx
 import pytest
 from dotenv import load_dotenv
 from httpx import AsyncClient
-from loguru import logger
+from lfx.log.logger import logger
 
 
 # Load environment variables from .env file
@@ -34,7 +33,7 @@ load_env_vars()
 
 
 async def create_global_variable(client: AsyncClient, headers, name, value, variable_type="credential"):
-    """Create a global variable in LangBuilder."""
+    """Create a global variable in Langflow."""
     payload = {"name": name, "value": value, "type": variable_type, "default_fields": []}
 
     response = await client.post("/api/v1/variables/", json=payload, headers=headers)
@@ -51,7 +50,9 @@ async def load_and_prepare_flow(client: AsyncClient, created_api_key):
     headers = {"x-api-key": created_api_key.api_key}
 
     # Create OPENAI_API_KEY global variable
-    openai_api_key = os.getenv("OPENAI_API_KEY")
+    from tests.api_keys import get_openai_api_key
+
+    openai_api_key = get_openai_api_key()
     if not openai_api_key or openai_api_key == "dummy":
         pytest.skip("OPENAI_API_KEY environment variable not set")
 
@@ -61,7 +62,7 @@ async def load_and_prepare_flow(client: AsyncClient, created_api_key):
     template_path = (
         pathlib.Path(__file__).resolve().parent.parent.parent
         / "base"
-        / "langbuilder"
+        / "langflow"
         / "initial_setup"
         / "starter_projects"
         / "Simple Agent.json"
@@ -123,8 +124,11 @@ async def test_openai_streaming_format_comparison(client: AsyncClient, created_a
     ]
 
     # Get OpenAI API key
-    openai_api_key = os.getenv("OPENAI_API_KEY")
-    if not openai_api_key:
+    from tests.api_keys import get_openai_api_key
+
+    try:
+        openai_api_key = get_openai_api_key()
+    except ValueError:
         pytest.skip("OPENAI_API_KEY environment variable not set")
 
     # === Test OpenAI's raw HTTP streaming format ===

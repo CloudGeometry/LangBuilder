@@ -156,6 +156,8 @@ export type FlowStoreType = {
   getFilterEdge: any[];
   setFilterComponent: (newState) => void;
   getFilterComponent: string;
+  rightClickedNodeId: string | null;
+  setRightClickedNodeId: (nodeId: string | null) => void;
   onConnect: (connection: Connection) => void;
   unselectAll: () => void;
   playgroundPage: boolean;
@@ -293,4 +295,6 @@ export type FlowStoreType = {
   setHelperLineEnabled: (helperLineEnabled: boolean) => void;
   newChatOnPlayground: boolean;
   setNewChatOnPlayground: (newChat: boolean) => void;
+  stopNodeId: string | undefined;
+  setStopNodeId: (nodeId: string | undefined) => void;
 };

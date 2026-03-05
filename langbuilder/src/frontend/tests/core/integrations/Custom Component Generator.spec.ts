@@ -1,6 +1,6 @@
-import { expect, test } from "@playwright/test";
 import * as dotenv from "dotenv";
 import path from "path";
+import { expect, test } from "../../fixtures";
 import { awaitBootstrapTest } from "../../utils/await-bootstrap-test";
 import { getAllResponseMessage } from "../../utils/get-all-response-message";
 import { withEventDeliveryModes } from "../../utils/withEventDeliveryModes";
@@ -24,11 +24,9 @@ withEventDeliveryModes(
 
     await page.getByTestId("side_nav_options_all-templates").click();
     await page.getByTestId("template-custom-component-generator").click();
-    await page.getByTestId("canvas_controls_dropdown").click();
-    await page.waitForSelector('[data-testid="fit_view"]', {
+    await page.waitForSelector('[data-testid="canvas_controls_dropdown"]', {
       timeout: 100000,
     });
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await page.waitForSelector('[data-testid="dropdown_str_model_name"]', {
       timeout: 5000,
@@ -59,7 +57,7 @@ withEventDeliveryModes(
       .getByTestId("input-chat-playground")
       .last()
       .fill(
-        "Create a custom component that can generate a random number between 1 and 100 and is called LangBuilder Random Number",
+        "Create a custom component that can generate a random number between 1 and 100 and is called Langflow Random Number",
       );
 
     await page.getByTestId("button-send").last().click();
@@ -74,6 +72,6 @@ withEventDeliveryModes(
     expect(await page.getByTestId("chat-code-tab").last().isVisible()).toBe(
       true,
     );
-    expect(textContents.toLowerCase()).toContain("langbuilder");
+    expect(textContents.toLowerCase()).toContain("langflow");
   },
 );

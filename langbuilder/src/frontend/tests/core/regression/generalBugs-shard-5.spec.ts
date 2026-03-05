@@ -1,5 +1,6 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "../../fixtures";
 import { addLegacyComponents } from "../../utils/add-legacy-components";
+import { adjustScreenView } from "../../utils/adjust-screen-view";
 import { awaitBootstrapTest } from "../../utils/await-bootstrap-test";
 import { zoomOut } from "../../utils/zoom-out";
 
@@ -26,10 +27,8 @@ test(
     await page
       .getByTestId("input_outputText Input")
       .dragTo(page.locator('//*[@id="react-flow-id"]'), {});
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await zoomOut(page, 4);
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await page.waitForTimeout(500);
 
@@ -88,7 +87,7 @@ test(
       });
     //connection 1
     const elementCombineTextOutput0 = page
-      .getByTestId("div-handle-combinetext-shownode-combined text-right")
+      .getByTestId("handle-combinetext-shownode-combined text-right")
       .nth(0);
     await elementCombineTextOutput0.click();
 
@@ -168,18 +167,36 @@ test(
       .nth(1);
     await elementCombineTextInput1.click();
 
-    await page.getByTestId("canvas_controls_dropdown").click();
+    await adjustScreenView(page, { numberOfZoomOut: 2 });
 
-    await page.getByTitle("fit view").click();
+    // Select both Combine Text nodes using box selection (Shift+drag)
+    // Note: Ctrl/Meta+click doesn't work reliably in Playwright with ReactFlow
+    const combineTextNodes = page.locator(".react-flow__node").filter({
+      has: page.getByTestId("title-Combine Text"),
+    });
 
-    await zoomOut(page, 2);
+    const firstBox = await combineTextNodes.first().boundingBox();
+    const secondBox = await combineTextNodes.nth(1).boundingBox();
 
-    await page.getByTestId("canvas_controls_dropdown").click();
+    if (firstBox && secondBox) {
+      // Calculate area to drag-select both nodes
+      const startX = Math.min(firstBox.x, secondBox.x) - 50;
+      const startY = Math.min(firstBox.y, secondBox.y) - 50;
+      const endX =
+        Math.max(firstBox.x + firstBox.width, secondBox.x + secondBox.width) +
+        50;
+      const endY =
+        Math.max(firstBox.y + firstBox.height, secondBox.y + secondBox.height) +
+        50;
 
-    await page
-      .getByTestId("title-Combine Text")
-      .first()
-      .click({ modifiers: ["ControlOrMeta"] });
+      // Use Shift+drag for box selection
+      await page.keyboard.down("Shift");
+      await page.mouse.move(startX, startY);
+      await page.mouse.down();
+      await page.mouse.move(endX, endY, { steps: 10 });
+      await page.mouse.up();
+      await page.keyboard.up("Shift");
+    }
 
     await page.waitForSelector('[data-testid="group-node"]', {
       timeout: 3000,

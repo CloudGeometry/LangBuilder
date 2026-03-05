@@ -34,4 +34,3 @@ Dockerfile text
 *.csv binary
 *.wav binary
 *.raw binary
-*.ttf binary

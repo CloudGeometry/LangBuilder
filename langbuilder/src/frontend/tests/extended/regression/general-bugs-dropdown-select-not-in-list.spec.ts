@@ -1,4 +1,5 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "../../fixtures";
+import { adjustScreenView } from "../../utils/adjust-screen-view";
 import { awaitBootstrapTest } from "../../utils/await-bootstrap-test";
 
 test(
@@ -24,16 +25,13 @@ test(
       .then(async () => {
         await page.getByTestId("add-component-button-openai").last().click();
       });
-    await page.getByTestId("canvas_controls_dropdown").click();
-
-    await page.getByTestId("fit_view").click();
-    await page.getByTestId("canvas_controls_dropdown").click();
+    await adjustScreenView(page);
 
     await page.getByTestId("dropdown_str_model_name").click();
     await page.getByTestId("dropdown_search_input").click();
     await page
       .getByTestId("dropdown_search_input")
-      .fill("this is a test langbuilder");
+      .fill("this is a test langflow");
     await page.keyboard.press("Enter");
 
     await page.waitForTimeout(500);
@@ -47,18 +45,15 @@ test(
 
     await page.getByTestId("sidebar-search-input").fill("agent");
 
-    await page.getByTestId("agentsAgent").hover();
+    await page.getByTestId("models_and_agentsAgent").hover();
     await page.getByTestId("add-component-button-agent").click();
-    await page.getByTestId("canvas_controls_dropdown").click();
-
-    await page.getByTestId("fit_view").click();
-    await page.getByTestId("canvas_controls_dropdown").click();
+    await adjustScreenView(page);
 
     await page.getByTestId("dropdown_str_model_name").click();
     await page.getByTestId("dropdown_search_input").click();
     await page
       .getByTestId("dropdown_search_input")
-      .fill("this is a test langbuilder");
+      .fill("this is a test langflow");
     await page.keyboard.press("Enter");
 
     await page.waitForTimeout(500);
@@ -82,10 +77,7 @@ test(
     await page.getByText("Anthropic").click();
 
     await page.waitForTimeout(500);
-    await page.getByTestId("canvas_controls_dropdown").click();
-
-    await page.getByTestId("fit_view").click();
-    await page.getByTestId("canvas_controls_dropdown").click();
+    await adjustScreenView(page);
 
     await page.getByTestId("dropdown_str_model_name").click();
     await page.getByTestId("dropdown_search_input").click();

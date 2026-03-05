@@ -1,4 +1,5 @@
-import { expect, type Page } from "@playwright/test";
+import { type Page } from "@playwright/test";
+import { expect } from "../fixtures";
 
 export const addNewUserAndLogin = async (page: Page) => {
   await page.route("**/api/v1/auto_login", (route) => {
@@ -14,7 +15,7 @@ export const addNewUserAndLogin = async (page: Page) => {
   await page.addInitScript(() => {
     window.process = window.process || {};
 
-    const newEnv = { ...window.process.env, LANGBUILDER_AUTO_LOGIN: "false" };
+    const newEnv = { ...window.process.env, LANGFLOW_AUTO_LOGIN: "false" };
 
     Object.defineProperty(window.process, "env", {
       value: newEnv,
@@ -30,10 +31,10 @@ export const addNewUserAndLogin = async (page: Page) => {
 
   await page.goto("/");
 
-  await page.waitForSelector("text=sign in to langbuilder", { timeout: 30000 });
+  await page.waitForSelector("text=sign in to langflow", { timeout: 30000 });
 
-  await page.getByPlaceholder("Username").fill("langbuilder");
-  await page.getByPlaceholder("Password").fill("langbuilder");
+  await page.getByPlaceholder("Username").fill("langflow");
+  await page.getByPlaceholder("Password").fill("langflow");
 
   await page.evaluate(() => {
     sessionStorage.removeItem("testMockAutoLogin");
@@ -42,6 +43,12 @@ export const addNewUserAndLogin = async (page: Page) => {
   await page.getByRole("button", { name: "Sign In" }).click();
 
   await page.waitForSelector('[data-testid="mainpage_title"]', {
+    timeout: 30000,
+  });
+
+  // Wait for any loading text to disappear
+  await page.waitForSelector('text="Loading"', {
+    state: "hidden",
     timeout: 30000,
   });
 
@@ -86,7 +93,7 @@ export const addNewUserAndLogin = async (page: Page) => {
 
   await page.getByText("Logout", { exact: true }).click();
 
-  await page.waitForSelector("text=sign in to langbuilder", { timeout: 30000 });
+  await page.waitForSelector("text=sign in to langflow", { timeout: 30000 });
 
   await page.getByPlaceholder("Username").fill(randomName);
   await page.getByPlaceholder("Password").fill(randomPassword);
@@ -99,5 +106,11 @@ export const addNewUserAndLogin = async (page: Page) => {
 
   await page.evaluate(() => {
     sessionStorage.removeItem("testMockAutoLogin");
+  });
+
+  // Wait for any loading text to disappear
+  await page.waitForSelector('text="Loading"', {
+    state: "hidden",
+    timeout: 30000,
   });
 };

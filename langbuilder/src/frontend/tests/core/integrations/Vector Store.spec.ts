@@ -1,5 +1,5 @@
-import { expect, test } from "@playwright/test";
 import path from "path";
+import { expect, test } from "../../fixtures";
 import { adjustScreenView } from "../../utils/adjust-screen-view";
 import { awaitBootstrapTest } from "../../utils/await-bootstrap-test";
 import { initialGPTsetup } from "../../utils/initialGPTsetup";
@@ -8,7 +8,6 @@ import { withEventDeliveryModes } from "../../utils/withEventDeliveryModes";
 // Add this line to declare Node.js global variables
 declare const process: any;
 declare const __dirname: string;
-
 withEventDeliveryModes(
   "Vector Store RAG",
   { tag: ["@release", "@starter-projects"] },
@@ -29,8 +28,9 @@ withEventDeliveryModes(
       .getByRole("heading", { name: "Vector Store RAG" })
       .first()
       .click();
-
-    await adjustScreenView(page);
+    await page.waitForSelector('[data-testid="canvas_controls_dropdown"]', {
+      timeout: 100000,
+    });
 
     await initialGPTsetup(page);
 
@@ -40,7 +40,8 @@ withEventDeliveryModes(
 
     await page.waitForTimeout(500);
 
-    await adjustScreenView(page);
+    adjustScreenView(page);
+
     // Astra DB tokens
     await page
       .getByTestId("popover-anchor-input-token")
@@ -88,11 +89,11 @@ withEventDeliveryModes(
 
     await page.waitForTimeout(2000);
 
-    let langbuilderCount = await page
-      .locator('[data-testid="langbuilder-0-option"]')
+    let langflowCount = await page
+      .locator('[data-testid="langflow-0-option"]')
       .count();
 
-    while (langbuilderCount === 0) {
+    while (langflowCount === 0) {
       await page.waitForTimeout(1000);
       await page.getByTestId("icon-RefreshCcw").click();
 
@@ -100,17 +101,17 @@ withEventDeliveryModes(
 
       await page.waitForTimeout(1000);
 
-      langbuilderCount = await page
-        .locator('[data-testid="langbuilder-0-option"]')
+      langflowCount = await page
+        .locator('[data-testid="langflow-0-option"]')
         .count();
     }
 
-    await page.locator('[data-testid="langbuilder-0-option"]').nth(0).waitFor({
+    await page.locator('[data-testid="langflow-0-option"]').nth(0).waitFor({
       timeout: 15000,
       state: "visible",
     });
 
-    await page.getByTestId("langbuilder-0-option").nth(0).click();
+    await page.getByTestId("langflow-0-option").nth(0).click();
 
     await page
       .locator('[data-testid="dropdown_str_collection_name"]')
@@ -175,11 +176,11 @@ withEventDeliveryModes(
 
     await page.waitForTimeout(2000);
 
-    langbuilderCount = await page
-      .locator('[data-testid="langbuilder-0-option"]')
+    langflowCount = await page
+      .locator('[data-testid="langflow-0-option"]')
       .count();
 
-    while (langbuilderCount === 0) {
+    while (langflowCount === 0) {
       await page.waitForTimeout(1000);
       await page.getByTestId("icon-RefreshCcw").click();
 
@@ -194,12 +195,12 @@ withEventDeliveryModes(
 
       await page.waitForTimeout(1000);
 
-      langbuilderCount = await page
-        .locator('[data-testid="langbuilder-0-option"]')
+      langflowCount = await page
+        .locator('[data-testid="langflow-0-option"]')
         .count();
     }
 
-    await page.getByTestId("langbuilder-0-option").nth(0).click();
+    await page.getByTestId("langflow-0-option").nth(0).click();
 
     await page.waitForTimeout(2000);
 

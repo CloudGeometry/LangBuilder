@@ -1,5 +1,5 @@
-from langbuilder.components.processing import PromptComponent
-from langbuilder.schema.message import Message
+from lfx.components.models_and_agents import PromptComponent
+from lfx.schema.message import Message
 
 from tests.integration.utils import pyleak_marker, run_single_component
 

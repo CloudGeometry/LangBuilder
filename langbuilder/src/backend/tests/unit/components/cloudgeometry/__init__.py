@@ -1,1 +1,0 @@
-# CloudGeometry component tests
