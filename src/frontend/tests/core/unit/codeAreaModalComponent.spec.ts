@@ -1,7 +1,5 @@
 import { expect } from "@playwright/test";
 import { test } from "../../fixtures";
-import { addLegacyComponents } from "../../utils/add-legacy-components";
-import { adjustScreenView } from "../../utils/adjust-screen-view";
 import { awaitBootstrapTest } from "../../utils/await-bootstrap-test";
 
 test(
@@ -25,7 +23,7 @@ test(
 
     await page.getByTestId("sidebar-custom-component-button").click();
 
-    await expect(page.getByTestId("code-button-modal")).toBeVisible({
+    await expect(page.getByTestId("code-button-modal").last()).toBeVisible({
       timeout: 3000,
     });
 

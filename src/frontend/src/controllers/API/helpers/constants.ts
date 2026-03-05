@@ -3,6 +3,7 @@ import { BASE_URL_API_V2 } from "../../../constants/constants";
 
 export const URLs = {
   TRANSACTIONS: `monitor/transactions`,
+  TRACES: `monitor/traces`,
   API_KEY: `api_key`,
   FILES: `files`,
   FILE_MANAGEMENT: `files`,
@@ -13,6 +14,7 @@ export const URLs = {
   USERS: "users",
   LOGOUT: `logout`,
   LOGIN: `login`,
+  SESSION: `session`,
   AUTOLOGIN: "auto_login",
   REFRESH: "refresh",
   BUILD: `build`,
@@ -31,6 +33,8 @@ export const URLs = {
   MCP: `mcp/project`,
   MCP_SERVERS: `mcp/servers`,
   KNOWLEDGE_BASES: `knowledge_bases`,
+  MODELS: `models`,
+  MODEL_PROVIDERS: `models/providers`,
   RUN: `run`,
   RUN_SESSION: `run/session`,
   REGISTRATION: `registration`,
@@ -40,7 +44,7 @@ export const URLs = {
 
 export function getURL(
   key: keyof typeof URLs,
-  params: any = {},
+  params: Record<string, unknown> = {},
   v2: boolean = false,
 ) {
   let url = URLs[key];

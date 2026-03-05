@@ -321,10 +321,12 @@ class APIRequestComponent(Component):
                 "method": method,
                 "url": url,
                 "headers": headers,
-                "json": processed_body,
                 "timeout": timeout,
                 "follow_redirects": follow_redirects,
             }
+            # Only include body for methods that support it (GET must not have a body per HTTP spec)
+            if method in {"POST", "PATCH", "PUT", "DELETE"} and processed_body is not None:
+                request_params["json"] = processed_body
             response = await client.request(**request_params)
 
             redirection_history = [
@@ -493,11 +495,13 @@ class APIRequestComponent(Component):
                 return self.parse_curl(self.curl_input, build_config)
             return build_config
 
-        # print(f"Current mode: {field_value}")
         if field_value == "cURL":
             set_field_display(build_config, "curl_input", value=True)
             if build_config["curl_input"]["value"]:
-                build_config = self.parse_curl(build_config["curl_input"]["value"], build_config)
+                try:
+                    build_config = self.parse_curl(build_config["curl_input"]["value"], build_config)
+                except ValueError as e:
+                    self.log(f"Failed to parse cURL input: {e}")
         else:
             set_field_display(build_config, "curl_input", value=False)
 

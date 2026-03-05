@@ -69,13 +69,20 @@ test(
 
     await page.getByTestId("generic-node-title-arrangement").last().click();
 
-    await page.getByTestId("edit-name-description-button").click();
+    await page.getByTestId("panel-description").hover();
+    await page
+      .getByTestId("panel-description")
+      .getByTestId("edit-name-description-button")
+      .click();
 
-    await page.getByTestId("input-title-Text Output").fill("textoutputfalse");
+    await page.getByTestId("inspection-panel-name").fill("textoutputfalse");
 
-    await page.getByTestId("save-name-description-button").click();
+    await page
+      .getByTestId("panel-description")
+      .getByTestId("save-name-description-button")
+      .click();
 
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(2000);
 
     await page
       .getByTestId("handle-conditionalrouter-shownode-true-right")
@@ -97,7 +104,7 @@ test(
     await page.getByTestId("popover-anchor-input-input_text").fill("1");
     await page.getByTestId("popover-anchor-input-match_text").fill("1");
 
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(2000);
 
     await page.getByTestId("button_run_text output").click();
 
@@ -120,12 +127,12 @@ test(
 
     // Now we will change the input to make the flow go through the other branch of the If-Else component
 
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(2000);
 
     await page.getByTestId("popover-anchor-input-input_text").fill("2");
     await page.getByTestId("button_run_textoutputfalse").click();
 
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(2000);
 
     await page.waitForSelector("text=built successfully", { timeout: 30000 });
 
@@ -149,11 +156,11 @@ test(
     await page.waitForTimeout(3000);
 
     await page.getByTestId("popover-anchor-input-input_text").fill("1");
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(2000);
 
     await page.getByTestId("button_run_text output").click();
 
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(2000);
 
     await page.waitForSelector("text=built successfully", { timeout: 30000 });
 

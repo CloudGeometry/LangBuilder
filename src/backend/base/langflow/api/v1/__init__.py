@@ -8,11 +8,14 @@ from langflow.api.v1.knowledge_bases import router as knowledge_bases_router
 from langflow.api.v1.login import router as login_router
 from langflow.api.v1.mcp import router as mcp_router
 from langflow.api.v1.mcp_projects import router as mcp_projects_router
+from langflow.api.v1.model_options import router as model_options_router
+from langflow.api.v1.models import router as models_router
 from langflow.api.v1.monitor import router as monitor_router
 from langflow.api.v1.openai_responses import router as openai_responses_router
 from langflow.api.v1.projects import router as projects_router
 from langflow.api.v1.starter_projects import router as starter_projects_router
 from langflow.api.v1.store import router as store_router
+from langflow.api.v1.traces import router as traces_router
 from langflow.api.v1.users import router as users_router
 from langflow.api.v1.validate import router as validate_router
 from langflow.api.v1.variable import router as variables_router
@@ -29,11 +32,14 @@ __all__ = [
     "login_router",
     "mcp_projects_router",
     "mcp_router",
+    "model_options_router",
+    "models_router",
     "monitor_router",
     "openai_responses_router",
     "projects_router",
     "starter_projects_router",
     "store_router",
+    "traces_router",
     "users_router",
     "validate_router",
     "variables_router",
