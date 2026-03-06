@@ -23,9 +23,13 @@ export default defineConfig(({ mode }) => {
   const apiRoutes = API_ROUTES || ["^/api/v1/", "^/api/v2/", "/health"];
 
   const target =
-    envLangbuilder.VITE_PROXY_TARGET || env.VITE_PROXY_TARGET || PROXY_TARGET || "http://localhost:7860";
-  
-  const port = Number(envLangbuilder.VITE_PORT || env.VITE_PORT) || PORT || 3000;
+    envLangbuilder.VITE_PROXY_TARGET ||
+    env.VITE_PROXY_TARGET ||
+    PROXY_TARGET ||
+    "http://localhost:7860";
+
+  const port =
+    Number(envLangbuilder.VITE_PORT || env.VITE_PORT) || PORT || 3000;
 
   const proxyTargets = apiRoutes.reduce((proxyObj, route) => {
     proxyObj[route] = {
@@ -41,6 +45,12 @@ export default defineConfig(({ mode }) => {
     base: BASENAME || "",
     build: {
       outDir: "build",
+      rollupOptions: {
+        external: ["playwright", "dotenv", "esbuild"],
+      },
+      optimizeDeps: {
+        exclude: ["playwright", "esbuild"],
+      },
     },
     define: {
       "process.env.BACKEND_URL": JSON.stringify(
