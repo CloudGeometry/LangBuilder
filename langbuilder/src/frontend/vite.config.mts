@@ -46,16 +46,17 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: "build",
       rollupOptions: {
-        external: ["playwright", "dotenv", "esbuild","@million/lint"],
+        external: ["playwright", "dotenv", "esbuild", "@million/lint"],
       },
       optimizeDeps: {
-        exclude: ["playwright", "esbuild","canvas"],
+        exclude: ["playwright", "esbuild", "canvas"],
       },
     },
     resolve: {
       alias: {
-        canvas: '/dev/null',
+        canvas: "/dev/null",
       },
+    },
     define: {
       "process.env.BACKEND_URL": JSON.stringify(
         envLangbuilder.BACKEND_URL ?? "http://localhost:7860",
