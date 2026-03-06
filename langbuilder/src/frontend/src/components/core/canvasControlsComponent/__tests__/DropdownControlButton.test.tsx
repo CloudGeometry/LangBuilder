@@ -115,8 +115,8 @@ describe("DropdownControlButton", () => {
       />,
     );
 
-    expect(screen.getByTestId("toggle-test-button-toggle")).toBeInTheDocument();
-    expect(screen.getByTestId("toggle-test-button-toggle")).toHaveAttribute(
+    expect(screen.getByTestId("toggle-helper_lines")).toBeInTheDocument();
+    expect(screen.getByTestId("toggle-helper_lines")).toHaveAttribute(
       "data-value",
       "true",
     );
@@ -131,7 +131,7 @@ describe("DropdownControlButton", () => {
       />,
     );
 
-    expect(screen.getByTestId("toggle-test-button-toggle")).toHaveAttribute(
+    expect(screen.getByTestId("toggle-helper_lines")).toHaveAttribute(
       "data-value",
       "false",
     );
@@ -148,7 +148,7 @@ describe("DropdownControlButton", () => {
       />,
     );
 
-    fireEvent.click(screen.getByTestId("toggle-test-button-toggle"));
+    fireEvent.click(screen.getByTestId("toggle-helper_lines"));
     expect(mockOnClick).toHaveBeenCalled();
   });
 

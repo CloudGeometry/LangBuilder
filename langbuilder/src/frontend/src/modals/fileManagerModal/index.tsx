@@ -15,7 +15,6 @@ export default function FileManagerModal({
   files,
   types,
   isList,
-  allowFolderSelection = false,
 }: {
   children?: ReactNode;
   selectedFiles?: string[];
@@ -26,7 +25,6 @@ export default function FileManagerModal({
   files: FileType[];
   types: string[];
   isList?: boolean;
-  allowFolderSelection?: boolean;
 }): JSX.Element {
   const [internalOpen, internalSetOpen] = useState(false);
 
@@ -89,8 +87,6 @@ export default function FileManagerModal({
                 onUpload={handleUpload}
                 types={types}
                 isList={isList ?? false}
-                allowFolderSelection={allowFolderSelection}
-                existingFiles={files}
               />
             </div>
             <div className="flex flex-1 flex-col overflow-hidden">

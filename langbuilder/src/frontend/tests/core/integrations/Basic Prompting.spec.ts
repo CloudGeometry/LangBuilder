@@ -34,10 +34,6 @@ withEventDeliveryModes(
       .last()
       .isVisible();
 
-    //create a new session - default session can not be deleted
-    await page.getByTestId("new-chat").click();
-    await page.getByTitle("New Session 0").isVisible();
-
     await page.waitForSelector('[data-testid="input-chat-playground"]', {
       timeout: 100000,
     });
@@ -58,6 +54,7 @@ withEventDeliveryModes(
     });
 
     await page.getByText("matey").last().isVisible();
+    await page.getByText("Default Session").last().click();
 
     await page.getByText("timestamp", { exact: true }).last().isVisible();
     await page.getByText("text", { exact: true }).last().isVisible();
@@ -67,12 +64,8 @@ withEventDeliveryModes(
     await page.getByText("files", { exact: true }).last().isVisible();
 
     await page.getByRole("gridcell").last().isVisible();
-    // Use sidebar session more menu (chat-header-more-menu is hidden in fullscreen)
-    await page
-      .locator('[data-testid^="session-"][data-testid$="-more-menu"]')
-      .last()
-      .click();
-    await page.getByTestId("delete-session-option").click();
+    await page.getByRole("combobox").click();
+    await page.getByLabel("Delete").click();
     await page.waitForSelector('[data-testid="input-chat-playground"]', {
       timeout: 100000,
     });

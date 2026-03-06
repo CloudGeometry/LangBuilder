@@ -92,13 +92,13 @@ test(
     await elementCombineTextOutput0.click();
 
     const blockedHandle = page
-      .getByTestId("handle-textinput-shownode-output text-right")
+      .getByTestId("div-handle-textinput-shownode-output text-right")
       .first();
     const secondBlockedHandle = page
-      .getByTestId("handle-combinetext-shownode-combined text-right")
+      .getByTestId("div-handle-combinetext-shownode-combined text-right")
       .nth(1);
     const thirdBlockedHandle = page
-      .getByTestId("handle-textoutput-shownode-output text-right")
+      .getByTestId("div-handle-textoutput-shownode-output text-right")
       .first();
 
     const hasGradient = await blockedHandle?.evaluate((el) => {
@@ -116,21 +116,21 @@ test(
       return style.backgroundColor === "rgb(228, 228, 231)";
     });
 
-    expect(hasGradient).toBe(false);
-    expect(secondHasGradient).toBe(false);
-    expect(thirdHasGradient).toBe(false);
+    expect(hasGradient).toBe(true);
+    expect(secondHasGradient).toBe(true);
+    expect(thirdHasGradient).toBe(true);
 
     const unlockedHandle = page
-      .getByTestId("handle-textinput-shownode-text-left")
+      .getByTestId("div-handle-textinput-shownode-text-left")
       .last();
     const secondUnlockedHandle = page
-      .getByTestId("handle-combinetext-shownode-second text-left")
+      .getByTestId("div-handle-combinetext-shownode-second text-left")
       .last();
     const thirdUnlockedHandle = page
-      .getByTestId("handle-combinetext-shownode-second text-left")
+      .getByTestId("div-handle-combinetext-shownode-second text-left")
       .first();
     const fourthUnlockedHandle = page
-      .getByTestId("handle-textoutput-shownode-inputs-left")
+      .getByTestId("div-handle-textoutput-shownode-inputs-left")
       .first();
 
     const hasGradientUnlocked = await unlockedHandle?.evaluate((el) => {
@@ -157,10 +157,10 @@ test(
       },
     );
 
-    expect(hasGradientUnlocked).toBe(false);
-    expect(secondHasGradientUnlocked).toBe(false);
-    expect(thirdHasGradientLocked).toBe(false);
-    expect(fourthHasGradientUnlocked).toBe(false);
+    expect(hasGradientUnlocked).toBe(true);
+    expect(secondHasGradientUnlocked).toBe(true);
+    expect(thirdHasGradientLocked).toBe(true);
+    expect(fourthHasGradientUnlocked).toBe(true);
 
     const elementCombineTextInput1 = await page
       .getByTestId("handle-combinetext-shownode-first text-left")
@@ -199,7 +199,7 @@ test(
     }
 
     await page.waitForSelector('[data-testid="group-node"]', {
-      timeout: 5000,
+      timeout: 3000,
       state: "visible",
     });
 

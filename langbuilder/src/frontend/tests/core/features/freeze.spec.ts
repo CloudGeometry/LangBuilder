@@ -1,7 +1,6 @@
 import { expect, test } from "../../fixtures";
 import { addFlowToTestOnEmptyLangflow } from "../../utils/add-flow-to-test-on-empty-langflow";
 import { addLegacyComponents } from "../../utils/add-legacy-components";
-import { adjustScreenView } from "../../utils/adjust-screen-view";
 import { awaitBootstrapTest } from "../../utils/await-bootstrap-test";
 
 test(
@@ -64,20 +63,25 @@ test(
     await page.waitForSelector('[data-testid="icon-FreezeAll"]', {
       timeout: 1000,
     });
-    await page.locator('//*[@id="icon-FreezeAll"]');
-
-    await expect(page.getByTestId("icon-FreezeAll")).toBeVisible();
 
     await page.waitForTimeout(5000);
 
+    await page.getByTestId("icon-FreezeAll").click();
+    await page.waitForSelector('[data-testid="frozen-icon"]', {
+      timeout: 20000,
+    });
+    await expect(page.getByTestId("frozen-icon")).toBeVisible();
     await page.keyboard.press("Escape");
 
     await page.getByTestId("div-generic-node").getByRole("button").click();
+
+    await page.waitForTimeout(5000);
 
     await page.getByTestId("output-inspection-output text-textinput").click();
 
     const secondOutputText = await page.getByPlaceholder("Empty").textContent();
 
-    expect(secondOutputText).toBe("goodbye world");
+    expect(secondOutputText).toBe(firstOutputText);
+    expect(secondOutputText).toBe("hello world");
   },
 );

@@ -33,9 +33,6 @@ RUN apt-get update \
     npm \
     # gcc
     gcc \
-    curl \
-    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -51,7 +48,7 @@ COPY ./src/lfx/pyproject.toml /app/src/lfx/pyproject.toml
 
 RUN --mount=type=cache,target=/root/.cache/uv \
     RUSTFLAGS='--cfg reqwest_unstable' \
-    uv sync --frozen --no-install-project --no-editable --extra postgresql --no-group dev
+    uv sync --frozen --no-install-project --no-editable --extra postgresql --extra audio
 
 COPY ./src /app/src
 COPY ./langbuilder_compat /app/langbuilder_compat
@@ -61,7 +58,7 @@ COPY ./docker/favicon.ico /tmp/favicon.ico
 WORKDIR /tmp/src/frontend
 RUN --mount=type=cache,target=/root/.npm \
     npm ci \
-    && ESBUILD_BINARY_PATH="" NODE_OPTIONS="--max-old-space-size=4096" JOBS=1 npm run build \
+    && ESBUILD_BINARY_PATH="" NODE_OPTIONS="--max-old-space-size=12288" JOBS=1 npm run build \
     && cp -r build /app/src/backend/langflow/frontend \
     && cp /tmp/favicon.ico /app/src/backend/langflow/frontend/favicon.ico \
     && rm -rf /tmp/src/frontend
@@ -70,7 +67,7 @@ WORKDIR /app
 
 RUN --mount=type=cache,target=/root/.cache/uv \
     RUSTFLAGS='--cfg reqwest_unstable' \
-    uv sync --frozen --no-editable --extra postgresql --no-group dev
+    uv sync --frozen --no-editable --extra postgresql --extra audio
 
 # Install the langbuilder→langflow compatibility shim (no deps, no lockfile needed)
 RUN /app/.venv/bin/pip install --no-deps /app/langbuilder_compat

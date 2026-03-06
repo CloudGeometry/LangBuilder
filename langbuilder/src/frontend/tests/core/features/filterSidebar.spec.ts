@@ -1,10 +1,6 @@
 import { expect, test } from "../../fixtures";
 import { adjustScreenView } from "../../utils/adjust-screen-view";
 import { awaitBootstrapTest } from "../../utils/await-bootstrap-test";
-import {
-  closeAdvancedOptions,
-  openAdvancedOptions,
-} from "../../utils/open-advanced-options";
 
 test(
   "user must see on handle click the possibility connections",
@@ -113,10 +109,10 @@ test(
     ).not.toBeVisible();
     await expect(page.getByTestId("logicCondition")).not.toBeVisible();
 
-    await openAdvancedOptions(page);
+    await page.getByTestId("edit-button-modal").click();
 
     await page.getByTestId("showheaders").click();
-    await closeAdvancedOptions(page);
+    await page.getByText("Close").last().click();
     await page.getByTestId("handle-apirequest-shownode-headers-left").click();
 
     await expect(page.getByTestId("disclosure-data sources")).toBeVisible();

@@ -35,7 +35,8 @@ withEventDeliveryModes(
 
     await initialGPTsetup(page, {
       skipAdjustScreenView: true,
-      skipAddOpenAiInputKey: true,
+      skipAddNewApiKeys: true,
+      skipSelectGptModel: true,
     });
 
     await page
@@ -43,18 +44,22 @@ withEventDeliveryModes(
       .nth(0)
       .fill(process?.env?.AGENTQL_API_KEY ?? "");
 
+    await page
+      .getByTestId("popover-anchor-input-api_key")
+      .nth(1)
+      .fill(process?.env?.OPENAI_API_KEY ?? "");
+
     await page.getByTestId("playground-btn-flow-io").click();
 
     await page.waitForSelector('[data-testid="button-send"]', {
       timeout: 3000,
     });
 
-    await page.getByTestId("input-chat-playground").click();
     await page.getByTestId("input-chat-playground").fill("what is langflow?");
 
     await page.getByTestId("button-send").click();
 
-    await page.waitForSelector("text=Finished", { timeout: 100000 });
+    await page.waitForSelector("text=Finished", { timeout: 10000 });
 
     await page.waitForSelector(".markdown", { timeout: 3000 });
 
@@ -63,10 +68,12 @@ withEventDeliveryModes(
       .last()
       .allTextContents();
 
-    const concatAllText = textContents.join(" ").toLowerCase();
+    const concatAllText = textContents.join(" ");
 
     expect(concatAllText.length).toBeGreaterThan(100);
 
-    expect(concatAllText).toContain("langflow");
+    expect(concatAllText).toContain("Langflow");
+    expect(concatAllText).toContain("open-source");
+    expect(concatAllText).toContain("framework");
   },
 );

@@ -39,7 +39,6 @@ class DoclingRemoteComponent(BaseFileComponent):
         "htm",
         "html",
         "jpeg",
-        "jpg",
         "json",
         "md",
         "pdf",
@@ -73,7 +72,6 @@ class DoclingRemoteComponent(BaseFileComponent):
             info="Maximum number of concurrent requests for the server.",
             advanced=True,
             value=2,
-            input_types=["Message"],
         ),
         FloatInput(
             name="max_poll_timeout",
@@ -81,7 +79,6 @@ class DoclingRemoteComponent(BaseFileComponent):
             info="Maximum waiting time for the document conversion to complete.",
             advanced=True,
             value=3600,
-            input_types=["Message"],
         ),
         NestedDictInput(
             name="api_headers",
@@ -89,7 +86,6 @@ class DoclingRemoteComponent(BaseFileComponent):
             advanced=True,
             required=False,
             info=("Optional dictionary of additional headers required for connecting to Docling Serve."),
-            input_types=["Message"],
         ),
         NestedDictInput(
             name="docling_serve_opts",
@@ -100,7 +96,6 @@ class DoclingRemoteComponent(BaseFileComponent):
                 "Optional dictionary of additional options. "
                 "See https://github.com/docling-project/docling-serve/blob/main/docs/usage.md for more information."
             ),
-            input_types=["Message"],
         ),
     ]
 

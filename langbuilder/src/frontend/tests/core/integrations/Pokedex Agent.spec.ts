@@ -27,10 +27,9 @@ withEventDeliveryModes(
 
     await page.getByTestId("playground-btn-flow-io").click();
 
-    await page.getByTestId("input-chat-playground").isVisible();
-    await page.getByTestId("input-chat-playground").click();
     await page
       .getByTestId("input-chat-playground")
+      .last()
       .fill("Can I catch a Charizard in Pokemon Yellow?");
 
     await page.getByTestId("button-send").last().click();
@@ -42,11 +41,8 @@ withEventDeliveryModes(
       await expect(stopButton).toBeHidden({ timeout: 200000 });
     }
 
-    const output = await page
-      .getByTestId("div-chat-message")
-      .last()
-      .innerText();
+    const output = await page.getByTestId("div-chat-message").innerText();
     expect(output).toContain("Charmander");
-    expect(output.length).toBeGreaterThan(50);
+    expect(output.length).toBeGreaterThan(100);
   },
 );

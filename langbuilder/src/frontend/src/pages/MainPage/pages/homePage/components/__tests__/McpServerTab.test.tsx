@@ -146,7 +146,6 @@ jest.mock("../McpAuthSection", () => ({
 
 // Mock react-syntax-highlighter for McpJsonContent
 jest.mock("react-syntax-highlighter", () => ({
-  // biome-ignore lint/suspicious/noExplicitAny: TODO We need to fix this. added suppression for 1.7.1 merge
   Light: ({ children, CodeTag }: { children: string; CodeTag: any }) => (
     <div data-testid="syntax-highlighter">
       <CodeTag>{children}</CodeTag>

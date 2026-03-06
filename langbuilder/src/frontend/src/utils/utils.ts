@@ -410,7 +410,7 @@ export function extractColumnsFromRows(
     }
     for (const row of rows) {
       for (const key in columnsKeys) {
-        if (!(key in row)) {
+        if (!row[key]) {
           delete columnsKeys[key];
         }
       }
@@ -425,6 +425,7 @@ export function extractColumnsFromRows(
           filter: true,
           cellRenderer: TableAutoCellRender,
           suppressAutoSize: true,
+          tooltipField: key,
         };
       }
     }

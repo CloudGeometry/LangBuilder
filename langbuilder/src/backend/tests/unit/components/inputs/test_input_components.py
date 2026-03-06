@@ -53,8 +53,6 @@ class TestChatInput(ComponentTestBaseWithClient):
             "allow_markdown": False,
             "state": "complete",
             "targets": [],
-            "usage": None,
-            "build_duration": None,
         }
 
     async def test_message_response_ai_sender(self, component_class):

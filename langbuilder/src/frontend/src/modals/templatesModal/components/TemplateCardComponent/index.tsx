@@ -6,16 +6,10 @@ import IconComponent, {
 } from "../../../../components/common/genericIconComponent";
 import type { TemplateCardComponentProps } from "../../../../types/templates/types";
 
-interface TemplateCardComponentExtendedProps
-  extends TemplateCardComponentProps {
-  disabled?: boolean;
-}
-
 export default function TemplateCardComponent({
   example,
   onClick,
-  disabled = false,
-}: TemplateCardComponentExtendedProps) {
+}: TemplateCardComponentProps) {
   const swatchIndex =
     (example.gradient && !isNaN(parseInt(example.gradient))
       ? parseInt(example.gradient)
@@ -26,20 +20,16 @@ export default function TemplateCardComponent({
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       onClick();
-      if (!disabled) onClick();
     }
   };
 
   return (
     <div
       data-testid={`template-${convertTestName(example.name)}`}
-      className={cn(
-        "group flex gap-3 overflow-hidden rounded-md p-3 hover:bg-muted focus-visible:bg-muted",
-        disabled ? "cursor-default opacity-80" : "cursor-pointer",
-      )}
-      tabIndex={disabled ? -1 : 0}
+      className="group flex cursor-pointer gap-3 overflow-hidden rounded-md p-3 hover:bg-muted focus-visible:bg-muted"
+      tabIndex={0}
       onKeyDown={handleKeyDown}
-      onClick={() => !disabled && onClick()}
+      onClick={onClick}
     >
       <div
         className={cn(

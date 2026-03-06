@@ -1,6 +1,5 @@
 import { cloneDeep } from "lodash";
 import { memo, useCallback, useMemo } from "react";
-import IconComponent from "@/components/common/genericIconComponent";
 import ShadTooltip from "@/components/common/shadTooltipComponent";
 import {
   Popover,
@@ -15,24 +14,21 @@ import useFlowStore from "@/stores/flowStore";
 import useFlowsManagerStore from "@/stores/flowsManagerStore";
 import { useShortcutsStore } from "@/stores/shortcuts";
 import type { NoteDataType } from "@/types/flow";
-import { cn } from "@/utils/utils";
+import { classNames, cn } from "@/utils/utils";
+import IconComponent from "../../../components/common/genericIconComponent";
 import { ColorPickerButtons } from "../components/color-picker-buttons";
 import { SelectItems } from "../components/select-items";
-
-interface NoteToolbarProps {
-  data: NoteDataType;
-  bgColor: string;
-}
 
 const NoteToolbarComponent = memo(function NoteToolbarComponent({
   data,
   bgColor,
-}: NoteToolbarProps) {
+}: {
+  data: NoteDataType;
+  bgColor: string;
+}) {
   const setNoticeData = useAlertStore((state) => state.setNoticeData);
-  const takeSnapshot = useFlowsManagerStore((state) => state.takeSnapshot);
-  const shortcuts = useShortcutsStore((state) => state.shortcuts);
 
-  // Batch store selectors to reduce re-renders
+  // Combine multiple store selectors into one to reduce re-renders
   const { nodes, setLastCopiedSelection, paste, setNode, deleteNode } =
     useFlowStore(
       useCallback(
@@ -47,50 +43,46 @@ const NoteToolbarComponent = memo(function NoteToolbarComponent({
       ),
     );
 
-  /** Opens documentation URL or shows notice if unavailable */
+  const takeSnapshot = useFlowsManagerStore((state) => state.takeSnapshot);
+  const shortcuts = useShortcutsStore((state) => state.shortcuts);
+
   const openDocs = useCallback(() => {
     if (data.node?.documentation) {
-      return customOpenNewTab(data.node.documentation);
+      return customOpenNewTab(data.node?.documentation);
     }
-    setNoticeData({ title: `${data.id} docs is not available at the moment.` });
+    setNoticeData({
+      title: `${data.id} docs is not available at the moment.`,
+    });
   }, [data.node?.documentation, data.id, setNoticeData]);
 
-  /** Handles toolbar menu actions: copy, duplicate, delete, documentation */
   const handleSelectChange = useCallback(
-    (action: string) => {
-      const currentNode = nodes.find((node) => node.id === data.id);
-
-      switch (action) {
+    (event: string) => {
+      switch (event) {
         case "documentation":
           openDocs();
           break;
-
         case "delete":
           takeSnapshot();
           deleteNode(data.id);
           break;
-
-        case "copy":
-          if (currentNode) {
-            setLastCopiedSelection({
-              nodes: cloneDeep([currentNode]),
-              edges: [],
-            });
-          }
+        case "copy": {
+          const node = nodes.filter((node) => node.id === data.id);
+          setLastCopiedSelection({ nodes: cloneDeep(node), edges: [] });
           break;
-
+        }
         case "duplicate":
-          if (currentNode) {
-            paste(
-              { nodes: [currentNode], edges: [] },
-              {
-                x: 50,
-                y: 10,
-                paneX: currentNode.position.x,
-                paneY: currentNode.position.y,
-              },
-            );
-          }
+          paste(
+            {
+              nodes: [nodes.find((node) => node.id === data.id)!],
+              edges: [],
+            },
+            {
+              x: 50,
+              y: 10,
+              paneX: nodes.find((node) => node.id === data.id)?.position.x,
+              paneY: nodes.find((node) => node.id === data.id)?.position.y,
+            },
+          );
           break;
       }
     },
@@ -105,35 +97,33 @@ const NoteToolbarComponent = memo(function NoteToolbarComponent({
     ],
   );
 
-  const isCustomColor =
-    bgColor && !Object.keys(COLOR_OPTIONS).includes(bgColor);
-
-  // Memoize resolved background color for the color picker indicator
-  const resolvedBgColor = useMemo(
-    () => (isCustomColor ? bgColor : (COLOR_OPTIONS[bgColor] ?? "#00000000")),
-    [bgColor, isCustomColor],
+  // Memoize the color picker background style
+  const colorPickerStyle = useMemo(
+    () => ({
+      backgroundColor: COLOR_OPTIONS[bgColor] ?? "#00000000",
+    }),
+    [bgColor],
   );
 
-  const hasVisibleBg = isCustomColor || COLOR_OPTIONS[bgColor] === null;
-
   return (
-    <div className="noflow nowheel nopan nodelete nodrag h-10 w-26">
+    <div className="w-26 noflow nowheel nopan nodelete nodrag h-10">
       <span className="isolate inline-flex rounded-md shadow-sm">
-        {/* Color picker popover */}
         <Popover>
           <ShadTooltip content="Pick Color">
             <PopoverTrigger>
-              <div
-                data-testid="color_picker"
-                className="relative inline-flex items-center rounded-l-md bg-background px-2 py-2 text-foreground shadow-md transition-all duration-500 ease-in-out hover:bg-muted focus:z-10"
-              >
+              <div>
                 <div
-                  style={{ backgroundColor: resolvedBgColor }}
-                  className={cn(
-                    "h-4 w-4 rounded-full",
-                    hasVisibleBg && "border",
-                  )}
-                />
+                  data-testid="color_picker"
+                  className="relative inline-flex items-center rounded-l-md bg-background px-2 py-2 text-foreground shadow-md transition-all duration-500 ease-in-out hover:bg-muted focus:z-10"
+                >
+                  <div
+                    style={colorPickerStyle}
+                    className={cn(
+                      "h-4 w-4 rounded-full",
+                      COLOR_OPTIONS[bgColor] === null && "border",
+                    )}
+                  />
+                </div>
               </div>
             </PopoverTrigger>
           </ShadTooltip>
@@ -146,18 +136,21 @@ const NoteToolbarComponent = memo(function NoteToolbarComponent({
           </PopoverContent>
         </Popover>
 
-        {/* More options dropdown */}
         <Select onValueChange={handleSelectChange} value="">
           <SelectTrigger>
             <ShadTooltip content="Show More" side="top">
-              <div
-                data-testid="more-options-modal"
-                className="relative -ml-px inline-flex h-8 w-[2rem] items-center rounded-r-md bg-background text-foreground shadow-md transition-all duration-500 ease-in-out hover:bg-muted focus:z-10"
-              >
-                <IconComponent
-                  name="MoreHorizontal"
-                  className="relative left-2 h-4 w-4"
-                />
+              <div>
+                <div
+                  data-testid="more-options-modal"
+                  className={classNames(
+                    "relative -ml-px inline-flex h-8 w-[2rem] items-center rounded-r-md bg-background text-foreground shadow-md transition-all duration-500 ease-in-out hover:bg-muted focus:z-10",
+                  )}
+                >
+                  <IconComponent
+                    name="MoreHorizontal"
+                    className="relative left-2 h-4 w-4"
+                  />
+                </div>
               </div>
             </ShadTooltip>
           </SelectTrigger>

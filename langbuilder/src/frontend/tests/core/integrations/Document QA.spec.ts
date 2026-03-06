@@ -1,6 +1,6 @@
 import * as dotenv from "dotenv";
 import path from "path";
-import { expect, test } from "../../fixtures";
+import { test } from "../../fixtures";
 import { awaitBootstrapTest } from "../../utils/await-bootstrap-test";
 import { initialGPTsetup } from "../../utils/initialGPTsetup";
 import { uploadFile } from "../../utils/upload-file";
@@ -40,9 +40,6 @@ withEventDeliveryModes(
       .last()
       .isVisible();
 
-    // Create a new session first
-    await page.getByTestId("new-chat").click();
-
     await page.waitForSelector('[data-testid="input-chat-playground"]', {
       timeout: 100000,
     });
@@ -57,6 +54,23 @@ withEventDeliveryModes(
     });
 
     await page.getByText("this is a test file").last().isVisible();
-    expect(await page.getByTestId("div-chat-message).last().count()).toBe(1)"));
+
+    await page.getByText("Default Session").last().click();
+
+    await page.getByText("timestamp", { exact: true }).last().isVisible();
+    await page.getByText("text", { exact: true }).last().isVisible();
+    await page.getByText("sender", { exact: true }).last().isVisible();
+    await page.getByText("sender_name", { exact: true }).last().isVisible();
+    await page.getByText("session_id", { exact: true }).last().isVisible();
+    await page.getByText("files", { exact: true }).last().isVisible();
+
+    await page.getByRole("gridcell").last().isVisible();
+    await page.getByRole("combobox").click();
+    await page.getByLabel("Delete").click();
+    await page.waitForSelector('[data-testid="input-chat-playground"]', {
+      timeout: 100000,
+    });
+
+    await page.getByTestId("input-chat-playground").last().isVisible();
   },
 );

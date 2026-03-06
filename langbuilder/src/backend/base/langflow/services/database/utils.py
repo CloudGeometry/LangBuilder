@@ -57,8 +57,7 @@ async def initialize_database(*, fix_migration: bool = False) -> None:
         # we can ignore it
         if "already exists" not in str(exc):
             logger.exception(exc)
-            raise
-        await logger.adebug("Migration attempted to create existing table, skipping.")
+        raise
     await logger.adebug("Database initialized")
 
 

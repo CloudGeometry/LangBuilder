@@ -13,7 +13,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { UPLOAD_ERROR_ALERT } from "@/constants/alerts_constants";
 import { useUpdateUser } from "@/controllers/API/queries/auth";
 import {
   usePatchFolders,
@@ -41,6 +40,7 @@ import type { FolderType } from "../../../../../pages/MainPage/entities";
 import useAlertStore from "../../../../../stores/alertStore";
 import useFlowsManagerStore from "../../../../../stores/flowsManagerStore";
 import { useFolderStore } from "../../../../../stores/foldersStore";
+import { useUtilityStore } from "../../../../../stores/utilityStore";
 import { handleKeyDown } from "../../../../../utils/reactflowUtils";
 import { cn } from "../../../../../utils/utils";
 import useFileDrop from "../../hooks/use-on-file-drop";
@@ -86,6 +86,7 @@ const SideBarFoldersButtonsComponent = ({
   const folderIdDragging = useFolderStore((state) => state.folderIdDragging);
   const myCollectionId = useFolderStore((state) => state.myCollectionId);
   const takeSnapshot = useFlowsManagerStore((state) => state.takeSnapshot);
+  const defaultFolderName = useUtilityStore((state) => state.defaultFolderName);
 
   const folderId = useParams().folderId ?? myCollectionId ?? "";
 
@@ -134,53 +135,37 @@ const SideBarFoldersButtonsComponent = ({
         return;
       }
 
-      getObjectsFromFilelist<any>(files)
-        .then((objects) => {
-          if (objects.every((flow) => flow.data?.nodes)) {
-            uploadFlow({ files })
-              .then(() => {
-                setSuccessData({
-                  title: "Uploaded successfully",
-                });
-              })
-              .catch((error) => {
-                setErrorData({
-                  title: UPLOAD_ERROR_ALERT,
-                  list: [
-                    error instanceof Error ? error.message : String(error),
-                  ],
-                });
-              });
-          } else {
-            files.forEach((folder) => {
-              const formData = new FormData();
-              formData.append("file", folder);
-              mutate(
-                { formData },
-                {
-                  onSuccess: () => {
-                    setSuccessData({
-                      title: "Project uploaded successfully.",
-                    });
-                  },
-                  onError: (err) => {
-                    console.error(err);
-                    setErrorData({
-                      title: `Error on uploading your project, try dragging it into an existing project.`,
-                      list: [err["response"]["data"]["message"]],
-                    });
-                  },
-                },
-              );
+      getObjectsFromFilelist<any>(files).then((objects) => {
+        if (objects.every((flow) => flow.data?.nodes)) {
+          uploadFlow({ files }).then(() => {
+            setSuccessData({
+              title: "Uploaded successfully",
             });
-          }
-        })
-        .catch((error) => {
-          setErrorData({
-            title: UPLOAD_ERROR_ALERT,
-            list: [error instanceof Error ? error.message : String(error)],
           });
-        });
+        } else {
+          files.forEach((folder) => {
+            const formData = new FormData();
+            formData.append("file", folder);
+            mutate(
+              { formData },
+              {
+                onSuccess: () => {
+                  setSuccessData({
+                    title: "Project uploaded successfully.",
+                  });
+                },
+                onError: (err) => {
+                  console.error(err);
+                  setErrorData({
+                    title: `Error on uploading your project, try dragging it into an existing project.`,
+                    list: [err["response"]["data"]["message"]],
+                  });
+                },
+              },
+            );
+          });
+        }
+      });
     });
   };
 
@@ -291,6 +276,10 @@ const SideBarFoldersButtonsComponent = ({
   };
 
   const handleDoubleClick = (event, item) => {
+    if (item.name === defaultFolderName) {
+      return;
+    }
+
     event.stopPropagation();
     event.preventDefault();
 
@@ -393,87 +382,82 @@ const SideBarFoldersButtonsComponent = ({
           <SidebarGroupContent>
             <SidebarMenu>
               {!loading ? (
-                folders.length === 0 ? (
-                  <div className="px-2 py-5 text-center text-sm text-muted-foreground">
-                    Start creating a project or flow
-                  </div>
-                ) : (
-                  folders.map((item, index) => {
-                    const editFolderName = editFolders?.filter(
-                      (folder) => folder.name === item.name,
-                    )[0];
-                    return (
-                      <SidebarMenuItem
-                        key={index}
-                        className="group/menu-button"
-                        onMouseEnter={() => setHoveredFolderId(item.id!)}
-                        onMouseLeave={() => setHoveredFolderId(null)}
-                      >
-                        <div className="relative flex w-full">
-                          <SidebarMenuButton
-                            size="md"
-                            onDragOver={(e) => dragOver(e, item.id!)}
-                            onDragEnter={(e) => dragEnter(e, item.id!)}
-                            onDragLeave={dragLeave}
-                            onDrop={(e) => onDrop(e, item.id!)}
-                            key={item.id}
-                            data-testid={`sidebar-nav-${item.name}`}
-                            id={`sidebar-nav-${item.name}`}
-                            isActive={checkPathName(item.id!)}
-                            onClick={() => handleChangeFolder!(item.id!)}
-                            className={cn(
-                              "flex-grow pr-8",
-                              hoveredFolderId === item.id && "bg-accent",
-                              checkHoveringFolder(item.id!),
-                            )}
-                          >
-                            <div
-                              onDoubleClick={(event) => {
-                                handleDoubleClick(event, item);
-                              }}
-                              className="flex w-full items-center justify-between gap-2"
-                            >
-                              <div className="flex flex-1 items-center gap-2">
-                                {editFolderName?.edit && !isUpdatingFolder ? (
-                                  <InputEditFolderName
-                                    handleEditFolderName={handleEditFolderName}
-                                    item={item}
-                                    refInput={refInput}
-                                    handleKeyDownFn={handleKeyDownFn}
-                                    handleEditNameFolder={handleEditNameFolder}
-                                    editFolderName={editFolderName}
-                                    foldersNames={foldersNames}
-                                    handleKeyDown={handleKeyDown}
-                                  />
-                                ) : (
-                                  <span className="block w-0 grow truncate text-sm opacity-100">
-                                    {item.name}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </SidebarMenuButton>
+                folders.map((item, index) => {
+                  const editFolderName = editFolders?.filter(
+                    (folder) => folder.name === item.name,
+                  )[0];
+                  return (
+                    <SidebarMenuItem
+                      key={index}
+                      className="group/menu-button"
+                      onMouseEnter={() => setHoveredFolderId(item.id!)}
+                      onMouseLeave={() => setHoveredFolderId(null)}
+                    >
+                      <div className="relative flex w-full">
+                        <SidebarMenuButton
+                          size="md"
+                          onDragOver={(e) => dragOver(e, item.id!)}
+                          onDragEnter={(e) => dragEnter(e, item.id!)}
+                          onDragLeave={dragLeave}
+                          onDrop={(e) => onDrop(e, item.id!)}
+                          key={item.id}
+                          data-testid={`sidebar-nav-${item.name}`}
+                          id={`sidebar-nav-${item.name}`}
+                          isActive={checkPathName(item.id!)}
+                          onClick={() => handleChangeFolder!(item.id!)}
+                          className={cn(
+                            "flex-grow pr-8",
+                            hoveredFolderId === item.id && "bg-accent",
+                            checkHoveringFolder(item.id!),
+                          )}
+                        >
                           <div
-                            className="absolute right-2 top-[0.45rem] flex items-center hover:text-foreground"
-                            onClick={(e) => e.stopPropagation()}
+                            onDoubleClick={(event) => {
+                              handleDoubleClick(event, item);
+                            }}
+                            className="flex w-full items-center justify-between gap-2"
                           >
-                            <SelectOptions
-                              item={item}
-                              handleDeleteFolder={handleDeleteFolder}
-                              handleDownloadFolder={() =>
-                                handleDownloadFolder(item.id!, item.name)
-                              }
-                              handleSelectFolderToRename={
-                                handleSelectFolderToRename
-                              }
-                              checkPathName={checkPathName}
-                            />
+                            <div className="flex flex-1 items-center gap-2">
+                              {editFolderName?.edit && !isUpdatingFolder ? (
+                                <InputEditFolderName
+                                  handleEditFolderName={handleEditFolderName}
+                                  item={item}
+                                  refInput={refInput}
+                                  handleKeyDownFn={handleKeyDownFn}
+                                  handleEditNameFolder={handleEditNameFolder}
+                                  editFolderName={editFolderName}
+                                  foldersNames={foldersNames}
+                                  handleKeyDown={handleKeyDown}
+                                />
+                              ) : (
+                                <span className="block w-0 grow truncate text-sm opacity-100">
+                                  {item.name}
+                                </span>
+                              )}
+                            </div>
                           </div>
+                        </SidebarMenuButton>
+                        <div
+                          className="absolute right-2 top-[0.45rem] flex items-center hover:text-foreground"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <SelectOptions
+                            item={item}
+                            index={index}
+                            handleDeleteFolder={handleDeleteFolder}
+                            handleDownloadFolder={() =>
+                              handleDownloadFolder(item.id!, item.name)
+                            }
+                            handleSelectFolderToRename={
+                              handleSelectFolderToRename
+                            }
+                            checkPathName={checkPathName}
+                          />
                         </div>
-                      </SidebarMenuItem>
-                    );
-                  })
-                )
+                      </div>
+                    </SidebarMenuItem>
+                  );
+                })
               ) : (
                 <>
                   <SidebarFolderSkeleton />

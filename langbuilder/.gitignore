@@ -280,7 +280,7 @@ src/frontend/temp
 *.mcp.json
 
 news-aggregated.json
-.claude
+CLAUDE.md
 
 member_servers.json
 # Component index cache (user-specific)
@@ -288,6 +288,3 @@ member_servers.json
 
 # data files used for desktop registration
 data/user
-
-sso-config.yaml
-AGENTS.md

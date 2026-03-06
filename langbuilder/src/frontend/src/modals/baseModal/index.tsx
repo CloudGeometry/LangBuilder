@@ -56,36 +56,14 @@ const Trigger: React.FC<TriggerProps> = ({
   disable,
   className,
 }) => {
-  const childCount = React.Children.count(children);
-  const isEmptyFragment =
-    React.isValidElement(children) &&
-    children.type === React.Fragment &&
-    React.Children.count(
-      // children.props is unknown by default; narrow with a type guard
-      (children.props as { children?: React.ReactNode }).children,
-    ) === 0;
-
-  // Only show the trigger as “visible” when there is usable child content
-  const hasUsableChild = childCount > 0 && !isEmptyFragment;
-
-  // Ensure a valid element for Radix asChild (fragments can't receive props)
-  const triggerChild =
-    hasUsableChild &&
-    React.isValidElement(children) &&
-    children.type !== React.Fragment ? (
-      children
-    ) : (
-      <span />
-    );
-
   return (
     <DialogTrigger
       className={asChild ? "" : cn("w-full", className)}
-      hidden={!hasUsableChild}
+      hidden={children ? false : true}
       disabled={disable}
       asChild={asChild}
     >
-      {triggerChild}
+      {children}
     </DialogTrigger>
   );
 };
@@ -190,7 +168,6 @@ interface BaseModalProps {
   size?:
     | "notice"
     | "x-small"
-    | "x-small-h-full"
     | "retangular"
     | "smaller"
     | "small"
@@ -218,11 +195,8 @@ interface BaseModalProps {
   type?: "modal" | "dialog" | "full-screen";
   onSubmit?: () => void;
   onEscapeKeyDown?: (e: KeyboardEvent) => void;
-  onOpenAutoFocus?: (e: Event) => void;
   closeButtonClassName?: string;
   dialogContentWithouFixed?: boolean;
-  height?: string;
-  width?: string;
 }
 function BaseModal({
   className,
@@ -234,11 +208,8 @@ function BaseModal({
   type = "dialog",
   onSubmit,
   onEscapeKeyDown,
-  onOpenAutoFocus,
   closeButtonClassName,
   dialogContentWithouFixed = false,
-  height: customHeight,
-  width: customWidth,
 }: BaseModalProps) {
   const headerChild = React.Children.toArray(children).find(
     (child) => (child as React.ReactElement).type === Header,
@@ -269,14 +240,9 @@ function BaseModal({
     </>
   );
 
-  const customStyle: React.CSSProperties = {
-    ...(customHeight ? { height: customHeight } : {}),
-    ...(customWidth ? { width: customWidth, minWidth: customWidth } : {}),
-  };
-
   const contentClasses = cn(
-    !customWidth && minWidth,
-    !customHeight && height,
+    minWidth,
+    height,
     "flex flex-col flex-1 overflow-hidden max-h-[98dvh]",
     className,
   );
@@ -289,12 +255,7 @@ function BaseModal({
       {type === "modal" ? (
         <Modal open={open} onOpenChange={setOpen}>
           {triggerChild}
-          <ModalContent
-            className={contentClasses}
-            style={customHeight || customWidth ? customStyle : undefined}
-          >
-            {modalContent}
-          </ModalContent>
+          <ModalContent className={contentClasses}>{modalContent}</ModalContent>
         </Modal>
       ) : type === "full-screen" ? (
         <div className="min-h-full w-full flex-1 overflow-hidden">
@@ -306,11 +267,10 @@ function BaseModal({
           {dialogContentWithouFixed ? (
             <DialogContentWithouFixed
               onClick={(e) => e.stopPropagation()}
+              onOpenAutoFocus={(event) => event.preventDefault()}
               onEscapeKeyDown={onEscapeKeyDown}
-              onOpenAutoFocus={onOpenAutoFocus}
               className={contentClasses}
               closeButtonClassName={closeButtonClassName}
-              style={customHeight || customWidth ? customStyle : undefined}
             >
               {onSubmit ? (
                 <Form.Root
@@ -329,11 +289,10 @@ function BaseModal({
           ) : (
             <DialogContent
               onClick={(e) => e.stopPropagation()}
+              onOpenAutoFocus={(event) => event.preventDefault()}
               onEscapeKeyDown={onEscapeKeyDown}
-              onOpenAutoFocus={onOpenAutoFocus}
               className={contentClasses}
               closeButtonClassName={closeButtonClassName}
-              style={customHeight || customWidth ? customStyle : undefined}
             >
               {onSubmit ? (
                 <Form.Root

@@ -9,7 +9,6 @@ import {
   type SidebarSection,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { usePlaygroundStore } from "@/stores/playgroundStore";
 import { cn } from "@/utils/utils";
 import { useSearchContext } from "../index";
 
@@ -53,26 +52,13 @@ export const NAV_ITEMS: NavItem[] = [
     label: "Sticky Notes",
     tooltip: "Add Sticky Notes",
   },
-  {
-    id: "traces",
-    icon: "Activity",
-    label: "Traces",
-    tooltip: "Traces",
-  },
 ];
 
 const SidebarSegmentedNav = () => {
   const { activeSection, setActiveSection, toggleSidebar, open } = useSidebar();
   const { focusSearch, setSearch } = useSearchContext();
-  const setPlaygroundOpen = usePlaygroundStore((state) => state.setIsOpen);
-  const setPlaygroundFullscreen = usePlaygroundStore(
-    (state) => state.setIsFullscreen,
-  );
   const [isAddNoteActive, setIsAddNoteActive] = useState(false);
   const handleAddNote = () => {
-    if (activeSection === "traces") {
-      setActiveSection("components");
-    }
     window.dispatchEvent(new Event("lf:start-add-note"));
     setIsAddNoteActive(true);
   };
@@ -89,7 +75,7 @@ const SidebarSegmentedNav = () => {
         {NAV_ITEMS.map((item) => (
           <div key={item.id}>
             {item.id === "add_note" && <Separator className="w-full" />}
-            <SidebarMenuItem className="px-1 pt-1">
+            <SidebarMenuItem className="px-1">
               <ShadTooltip content={item.tooltip} side="right">
                 <SidebarMenuButton
                   size="md"
@@ -100,22 +86,9 @@ const SidebarSegmentedNav = () => {
                       return;
                     }
 
-                    if (item.id === "traces") {
-                      setPlaygroundOpen(false);
-                      setPlaygroundFullscreen(false);
-                    }
-
-                    if (isAddNoteActive) {
-                      setIsAddNoteActive(false);
-                    }
-
                     setSearch?.("");
                     if (activeSection === item.id && open) {
-                      if (item.id === "traces") {
-                        setActiveSection("components");
-                      } else {
-                        toggleSidebar();
-                      }
+                      toggleSidebar();
                     } else {
                       setActiveSection(item.id);
                       if (!open) {

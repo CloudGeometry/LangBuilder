@@ -31,7 +31,6 @@ const HomePage = ({ type }: { type: "flows" | "components" | "mcp" }) => {
   const [pageIndex, setPageIndex] = useState(1);
   const [pageSize, setPageSize] = useState(12);
   const [search, setSearch] = useState("");
-  const [isEmptyFolder, setIsEmptyFolder] = useState(true);
   const navigate = useCustomNavigate();
 
   const [flowType, setFlowType] = useState<"flows" | "components" | "mcp">(
@@ -94,15 +93,12 @@ const HomePage = ({ type }: { type: "flows" | "components" | "mcp" }) => {
     setPageIndex(1);
   }, []);
 
-  useEffect(() => {
-    const isEmpty =
-      flows?.find(
-        (flow) =>
-          flow.folder_id === (folderId ?? myCollectionId) &&
-          (ENABLE_MCP ? flow.is_component === false : true),
-      ) === undefined;
-    setIsEmptyFolder(isEmpty);
-  }, [flows, folderId, myCollectionId]);
+  const isEmptyFolder =
+    flows?.find(
+      (flow) =>
+        flow.folder_id === (folderId ?? myCollectionId) &&
+        (ENABLE_MCP ? flow.is_component === false : true),
+    ) === undefined;
 
   const handleFileDrop = useFileDrop(isEmptyFolder ? undefined : flowType);
 
@@ -319,9 +315,29 @@ const HomePage = ({ type }: { type: "flows" | "components" | "mcp" }) => {
                         ))}
                       </div>
                     )
+                  ) : flowType === "flows" ? (
+                    <div className="pt-24 text-center text-sm text-secondary-foreground">
+                      No flows in this project.{" "}
+                      <a
+                        onClick={() => setNewProjectModal(true)}
+                        className="cursor-pointer underline"
+                      >
+                        Create a new flow
+                      </a>
+                      , or browse the store.
+                    </div>
                   ) : (
                     <div className="pt-24 text-center text-sm text-secondary-foreground">
-                      {flowType} not supported
+                      No saved or custom components. Learn more about{" "}
+                      <a
+                        href="https://docs.langflow.org/components-custom-components"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="underline"
+                      >
+                        creating custom components
+                      </a>
+                      , or browse the store.
                     </div>
                   )}
                 </div>

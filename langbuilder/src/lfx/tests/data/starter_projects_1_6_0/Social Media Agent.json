@@ -1074,7 +1074,7 @@
         "data": {
           "id": "note-1Ws1d",
           "node": {
-            "description": "### Configure your Model Provider",
+            "description": "### 💡 Add your OpenAI API key here ",
             "display_name": "",
             "documentation": "",
             "template": {

@@ -20,11 +20,11 @@ test(
 
     await page.getByTestId("sidebar-custom-component-button").click();
 
-    await expect(page.getByTestId("code-button-modal").last()).toBeVisible({
+    await expect(page.getByTestId("code-button-modal")).toBeVisible({
       timeout: 3000,
     });
 
-    await expect(page.getByTestId("code-button-modal").last()).toHaveClass(
+    await expect(page.getByTestId("code-button-modal")).toHaveClass(
       /animate-pulse-pink/,
     );
 
@@ -65,7 +65,7 @@ class CustomComponent(Component):
 
     await page.getByText("Check & Save").last().click();
 
-    await expect(page.getByTestId("code-button-modal").last()).not.toHaveClass(
+    await expect(page.getByTestId("code-button-modal")).not.toHaveClass(
       /animate-pulse-pink/,
       { timeout: 3000 },
     );

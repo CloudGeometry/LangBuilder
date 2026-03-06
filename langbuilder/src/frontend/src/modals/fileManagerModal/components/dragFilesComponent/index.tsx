@@ -1,75 +1,28 @@
-import { useMemo, useRef, useState } from "react";
+import { useState } from "react";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import ShadTooltip from "@/components/common/shadTooltipComponent";
-import { createFileUpload } from "@/helpers/create-file-upload";
 import useUploadFile from "@/hooks/files/use-upload-file";
 import useAlertStore from "@/stores/alertStore";
 import { useUtilityStore } from "@/stores/utilityStore";
-import type { FileType } from "@/types/file_management";
-import { getRelativePathForServerPath } from "@/utils/file-relative-path-map";
 import { formatFileSize } from "@/utils/stringManipulation";
-
-import {
-  dedupeFolderRootIfNeeded,
-  filterFilesByTypes,
-  filterHiddenAndIgnoredFolderFiles,
-  getDroppedFilesFromDragEvent,
-  getRootFolderFromRelativePath,
-} from "./helpers";
 
 export default function DragFilesComponent({
   onUpload,
   types,
   isList,
-  allowFolderSelection = false,
-  existingFiles,
 }: {
   onUpload: (filesPaths: string[]) => void;
   types: string[];
   isList: boolean;
-  allowFolderSelection?: boolean;
-  existingFiles?: FileType[];
 }) {
   const [isDragging, setIsDragging] = useState(false);
-
-  const sessionUsedFolderRootsRef = useRef<Set<string>>(new Set());
-
-  const existingFolderRoots = useMemo(() => {
-    const roots = new Set<string>();
-    for (const file of existingFiles ?? []) {
-      const relativePath =
-        getRelativePathForServerPath(file.path) ??
-        file.file?.webkitRelativePath;
-      const root = getRootFolderFromRelativePath(relativePath);
-      if (root) roots.add(root);
-    }
-    return roots;
-  }, [existingFiles]);
-  const uploadFiles = useUploadFile({
+  const uploadFile = useUploadFile({
     types,
     multiple: isList,
-    webkitdirectory: false,
-  });
-  const uploadFolder = useUploadFile({
-    types,
-    multiple: true,
-    webkitdirectory: true,
   });
   const maxFileSizeUpload = useUtilityStore((state) => state.maxFileSizeUpload);
   const setErrorData = useAlertStore((state) => state.setErrorData);
   const setSuccessData = useAlertStore((state) => state.setSuccessData);
-
-  const shouldTreatDropAsFolder = (args: {
-    hasDirectories: boolean;
-    files: File[];
-  }) => {
-    if (!allowFolderSelection) return false;
-    if (args.hasDirectories) return true;
-    // Some browsers may not flag hasDirectories but still provide webkitRelativePath.
-    return args.files.some((file) =>
-      Boolean(getRootFolderFromRelativePath(file.webkitRelativePath)),
-    );
-  };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -95,57 +48,12 @@ export default function DragFilesComponent({
     e.stopPropagation();
     setIsDragging(false);
 
-    let droppedFiles = Array.from(e.dataTransfer.files);
-    let hasDirectories = false;
-
-    try {
-      const resolved = await getDroppedFilesFromDragEvent(e);
-      droppedFiles = resolved.files;
-      hasDirectories = resolved.hasDirectories;
-    } catch {
-      droppedFiles = Array.from(e.dataTransfer.files);
-    }
-
+    const droppedFiles = Array.from(e.dataTransfer.files);
     if (droppedFiles.length > 0) {
       try {
-        const shouldTreatAsFolder = shouldTreatDropAsFolder({
-          hasDirectories,
+        const filesIds = await uploadFile({
           files: droppedFiles,
         });
-
-        if (shouldTreatAsFolder) {
-          const hiddenFiltered =
-            filterHiddenAndIgnoredFolderFiles(droppedFiles);
-          const typeFiltered = filterFilesByTypes(
-            hiddenFiltered.filtered,
-            types,
-          );
-          const deduped = dedupeFolderRootIfNeeded({
-            files: typeFiltered,
-            existingRoots: new Set([
-              ...Array.from(existingFolderRoots),
-              ...Array.from(sessionUsedFolderRootsRef.current),
-            ]),
-            renameOnCollision: true,
-          });
-
-          const finalRootName = deduped.renamedRootName ?? deduped.rootName;
-          if (finalRootName) {
-            sessionUsedFolderRootsRef.current.add(finalRootName);
-          }
-
-          droppedFiles = deduped.files;
-        }
-
-        if (shouldTreatAsFolder && droppedFiles.length > 1000) {
-          throw new Error(
-            `Too many files detected (${droppedFiles.length}). This likely includes large/hidden directories. Please drop a smaller folder or exclude folders like node_modules.`,
-          );
-        }
-
-        const filesIds = shouldTreatAsFolder
-          ? await uploadFolder({ files: droppedFiles })
-          : await uploadFiles({ files: droppedFiles });
         if (filesIds.length > 0) {
           onUpload(filesIds);
           setSuccessData({
@@ -163,56 +71,9 @@ export default function DragFilesComponent({
     }
   };
 
-  const handleSelectFolder = async () => {
+  const handleClick = async () => {
     try {
-      const selected = await createFileUpload({
-        accept: types?.map((type) => `.${type}`).join(",") ?? "",
-        multiple: true,
-        webkitdirectory: true,
-      });
-
-      if (selected.length > 1000) {
-        throw new Error(
-          `Too many files detected (${selected.length}). This likely includes large/hidden directories. Please select a smaller folder or exclude folders like node_modules.`,
-        );
-      }
-
-      const hiddenFiltered = filterHiddenAndIgnoredFolderFiles(selected);
-      const typeFiltered = filterFilesByTypes(hiddenFiltered.filtered, types);
-      const deduped = dedupeFolderRootIfNeeded({
-        files: typeFiltered,
-        existingRoots: new Set([
-          ...Array.from(existingFolderRoots),
-          ...Array.from(sessionUsedFolderRootsRef.current),
-        ]),
-        renameOnCollision: true,
-      });
-
-      const finalRootName = deduped.renamedRootName ?? deduped.rootName;
-      if (finalRootName) {
-        sessionUsedFolderRootsRef.current.add(finalRootName);
-      }
-
-      // When merging into an existing folder, we intentionally do not show a rename toast.
-
-      const filesIds = await uploadFolder({ files: deduped.files });
-      if (filesIds.length > 0) {
-        onUpload(filesIds);
-        setSuccessData({
-          title: `File${filesIds.length > 1 ? "s" : ""} uploaded successfully`,
-        });
-      }
-    } catch (error: any) {
-      setErrorData({
-        title: "Error uploading file",
-        list: [error.message || "An error occurred while uploading the file"],
-      });
-    }
-  };
-
-  const handleSelectFiles = async () => {
-    try {
-      const filesIds = await uploadFiles({});
+      const filesIds = await uploadFile({});
       if (filesIds.length > 0) {
         onUpload(filesIds);
         setSuccessData({
@@ -237,42 +98,16 @@ export default function DragFilesComponent({
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        onClick={handleSelectFiles}
+        onClick={handleClick}
         data-testid="drag-files-component"
         role="button"
         tabIndex={0}
       >
         <h3 className="text-sm font-semibold">
-          {isDragging
-            ? allowFolderSelection
-              ? "Drop files or folders here"
-              : "Drop files here"
-            : allowFolderSelection
-              ? "Click to select files (or drop a folder)"
-              : "Click or drag files here"}
+          {isDragging ? "Drop files here" : "Click or drag files here"}
         </h3>
-        {allowFolderSelection && (
-          <div className="text-xs text-muted-foreground text-center max-w-md space-y-2">
-            <p>Drag-and-drop supports both individual files and folders.</p>
-            <p className="text-amber-600 dark:text-amber-400 font-medium">
-              ⚠️ Avoid folders with large hidden directories (.mypy_cache, .git,
-              node_modules, etc.)
-            </p>
-            <button
-              type="button"
-              className="text-xs underline underline-offset-4 text-foreground/80 hover:text-foreground"
-              onClick={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                handleSelectFolder();
-              }}
-            >
-              Select a folder instead
-            </button>
-          </div>
-        )}
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1">
+        <p className="flex items-center gap-2 text-xs text-muted-foreground">
+          <div className="flex items-center gap-1">
             <span>{types.slice(0, 3).join(", ")}</span>
             {types.length > 3 && (
               <ShadTooltip content={types.slice(3).toSorted().join(", ")}>
@@ -285,11 +120,11 @@ export default function DragFilesComponent({
                 </span>
               </ShadTooltip>
             )}
-          </span>
+          </div>
           <span className="font-semibold">
             {formatFileSize(maxFileSizeUpload)} max
           </span>
-        </div>
+        </p>
         <div className="pointer-events-none absolute inset-0 h-full w-full">
           <svg
             width="100%"

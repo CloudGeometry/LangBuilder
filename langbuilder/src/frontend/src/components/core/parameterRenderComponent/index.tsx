@@ -1,6 +1,5 @@
 import type { handleOnNewValueType } from "@/CustomNodes/hooks/use-handle-new-value";
 import CodeAreaComponent from "@/components/core/parameterRenderComponent/components/codeAreaComponent";
-import ModelInputComponent from "@/components/core/parameterRenderComponent/components/modelInputComponent";
 import SliderComponent from "@/components/core/parameterRenderComponent/components/sliderComponent";
 import TableNodeComponent from "@/components/core/parameterRenderComponent/components/TableNodeComponent";
 import TabComponent from "@/components/core/parameterRenderComponent/components/tabComponent";
@@ -8,9 +7,7 @@ import { TEXT_FIELD_TYPES } from "@/constants/constants";
 import CustomConnectionComponent from "@/customization/components/custom-connectionComponent";
 import CustomInputFileComponent from "@/customization/components/custom-input-file";
 import CustomLinkComponent from "@/customization/components/custom-linkComponent";
-import { ENABLE_INSPECTION_PANEL } from "@/customization/feature-flags";
 import type { APIClassType, InputFieldType } from "@/types/api";
-import AccordionPromptComponent from "./components/accordionPromptComponent";
 import DictComponent from "./components/dictComponent";
 import { EmptyParameterComponent } from "./components/emptyParameterComponent";
 import FloatComponent from "./components/floatComponent";
@@ -19,7 +16,6 @@ import IntComponent from "./components/intComponent";
 import KeypairListComponent from "./components/keypairListComponent";
 import McpComponent from "./components/mcpComponent";
 import MultiselectComponent from "./components/multiselectComponent";
-import MustachePromptAreaComponent from "./components/mustachePromptComponent";
 import PromptAreaComponent from "./components/promptComponent";
 import QueryComponent from "./components/queryComponent";
 import SortableListComponent from "./components/sortableListComponent";
@@ -35,8 +31,6 @@ export function ParameterRenderComponent({
   templateData,
   templateValue,
   editNode,
-  showParameter,
-  inspectionPanel = false,
   handleNodeClass,
   nodeClass,
   disabled,
@@ -52,8 +46,6 @@ export function ParameterRenderComponent({
   templateData: Partial<InputFieldType>;
   templateValue: any;
   editNode: boolean;
-  showParameter: boolean;
-  inspectionPanel: boolean;
   handleNodeClass: (value: any, code?: string, type?: string) => void;
   nodeClass: APIClassType;
   disabled: boolean;
@@ -61,7 +53,6 @@ export function ParameterRenderComponent({
   isToolMode?: boolean;
   nodeInformationMetadata?: NodeInfoType;
 }) {
-  // no-op
   const id = (
     templateData.type +
     "_" +
@@ -81,12 +72,10 @@ export function ParameterRenderComponent({
       nodeId,
       helperText: templateData?.helper_text,
       readonly: templateData.readonly,
-      placeholder: placeholder || templateData?.placeholder,
+      placeholder,
       isToolMode,
       nodeInformationMetadata,
       hasRefreshButton: templateData.refresh_button,
-      showParameter,
-      inspectionPanel,
     };
 
     if (TEXT_FIELD_TYPES.includes(templateData.type ?? "")) {
@@ -168,15 +157,14 @@ export function ParameterRenderComponent({
           <FloatComponent
             {...baseInputProps}
             id={`float_${id}`}
-            rangeSpec={templateData.rangeSpec ?? templateData.range_spec}
+            rangeSpec={templateData.range_spec}
           />
         );
       case "int":
         return (
           <IntComponent
             {...baseInputProps}
-            name={name}
-            rangeSpec={templateData.rangeSpec ?? templateData.range_spec}
+            rangeSpec={templateData.range_spec}
             id={`int_${id}`}
           />
         );
@@ -192,36 +180,12 @@ export function ParameterRenderComponent({
           />
         );
       case "prompt":
-        return ENABLE_INSPECTION_PANEL && !baseInputProps.editNode ? (
-          <AccordionPromptComponent
-            {...baseInputProps}
-            readonly={!!nodeClass.flow}
-            field_name={name}
-            id={`promptarea_${id}`}
-          />
-        ) : (
+        return (
           <PromptAreaComponent
             {...baseInputProps}
             readonly={!!nodeClass.flow}
             field_name={name}
             id={`promptarea_${id}`}
-          />
-        );
-      case "mustache":
-        return ENABLE_INSPECTION_PANEL && !baseInputProps.editNode ? (
-          <AccordionPromptComponent
-            {...baseInputProps}
-            readonly={!!nodeClass.flow}
-            field_name={name}
-            id={`mustachepromptarea_${id}`}
-            isDoubleBrackets={true}
-          />
-        ) : (
-          <MustachePromptAreaComponent
-            {...baseInputProps}
-            readonly={!!nodeClass.flow}
-            field_name={name}
-            id={`mustachepromptarea_${id}`}
           />
         );
       case "code":
@@ -256,7 +220,7 @@ export function ParameterRenderComponent({
           <SliderComponent
             {...baseInputProps}
             value={templateValue}
-            rangeSpec={templateData.rangeSpec ?? templateData.range_spec}
+            rangeSpec={templateData.range_spec}
             minLabel={templateData?.min_label}
             maxLabel={templateData?.max_label}
             minLabelIcon={templateData?.min_label_icon}
@@ -276,7 +240,6 @@ export function ParameterRenderComponent({
             options={templateData?.options}
             searchCategory={templateData?.search_category}
             limit={templateData?.limit}
-            id={`sortablelist_${id}`}
           />
         );
       case "connect": {
@@ -326,15 +289,6 @@ export function ParameterRenderComponent({
             editNode={editNode}
             disabled={disabled}
             value={templateValue}
-          />
-        );
-      case "model":
-        return (
-          <ModelInputComponent
-            {...baseInputProps}
-            options={templateData?.options || []}
-            placeholder={templateData?.placeholder}
-            externalOptions={templateData?.external_options}
           />
         );
       default:

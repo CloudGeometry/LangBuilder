@@ -64,8 +64,6 @@ test(
         targetPosition: { x: 500, y: 100 },
       });
 
-    await adjustScreenView(page, { numberOfZoomOut: 3 });
-
     // Add Parse Data component
     await page.getByTestId("sidebar-search-input").click();
     await page.getByTestId("sidebar-search-input").fill("Parser");
@@ -76,7 +74,7 @@ test(
     await page
       .getByTestId("processingParser")
       .dragTo(page.locator('//*[@id="react-flow-id"]'), {
-        targetPosition: { x: 600, y: 200 },
+        targetPosition: { x: 720, y: 100 },
       });
 
     //This one is for testing the wrong loop message
@@ -89,7 +87,7 @@ test(
     await page
       .getByTestId("files_and_knowledgeRead File")
       .dragTo(page.locator('//*[@id="react-flow-id"]'), {
-        targetPosition: { x: 600, y: 400 },
+        targetPosition: { x: 720, y: 400 },
       });
 
     const _loopItemInput = await page
@@ -108,7 +106,7 @@ test(
     await page
       .getByTestId("input_outputChat Output")
       .dragTo(page.locator('//*[@id="react-flow-id"]'), {
-        targetPosition: { x: 200, y: 100 },
+        targetPosition: { x: 940, y: 100 },
       });
 
     await adjustScreenView(page, { numberOfZoomOut: 3 });
@@ -157,6 +155,7 @@ test(
 
     await page.getByTestId("canvas_controls_dropdown").click();
 
+    await zoomOut(page, 2);
     await page.getByTestId("canvas_controls_dropdown").click({ force: true });
 
     await page.getByTestId("div-generic-node").nth(5).click();
@@ -173,12 +172,9 @@ test(
       .getByTestId("inputlist_str_urls_1")
       .fill("https://en.wikipedia.org/wiki/Human_intelligence");
 
-    await page.getByTestId("title-Data Operations").click();
+    await page.getByTestId("div-generic-node").nth(2).click();
 
-    await page.waitForTimeout(1000);
-
-    // Click on the "Select Operation" text/button in the Data Operations component
-    await page.getByText("Select Operation").click();
+    await page.getByTestId("button_open_list_selection").click();
 
     await page.getByTestId("list_item_append_or_update").click();
 

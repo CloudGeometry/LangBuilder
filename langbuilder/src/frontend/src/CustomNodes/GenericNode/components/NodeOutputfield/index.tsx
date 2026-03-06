@@ -27,7 +27,6 @@ import {
   scapedJSONStringfy,
   scapeJSONParse,
 } from "../../../../utils/reactflowUtils";
-import { nodeColorsName } from "../../../../utils/styleUtils";
 import {
   cn,
   logFirstMessage,
@@ -35,6 +34,7 @@ import {
   logTypeIsError,
   logTypeIsUnknown,
 } from "../../../../utils/utils";
+import { nodeColorsName } from "../../../../utils/styleUtils";
 import HandleRenderComponent from "../handleRenderComponent";
 import OutputComponent from "../OutputComponent";
 import OutputModal from "../outputModal";
@@ -305,9 +305,7 @@ function NodeOutputField({
           colors={colors}
           setFilterEdge={setFilterEdge}
           showNode={showNode}
-          testIdComplement={`${data?.type?.toLowerCase()}-${
-            showNode ? "shownode" : "noshownode"
-          }`}
+          testIdComplement={`${data?.type?.toLowerCase()}-${showNode ? "shownode" : "noshownode"}`}
           colorName={loopInputColorName}
         />
       );
@@ -337,14 +335,8 @@ function NodeOutputField({
         colors={colors}
         setFilterEdge={setFilterEdge}
         showNode={showNode}
-        testIdComplement={`${data?.type?.toLowerCase()}-${
-          showNode ? "shownode" : "noshownode"
-        }`}
-        colorName={
-          data.node?.outputs?.[index].allows_loop
-            ? loopInputColorName
-            : colorName
-        }
+        testIdComplement={`${data?.type?.toLowerCase()}-${showNode ? "shownode" : "noshownode"}`}
+        colorName={colorName}
       />
     ),
     [
@@ -358,16 +350,11 @@ function NodeOutputField({
       showNode,
       data?.type,
       colorName,
-      data.node?.outputs?.[index].allows_loop,
-      loopInputColorName,
-      index,
     ],
   );
 
   const disabledInspectButton =
     !displayOutputPreview || unknownOutput || emptyOutput;
-
-  const memoizedType = useMemo(() => type?.split("|") ?? [], [type]);
 
   if (!showHiddenOutputs && hidden) return <></>;
   if (!showNode) return <>{Handle}</>;
@@ -403,7 +390,7 @@ function NodeOutputField({
               proxy={outputProxy}
               outputs={outputs}
               idx={index}
-              types={memoizedType}
+              types={type?.split("|") ?? []}
               selected={
                 data.node?.outputs![index].selected ??
                 data.node?.outputs![index].types[0] ??

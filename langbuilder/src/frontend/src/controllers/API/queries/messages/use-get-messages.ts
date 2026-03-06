@@ -1,6 +1,7 @@
 import { keepPreviousData } from "@tanstack/react-query";
 import type { ColDef, ColGroupDef } from "ag-grid-community";
 import useFlowStore from "@/stores/flowStore";
+import { useMessagesStore } from "@/stores/messagesStore";
 import type { useQueryFunctionType } from "../../../../types/api";
 import {
   extractColumnsFromRows,
@@ -56,7 +57,7 @@ export const useGetMessagesQuery: useQueryFunctionType<
   const responseFn = async () => {
     const data = await getMessagesFn(id, params);
     const columns = extractColumnsFromRows(data.data, mode, excludedFields);
-    // React Query cache is the source of truth, no need to update store
+    useMessagesStore.getState().setMessages(data.data);
     return { rows: data, columns };
   };
 

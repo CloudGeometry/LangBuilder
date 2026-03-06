@@ -15,8 +15,7 @@ export default function McpComponent({
   handleOnNewValue,
   editNode = false,
   id = "",
-  showParameter = true,
-}: InputProps<string, any>): JSX.Element | null {
+}: InputProps<string, any>): JSX.Element {
   const [open, setOpen] = useState(false);
   const { data: mcpServers } = useGetMCPServers({ withCounts: true });
   const { mutate: addMcpServer } = useAddMCPServer();
@@ -132,10 +131,6 @@ export default function McpComponent({
     );
   }, [selectedOption, config]);
 
-  if (!showParameter) {
-    return null;
-  }
-
   return (
     <div className="flex w-full flex-col gap-2">
       {options == null || options.length > 0 || showSaveButton ? (
@@ -192,11 +187,7 @@ export default function McpComponent({
           )}
         </div>
       ) : (
-        <Button
-          size="sm"
-          onClick={handleAddButtonClick}
-          data-testid="add-mcp-server-simple-button"
-        >
+        <Button size="sm" onClick={handleAddButtonClick}>
           <span>Add MCP Server</span>
         </Button>
       )}

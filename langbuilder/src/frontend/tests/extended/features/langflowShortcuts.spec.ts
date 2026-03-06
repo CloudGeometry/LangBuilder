@@ -27,10 +27,9 @@ test(
     await page.mouse.down();
 
     await adjustScreenView(page);
-    await adjustScreenView(page, { numberOfZoomOut: 2 });
-
     await page.getByTestId("generic-node-title-arrangement").click();
-    await expect(page.getByTestId("panel-description")).toBeVisible();
+    await page.keyboard.press(`ControlOrMeta+Shift+A`);
+    await page.getByText("Close").last().click();
 
     await page.getByTestId("generic-node-title-arrangement").click();
     await page.keyboard.press(`ControlOrMeta+d`);

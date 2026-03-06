@@ -21,11 +21,7 @@ import type { APIClassType, InputFieldType } from "@/types/api";
 interface NodeDialogProps {
   open: boolean;
   onClose: () => void;
-  onCreated?: (value: string) => void;
-  dialogInputs: {
-    fields: { data: { node: APIClassType } };
-    functionality: string;
-  };
+  dialogInputs: any;
   nodeId: string;
   name: string;
   nodeClass: APIClassType;
@@ -34,7 +30,6 @@ interface NodeDialogProps {
 export const NodeDialog: React.FC<NodeDialogProps> = ({
   open,
   onClose,
-  onCreated,
   dialogInputs,
   nodeId,
   name,
@@ -158,8 +153,6 @@ export const NodeDialog: React.FC<NodeDialogProps> = ({
       setSuccessData({
         title: `Knowledge Base "${knowledgeBaseName}" created successfully!`,
       });
-
-      onCreated?.(knowledgeBaseName);
     }
 
     // Only close dialog after success and delay for Astra database tracking

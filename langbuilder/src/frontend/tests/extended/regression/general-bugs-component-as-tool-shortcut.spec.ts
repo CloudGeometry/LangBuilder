@@ -42,11 +42,11 @@ test(
 
     await page.getByTestId("title-Prompt Template").click();
 
-    await expect(page.getByTestId("code-button-modal").last()).toBeVisible({
+    await page.waitForSelector('[data-testid="code-button-modal"]', {
       timeout: 3000,
     });
 
-    await page.getByTestId("code-button-modal").last().click();
+    await page.getByTestId("code-button-modal").click();
 
     const code = await extractAndCleanCode(page);
     const updatedCode = code!.replace("tool_mode=True", "tool_mode=False");

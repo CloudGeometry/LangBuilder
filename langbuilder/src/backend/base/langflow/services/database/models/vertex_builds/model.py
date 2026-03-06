@@ -16,7 +16,6 @@ class VertexBuildBase(SQLModel):
     params: str | None = Field(default=None, sa_column=Column(Text, nullable=True))
     valid: bool = Field(nullable=False)
     flow_id: UUID = Field()
-    job_id: UUID | None = Field(default=None, index=True)
 
     # Needed for Column(JSON)
     class Config:

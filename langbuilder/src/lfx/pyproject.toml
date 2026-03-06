@@ -1,6 +1,6 @@
 [project]
 name = "lfx"
-version = "0.3.0"
+version = "0.2.2"
 description = "Langflow Executor - A lightweight CLI tool for executing and serving Langflow AI flows"
 readme = "README.md"
 authors = [
@@ -41,9 +41,6 @@ dependencies = [
     "validators>=0.34.0,<1.0.0",
     "filelock>=3.20.1,<4.0.0",
     "pypdf>=6.4.0,<7.0.0",
-    "cryptography>=43.0.0",
-    "ag-ui-protocol>=0.1.10",
-    "markitdown>=0.1.4,<2.0.0",
     "setuptools>=80.0.0,<81.0.0",
     "wheel>=0.46.2,<1.0.0",
 ]
@@ -97,7 +94,6 @@ omit = [
     "*/tests/*",
     "*/__init__.py",
     "*/components/*",  # Third-party integrations tracked separately
-    "*/schema/workflow.py",  # Schema definitions don't require test coverage
 ]
 
 [tool.coverage.report]

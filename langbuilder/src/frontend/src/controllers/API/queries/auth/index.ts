@@ -1,5 +1,4 @@
 export * from "./use-delete-users";
-export * from "./use-get-auth-session";
 export * from "./use-get-autologin";
 export * from "./use-get-user";
 export * from "./use-get-users-page";

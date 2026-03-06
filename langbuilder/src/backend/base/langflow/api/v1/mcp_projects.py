@@ -62,8 +62,8 @@ from langflow.api.v1.schemas import (
     MCPProjectUpdateRequest,
     MCPSettings,
 )
-from langflow.services.auth.constants import AUTO_LOGIN_WARNING
 from langflow.services.auth.mcp_encryption import decrypt_auth_settings, encrypt_auth_settings
+from langflow.services.auth.utils import AUTO_LOGIN_WARNING
 from langflow.services.database.models import Flow, Folder
 from langflow.services.database.models.api_key.crud import check_key, create_api_key
 from langflow.services.database.models.api_key.model import ApiKey, ApiKeyCreate
@@ -135,7 +135,7 @@ async def verify_project_auth(
     # For MCP endpoints, always fall back to username lookup when no API key is provided
     result = await get_user_by_username(db, settings_service.auth_settings.SUPERUSER)
     if result:
-        logger.warning(AUTO_LOGIN_WARNING)
+        await logger.awarning(AUTO_LOGIN_WARNING)
         return result
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,
@@ -312,6 +312,7 @@ async def list_project_tools(
 @router.head(
     "/{project_id}/sse",
     response_class=HTMLResponse,
+    include_in_schema=False,
     dependencies=[Depends(raise_error_if_astra_cloud_env)],
 )
 async def im_alive(project_id: str):  # noqa: ARG001
@@ -415,7 +416,7 @@ async def handle_project_messages(
 ########################################################
 
 
-@router.head("/{project_id}/streamable")
+@router.head("/{project_id}/streamable", include_in_schema=False)
 async def streamable_health(project_id: UUID):  # noqa: ARG001
     return Response()
 
@@ -1296,7 +1297,7 @@ class ProjectTaskGroup:
     otherwise Asyncio will raise a RuntimeError.
     """
 
-    def __init__(self) -> None:
+    def __init__(self):
         self._started = False
         self._start_stop_lock = anyio.Lock()
         self._task_group: TaskGroup | None = None

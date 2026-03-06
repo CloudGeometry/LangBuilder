@@ -10,9 +10,8 @@ export default function TabComponent({
   handleOnNewValue,
   disabled,
   options = [],
-  showParameter = true,
   ...baseInputProps
-}: InputProps<string, TabComponentType>): JSX.Element | null {
+}: InputProps<string, TabComponentType>) {
   const [activeTab, setActiveTab] = useState<string>(value || "");
 
   // Update the active tab when the component props change
@@ -35,10 +34,6 @@ export default function TabComponent({
   const validOptions = options
     .slice(0, 3)
     .map((tab) => (tab.length > 20 ? tab.substring(0, 20) : tab));
-
-  if (!showParameter) {
-    return null;
-  }
 
   return (
     <div className="w-full">

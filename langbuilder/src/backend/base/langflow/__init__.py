@@ -5,15 +5,11 @@ langflow.* to lfx.* to maintain compatibility with existing code that
 references the old langflow module structure.
 """
 
-from langflow.helpers.windows_postgres_helper import configure_windows_postgres_event_loop
-
-configure_windows_postgres_event_loop(source="package_init")
-
-import importlib  # noqa: E402
-import importlib.util  # noqa: E402
-import sys  # noqa: E402
-from types import ModuleType  # noqa: E402
-from typing import Any  # noqa: E402
+import importlib
+import importlib.util
+import sys
+from types import ModuleType
+from typing import Any
 
 
 class LangflowCompatibilityModule(ModuleType):

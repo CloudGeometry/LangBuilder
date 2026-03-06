@@ -26,8 +26,7 @@ export default function TableNodeComponent({
   trigger_icon = "Table",
   trigger_text = "Open Table",
   table_icon,
-  showParameter = true,
-}: InputProps<any[], TableComponentType>): JSX.Element | null {
+}: InputProps<any[], TableComponentType>): JSX.Element {
   const dataTypeDefinitions: {
     [cellDataType: string]: DataTypeDefinition<any>;
   } = useMemo(() => {
@@ -230,10 +229,6 @@ export default function TableNodeComponent({
       });
     }
     return [];
-  }
-
-  if (!showParameter) {
-    return null;
   }
 
   return (

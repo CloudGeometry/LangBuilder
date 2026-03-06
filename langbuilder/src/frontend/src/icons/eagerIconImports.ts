@@ -52,13 +52,12 @@ import { HCDIcon } from "@/icons/HCD";
 import { HomeAssistantIcon } from "@/icons/HomeAssistant";
 import { HuggingFaceIcon } from "@/icons/HuggingFace";
 import { HackerNewsIcon } from "@/icons/hackerNews";
-import { IBMIcon, WatsonxAiIcon } from "@/icons/IBM";
+import { WatsonxAiIcon } from "@/icons/IBMWatsonx";
 import { IcosaIcon } from "@/icons/Icosa";
 import { IFixIcon } from "@/icons/IFixIt";
 import { JSIcon } from "@/icons/JSicon";
 import { LangChainIcon } from "@/icons/LangChain";
 import { LangwatchIcon } from "@/icons/Langwatch";
-import { LiteLLMIcon } from "@/icons/LiteLLM";
 import { LMStudioIcon } from "@/icons/LMStudio";
 import { MaritalkIcon } from "@/icons/Maritalk";
 import { Mem0 } from "@/icons/Mem0";
@@ -108,21 +107,18 @@ import { UpstashSvgIcon } from "@/icons/Upstash";
 import { VectaraIcon } from "@/icons/VectaraIcon";
 import { VertexAIIcon } from "@/icons/VertexAI";
 import { VLMRunIcon } from "@/icons/VLMRun";
-import { VllmIcon } from "@/icons/vLLM";
 import { WeaviateIcon } from "@/icons/Weaviate";
 import { WikipediaIcon } from "@/icons/Wikipedia";
 import { WolframIcon } from "@/icons/Wolfram";
 import { XAIIcon } from "@/icons/xAI";
-import { YoutubeIcon as YouTubeIcon } from "@/icons/Youtube";
+import { YouTubeSvgIcon as YouTubeIcon } from "@/icons/Youtube";
 import { ZepMemoryIcon } from "@/icons/ZepMemory";
 import { JigsawStackIcon } from "./JigsawStack";
 import { WindsurfIcon } from "./Windsurf";
-import { AgenticsIcon } from "./Agentics";
 
 // Export the eagerly loaded icons map
 export const eagerIconsMapping = {
   AIML: AIMLIcon,
-  Agentics: AgenticsIcon,
   AgentQL: AgentQLIcon,
   Airbyte: AirbyteIcon,
   Anthropic: AnthropicIcon,
@@ -175,14 +171,12 @@ export const eagerIconsMapping = {
   HCD: HCDIcon,
   HomeAssistant: HomeAssistantIcon,
   HuggingFace: HuggingFaceIcon,
-  IBM: IBMIcon,
   Icosa: IcosaIcon,
   IFixIt: IFixIcon,
   javascript: JSIcon,
   JigsawStack: JigsawStackIcon,
   LangChain: LangChainIcon,
   Langwatch: LangwatchIcon,
-  LiteLLM: LiteLLMIcon,
   LMStudio: LMStudioIcon,
   Maritalk: MaritalkIcon,
   Mem0: Mem0,
@@ -233,7 +227,6 @@ export const eagerIconsMapping = {
   Upstash: UpstashSvgIcon,
   Vectara: VectaraIcon,
   VertexAI: VertexAIIcon,
-  vLLM: VllmIcon,
   WatsonxAI: WatsonxAiIcon,
   Weaviate: WeaviateIcon,
   Wikipedia: WikipediaIcon,

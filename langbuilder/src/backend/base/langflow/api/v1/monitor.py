@@ -12,8 +12,8 @@ from langflow.schema.message import MessageResponse
 from langflow.services.auth.utils import get_current_active_user
 from langflow.services.database.models.flow.model import Flow
 from langflow.services.database.models.message.model import MessageRead, MessageTable, MessageUpdate
-from langflow.services.database.models.transactions.crud import transform_transaction_table_for_logs
-from langflow.services.database.models.transactions.model import TransactionLogsResponse, TransactionTable
+from langflow.services.database.models.transactions.crud import transform_transaction_table
+from langflow.services.database.models.transactions.model import TransactionTable
 from langflow.services.database.models.user.model import User
 from langflow.services.database.models.vertex_builds.crud import (
     delete_vertex_builds_by_flow_id,
@@ -48,11 +48,12 @@ async def get_message_sessions(
     flow_id: Annotated[UUID | None, Query()] = None,
 ) -> list[str]:
     try:
-        # Use JOIN instead of subquery for better performance
         stmt = select(MessageTable.session_id).distinct()
-        stmt = stmt.join(Flow, MessageTable.flow_id == Flow.id)
         stmt = stmt.where(col(MessageTable.session_id).isnot(None))
-        stmt = stmt.where(Flow.user_id == current_user.id)
+
+        # Filter by user's flows
+        user_flows_stmt = select(Flow.id).where(Flow.user_id == current_user.id)
+        stmt = stmt.where(col(MessageTable.flow_id).in_(user_flows_stmt))
 
         if flow_id:
             stmt = stmt.where(MessageTable.flow_id == flow_id)
@@ -74,10 +75,11 @@ async def get_messages(
     order_by: Annotated[str | None, Query()] = "timestamp",
 ) -> list[MessageResponse]:
     try:
-        # Use JOIN instead of subquery for better performance
         stmt = select(MessageTable)
-        stmt = stmt.join(Flow, MessageTable.flow_id == Flow.id)
-        stmt = stmt.where(Flow.user_id == current_user.id)
+
+        # Filter by user's flows
+        user_flows_stmt = select(Flow.id).where(Flow.user_id == current_user.id)
+        stmt = stmt.where(col(MessageTable.flow_id).in_(user_flows_stmt))
 
         if flow_id:
             stmt = stmt.where(MessageTable.flow_id == flow_id)
@@ -193,12 +195,12 @@ async def get_transactions(
     flow_id: Annotated[UUID, Query()],
     session: DbSession,
     params: Annotated[Params | None, Depends(custom_params)],
-) -> Page[TransactionLogsResponse]:
+) -> Page[TransactionTable]:
     try:
         stmt = (
             select(TransactionTable)
             .where(TransactionTable.flow_id == flow_id)
-            .order_by(col(TransactionTable.timestamp).desc())
+            .order_by(col(TransactionTable.timestamp))
         )
         import warnings
 
@@ -206,6 +208,6 @@ async def get_transactions(
             warnings.filterwarnings(
                 "ignore", category=DeprecationWarning, module=r"fastapi_pagination\.ext\.sqlalchemy"
             )
-            return await apaginate(session, stmt, params=params, transformer=transform_transaction_table_for_logs)
+            return await apaginate(session, stmt, params=params, transformer=transform_transaction_table)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e

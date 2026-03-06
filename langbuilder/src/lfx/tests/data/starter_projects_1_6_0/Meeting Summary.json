@@ -2047,7 +2047,7 @@
         "data": {
           "id": "note-KvTWl",
           "node": {
-            "description": "### Configure your Model Provider",
+            "description": "### 💡 Add your OpenAI API key here",
             "display_name": "",
             "documentation": "",
             "template": {
@@ -2076,7 +2076,7 @@
         "data": {
           "id": "note-cvsjg",
           "node": {
-            "description": "### Configure your Model Provider",
+            "description": "### 💡 Add your OpenAI API key here",
             "display_name": "",
             "documentation": "",
             "template": {

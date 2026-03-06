@@ -110,9 +110,9 @@ test(
 
     await page.getByTestId("dropdown-option-0-container").click();
 
-    await page.getByTestId(/^textarea_str_chatinput.*/).click();
+    await page.getByPlaceholder("Type something...").click();
     await page
-      .getByTestId(/^textarea_str_chatinput.*/)
+      .getByPlaceholder("Type something...")
       .fill("THIS IS A TEST FOR RUN FLOW COMPONENT");
 
     await page.getByTestId("button_run_run flow").click();
@@ -120,12 +120,7 @@ test(
       timeout: 30000,
     });
 
-    // Wait for and click the output inspection button using partial match
-    await page.waitForSelector('[data-testid^="output-inspection-"]', {
-      timeout: 30000,
-    });
-
-    await page.locator('[data-testid^="output-inspection-"]').first().click();
+    await page.getByTestId("icon-TextSearchIcon").click();
 
     const value = await page.getByPlaceholder("Empty").inputValue();
 

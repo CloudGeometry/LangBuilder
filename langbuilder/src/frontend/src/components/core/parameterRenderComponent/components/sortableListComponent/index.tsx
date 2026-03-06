@@ -1,5 +1,4 @@
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
-import { isEqual } from "lodash";
 import { ReactSortable } from "react-sortablejs";
 import ListSelectionComponent from "@/CustomNodes/GenericNode/components/ListSelectionComponent";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
@@ -86,8 +85,6 @@ const SortableListComponent = ({
   options = [],
   searchCategory = [],
   limit,
-  id,
-  showParameter = true,
   ...baseInputProps
 }: InputProps<any, SortableListComponentProps>) => {
   const { placeholder, handleOnNewValue, value } = baseInputProps;
@@ -106,21 +103,9 @@ const SortableListComponent = ({
 
   const setListDataHandler = useCallback(
     (newList: any[]) => {
-      const sanitizedNewList = newList.map((item) => {
-        const { chosen, selected, ...rest } = item;
-        return rest;
-      });
-
-      const sanitizedListData = listData.map((item) => {
-        const { chosen, selected, ...rest } = item;
-        return rest;
-      });
-
-      if (!isEqual(sanitizedNewList, sanitizedListData)) {
-        handleOnNewValue({ value: sanitizedNewList });
-      }
+      handleOnNewValue({ value: newList });
     },
-    [listData, handleOnNewValue],
+    [handleOnNewValue],
   );
 
   const handleCloseListSelectionDialog = useCallback(() => {
@@ -146,10 +131,6 @@ const SortableListComponent = ({
     }
   }, [helperText, open]);
 
-  if (!showParameter) {
-    return null;
-  }
-
   return (
     <div className="flex w-full flex-col">
       <div className="flex w-full flex-row gap-2">
@@ -163,11 +144,7 @@ const SortableListComponent = ({
               "dropdown-component-outline input-edit-node w-full",
               editNode ? "py-1" : "py-2",
             )}
-            data-testid={
-              id
-                ? `button_open_list_selection_${id}`
-                : "button_open_list_selection"
-            }
+            data-testid="button_open_list_selection"
           >
             <div
               className={cn(
@@ -219,7 +196,6 @@ const SortableListComponent = ({
         selectedList={listData}
         options={options}
         limit={limit}
-        id={id}
         {...baseInputProps}
       />
     </div>

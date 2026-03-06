@@ -5,7 +5,10 @@ import {
   ENABLE_VOICE_ASSISTANT,
 } from "@/customization/feature-flags";
 import type { FilePreviewType } from "@/types/components";
-import { CHAT_INPUT_PLACEHOLDER } from "../../../../../../constants/constants";
+import {
+  CHAT_INPUT_PLACEHOLDER,
+  CHAT_INPUT_PLACEHOLDER_SEND,
+} from "../../../../../../constants/constants";
 import FilePreview from "../../fileComponent/components/file-preview";
 import ButtonSendWrapper from "./button-send-wrapper";
 import TextAreaWrapper from "./text-area-wrapper";
@@ -50,8 +53,7 @@ const InputWrapper: React.FC<InputWrapperProps> = ({
   const classNameFilePreview = `flex w-full items-center gap-2 py-2 overflow-auto`;
 
   // Check if voice mode is available
-  // The /config endpoint returns appropriate config based on auth status
-  const { data: config } = useGetConfig({});
+  const { data: config } = useGetConfig();
 
   const onClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;
@@ -89,6 +91,7 @@ const InputWrapper: React.FC<InputWrapperProps> = ({
           noInput={noInput}
           chatValue={chatValue}
           CHAT_INPUT_PLACEHOLDER={CHAT_INPUT_PLACEHOLDER}
+          CHAT_INPUT_PLACEHOLDER_SEND={CHAT_INPUT_PLACEHOLDER_SEND}
           inputRef={inputRef}
           files={files}
           isDragging={isDragging}

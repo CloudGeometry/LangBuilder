@@ -1,4 +1,3 @@
-from lfx.services.settings.service import SettingsService
 from typing_extensions import override
 
 from langflow.services.factory import ServiceFactory
@@ -10,5 +9,6 @@ class TaskServiceFactory(ServiceFactory):
         super().__init__(TaskService)
 
     @override
-    def create(self, settings_service: SettingsService):
-        return TaskService(settings_service)
+    def create(self):
+        # Here you would have logic to create and configure a TaskService
+        return TaskService()

@@ -1,20 +1,7 @@
-import type { Locator } from "@playwright/test";
-
 import { expect, test } from "../../fixtures";
 import { addLegacyComponents } from "../../utils/add-legacy-components";
 import { adjustScreenView } from "../../utils/adjust-screen-view";
 import { awaitBootstrapTest } from "../../utils/await-bootstrap-test";
-
-async function findVisibleElement(
-  elements: Locator[],
-): Promise<Locator | undefined> {
-  for (const element of elements) {
-    if (await element.isVisible()) {
-      return element;
-    }
-  }
-  return undefined;
-}
 
 test(
   "user must see on handle click the possibility connections - RetrievalQA",
@@ -50,14 +37,17 @@ test(
     await page.mouse.down();
 
     await adjustScreenView(page);
+    let visibleElementHandle;
 
     const outputElements = await page
       .getByTestId("handle-retrievalqa-shownode-text-right")
       .all();
 
-    let visibleElementHandle = await findVisibleElement(outputElements);
-    if (!visibleElementHandle) {
-      throw new Error("Output handle not visible");
+    for (const element of outputElements) {
+      if (await element.isVisible()) {
+        visibleElementHandle = element;
+        break;
+      }
     }
 
     await visibleElementHandle.click({
@@ -69,7 +59,7 @@ test(
       "disclosure-data sources",
       "disclosure-models & agents",
       "disclosure-llm operations",
-      "disclosure-files & knowledge",
+      "disclosure-files",
       "disclosure-processing",
       "disclosure-flow control",
       "disclosure-utilities",
@@ -133,9 +123,11 @@ test(
       .getByTestId("handle-retrievalqa-shownode-llm-left")
       .all();
 
-    const llmHandle = await findVisibleElement(chainInputElements1);
-    if (llmHandle) {
-      visibleElementHandle = llmHandle;
+    for (const element of chainInputElements1) {
+      if (await element.isVisible()) {
+        visibleElementHandle = element;
+        break;
+      }
     }
 
     await visibleElementHandle.blur();
@@ -150,9 +142,11 @@ test(
       .getByTestId("handle-retrievalqa-shownode-template-left")
       .all();
 
-    const templateHandle = await findVisibleElement(rqaChainInputElements0);
-    if (templateHandle) {
-      visibleElementHandle = templateHandle;
+    for (const element of rqaChainInputElements0) {
+      if (await element.isVisible()) {
+        visibleElementHandle = element;
+        break;
+      }
     }
 
     await visibleElementHandle.click();

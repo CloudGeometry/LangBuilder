@@ -188,8 +188,8 @@ In the terminal, from the project root directory, run the following:
 
 ```bash
 cd docs
-npm install
-npm run start
+yarn install
+yarn start
 ```
 
 If the frontend service is running on port `3000` you might be prompted `Would you like to run the app on another port instead?`, in which case answer "yes". You will get output similar to:

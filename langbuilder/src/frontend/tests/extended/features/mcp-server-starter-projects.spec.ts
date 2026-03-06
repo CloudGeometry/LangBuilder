@@ -61,8 +61,6 @@ test(
           .click();
         await page.getByText("Rename", { exact: true }).last().click();
         await page.getByTestId("input-project").last().fill("renamed_project");
-        await page.keyboard.press("Enter");
-        await page.waitForTimeout(1000);
       });
 
     await navigateSettingsPages(page, "Settings", "MCP Servers");
@@ -88,7 +86,6 @@ test(
           .click();
         await page.getByText("Delete", { exact: true }).last().click();
         await page.getByText("Delete", { exact: true }).last().click();
-        await page.waitForTimeout(1000);
       });
 
     await navigateSettingsPages(page, "Settings", "MCP Servers");
@@ -111,7 +108,7 @@ test(
     await page.getByTestId("side_nav_options_all-templates").click();
     await page.getByRole("heading", { name: "Basic Prompting" }).click();
 
-    await page.waitForSelector('[data-testid="sidebar-search-input"]', {
+    await page.waitForSelector('[data-testid="icon-ChevronLeft"]', {
       timeout: 100000,
     });
 
@@ -128,10 +125,7 @@ test(
     await page.keyboard.press(`ControlOrMeta+V`);
     await page.getByTestId("add-mcp-server-button").click();
 
-    // Wait for error message to appear
-    await expect(page.getByText("Server already exists.")).toBeVisible({
-      timeout: 10000,
-    });
+    await page.waitForTimeout(2000);
 
     const numberOfErrors = await page
       .getByText("Server already exists.")

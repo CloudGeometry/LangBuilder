@@ -1,8 +1,7 @@
 import { expect, test } from "../../fixtures";
 import { awaitBootstrapTest } from "../../utils/await-bootstrap-test";
 
-// TODO: Need to review the voice assistant vs text to voice
-test.skip(
+test(
   "should able to see and interact with voice assistant",
   { tag: ["@release", "@workspace", "@api"] },
 
@@ -74,7 +73,7 @@ test.skip(
   },
 );
 
-test.skip(
+test(
   "user should not be able to see voice button if voice mode is not available",
   { tag: ["@release", "@workspace", "@api"] },
   async ({ page, request }) => {
@@ -102,7 +101,7 @@ test.skip(
   },
 );
 
-test.skip(
+test(
   "user should be able to see voice button if voice mode is available",
   { tag: ["@release", "@workspace", "@api"] },
   async ({ page, request }) => {

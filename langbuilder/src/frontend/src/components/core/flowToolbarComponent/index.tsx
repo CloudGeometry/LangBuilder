@@ -3,7 +3,6 @@ import { memo, useEffect, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { track } from "@/customization/utils/analytics";
 import ExportModal from "@/modals/exportModal";
-import { usePlaygroundStore } from "@/stores/playgroundStore";
 import useFlowStore from "../../../stores/flowStore";
 import { useShortcutsStore } from "../../../stores/shortcuts";
 import { cn, isThereModal } from "../../../utils/utils";
@@ -11,19 +10,18 @@ import FlowToolbarOptions from "./components/flow-toolbar-options";
 
 const FlowToolbar = memo(function FlowToolbar(): JSX.Element {
   const preventDefault = true;
+  const [open, setOpen] = useState<boolean>(false);
   const [openApiModal, setOpenApiModal] = useState<boolean>(false);
   const [openExportModal, setOpenExportModal] = useState<boolean>(false);
-  const isPlaygroundOpen = usePlaygroundStore((state) => state.isOpen);
-  const setPlaygroundOpen = usePlaygroundStore((state) => state.setIsOpen);
   const handleAPIWShortcut = (e: KeyboardEvent) => {
     if (isThereModal() && !openApiModal) return;
     setOpenApiModal((oldOpen) => !oldOpen);
   };
 
   const handleChatWShortcut = (e: KeyboardEvent) => {
-    if (isThereModal() && !isPlaygroundOpen) return;
+    if (isThereModal() && !open) return;
     if (useFlowStore.getState().hasIO) {
-      setPlaygroundOpen(!isPlaygroundOpen);
+      setOpen((oldState) => !oldState);
     }
   };
 
@@ -41,10 +39,10 @@ const FlowToolbar = memo(function FlowToolbar(): JSX.Element {
   useHotkeys(flow, handleShareWShortcut, { preventDefault });
 
   useEffect(() => {
-    if (isPlaygroundOpen) {
+    if (open) {
       track("Playground Button Clicked");
     }
-  }, [isPlaygroundOpen]);
+  }, [open]);
 
   return (
     <>
@@ -55,6 +53,8 @@ const FlowToolbar = memo(function FlowToolbar(): JSX.Element {
           )}
         >
           <FlowToolbarOptions
+            open={open}
+            setOpen={setOpen}
             openApiModal={openApiModal}
             setOpenApiModal={setOpenApiModal}
           />

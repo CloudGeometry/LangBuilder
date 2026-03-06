@@ -1,7 +1,6 @@
 // @ts-check
 // Note: type annotations allow type checking and IDEs autocompletion
 
-const path = require("path");
 const lightCodeTheme = require("prism-react-renderer/themes/github");
 const darkCodeTheme = require("prism-react-renderer/themes/dracula");
 const { remarkCodeHike } = require("@code-hike/mdx");
@@ -17,16 +16,12 @@ const config = {
   url: "https://docs.langflow.org",
   baseUrl: process.env.BASE_URL ? process.env.BASE_URL : "/",
   onBrokenLinks: "throw",
+  onBrokenMarkdownLinks: "warn",
   onBrokenAnchors: "warn",
   organizationName: "langflow-ai",
   projectName: "langflow",
   trailingSlash: false,
   staticDirectories: ["static"],
-  markdown: {
-    hooks: {
-      onBrokenMarkdownLinks: "warn",
-    },
-  },
   i18n: {
     defaultLocale: "en",
     locales: ["en"],
@@ -137,6 +132,11 @@ const config = {
           customCss: [
             require.resolve("@code-hike/mdx/styles.css"),
             require.resolve("./css/custom.css"),
+            require.resolve("./css/docu-notion-styles.css"),
+            require.resolve(
+              "./css/gifplayer.css"
+              //"./node_modules/react-gif-player/dist/gifplayer.css" // this gave a big red compile warning which is seaming unrelated "  Replace Autoprefixer browsers option to Browserslist config..."
+            ),
           ],
         },
       }),
@@ -162,21 +162,6 @@ const config = {
     ],
   ],
   plugins: [
-    // Alias so MDX can import code from the Langflow repo with !!raw-loader!@langflow/src/...
-    function langflowCodeImportPlugin(context) {
-      return {
-        name: "langflow-code-import",
-        configureWebpack() {
-          return {
-            resolve: {
-              alias: {
-                "@langflow": path.resolve(context.siteDir, ".."),
-              },
-            },
-          };
-        },
-      };
-    },
     ["docusaurus-node-polyfills", { excludeAliases: ["console"] }],
     "docusaurus-plugin-image-zoom",
     ["./src/plugins/segment", { segmentPublicWriteKey: process.env.SEGMENT_PUBLIC_WRITE_KEY, allowedInDev: true }],
@@ -217,18 +202,7 @@ const config = {
           },
           {
             to: "/concepts-components",
-            from: [
-              "/components",
-              "/components-overview",
-              "/components-processing",
-              "/components-data",
-              "/components-files",
-              "/components-logic",
-              "/components-tools",
-              "/components-io",
-              "/components-helpers",
-              "/components-memories",
-            ],
+            from: ["/components", "/components-overview"],
           },
           {
             to: "/configuration-global-variables",
@@ -352,6 +326,10 @@ const config = {
           {
             to: "/data-types",
             from: "/concepts-objects",
+          },
+          {
+            to: "/components-helpers",
+            from: "/components-memories",
           },
           {
             to: "/bundles-apify",

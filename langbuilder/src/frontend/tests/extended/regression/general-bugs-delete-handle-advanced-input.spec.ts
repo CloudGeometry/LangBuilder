@@ -1,12 +1,8 @@
 import { expect, test } from "../../fixtures";
 import { adjustScreenView } from "../../utils/adjust-screen-view";
 import { awaitBootstrapTest } from "../../utils/await-bootstrap-test";
-import {
-  closeAdvancedOptions,
-  disableInspectPanel,
-  enableInspectPanel,
-  openAdvancedOptions,
-} from "../../utils/open-advanced-options";
+
+import { zoomOut } from "../../utils/zoom-out";
 
 test(
   "the system must delete the handles from advanced fields when the code is updated",
@@ -32,12 +28,10 @@ test(
 
     await adjustScreenView(page, { numberOfZoomOut: 3 });
 
-    await disableInspectPanel(page);
-
-    await openAdvancedOptions(page);
+    await page.getByTestId("edit-button-modal").click();
 
     await page.getByTestId("showtrue_case_message").click();
-    await closeAdvancedOptions(page);
+    await page.getByText("Close").last().click();
 
     await page.getByTestId("sidebar-search-input").click();
     await page.getByTestId("sidebar-search-input").fill("text input");
@@ -50,8 +44,6 @@ test(
         targetPosition: { x: 200, y: 100 },
       });
 
-    await adjustScreenView(page);
-
     await page
       .getByTestId("handle-textinput-shownode-output text-right")
       .click();
@@ -62,7 +54,7 @@ test(
 
     await page.getByTestId("title-If-Else").click();
 
-    await openAdvancedOptions(page);
+    await page.getByTestId("edit-button-modal").click();
 
     const numberOfDisabledInputs = await page
       .getByPlaceholder("Receiving input")
@@ -70,15 +62,19 @@ test(
 
     expect(numberOfDisabledInputs).toBe(2);
 
-    await closeAdvancedOptions(page);
+    const numberOfLockIcons = await page.getByTestId("icon-lock").count();
+
+    expect(numberOfLockIcons).toBe(2);
+
+    await page.getByText("Close").last().click();
 
     await page.getByTestId("title-If-Else").click();
 
-    await page.getByTestId("code-button-modal").last().click();
+    await page.getByTestId("code-button-modal").click();
 
     await page.getByTestId("checkAndSaveBtn").last().click();
 
-    await openAdvancedOptions(page);
+    await page.getByTestId("edit-button-modal").click();
 
     const numberOfDisabledInputsAfter = await page
       .getByPlaceholder("Receiving input")
@@ -89,9 +85,5 @@ test(
     const numberOfLockIconsAfter = await page.getByTestId("icon-lock").count();
 
     expect(numberOfLockIconsAfter).toBe(0);
-
-    await closeAdvancedOptions(page);
-
-    await enableInspectPanel(page);
   },
 );

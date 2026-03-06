@@ -14,21 +14,13 @@ export default function DictComponent({
   editNode = false,
   id = "",
   name = "",
-  showParameter = true,
-}: InputProps<
-  object | object[] | string,
-  { name: string }
->): JSX.Element | null {
+}: InputProps<object | object[] | string, { name: string }>): JSX.Element {
   useEffect(() => {
     if (disabled || value === null) {
       handleOnNewValue({ value: {} }, { skipSnapshot: true });
     }
   }, [disabled]);
   const placeholderName = `Edit ${toTitleCase(name)}`;
-
-  if (!showParameter) {
-    return null;
-  }
 
   return (
     <div

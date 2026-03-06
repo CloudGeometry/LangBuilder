@@ -2,14 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import ForwardedIconComponent from "@/components/common/genericIconComponent";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import type { KnowledgeBaseInfo } from "@/controllers/API/queries/knowledge-bases/use-get-knowledge-bases";
-import { useCustomNavigate } from "@/customization/hooks/use-custom-navigate";
-import KnowledgeBaseDrawer from "./components/KnowledgeBaseDrawer";
-import KnowledgeBasesTab from "./components/KnowledgeBasesTab";
+import KnowledgeBaseDrawer from "../filesPage/components/KnowledgeBaseDrawer";
+import KnowledgeBasesTab from "../filesPage/components/KnowledgeBasesTab";
 
 export const KnowledgePage = () => {
-  const [selectedKnowledgeBases, setSelectedKnowledgeBases] = useState<
-    KnowledgeBaseInfo[]
-  >([]);
+  const [selectedKnowledgeBases, setSelectedKnowledgeBases] = useState<any[]>(
+    [],
+  );
   const [selectionCount, setSelectionCount] = useState(0);
   const [isShiftPressed, setIsShiftPressed] = useState(false);
   const [searchText, setSearchText] = useState("");
@@ -17,7 +16,6 @@ export const KnowledgePage = () => {
   const [selectedKnowledgeBase, setSelectedKnowledgeBase] =
     useState<KnowledgeBaseInfo | null>(null);
 
-  const navigate = useCustomNavigate();
   const drawerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -68,7 +66,12 @@ export const KnowledgePage = () => {
   }, [isDrawerOpen]);
 
   const handleKnowledgeBaseSelect = (knowledgeBase: KnowledgeBaseInfo) => {
-    navigate(`/assets/knowledge-bases/${knowledgeBase.dir_name}/chunks`);
+    if (isDrawerOpen) {
+      closeDrawer();
+    } else {
+      setSelectedKnowledgeBase(knowledgeBase);
+      // setIsDrawerOpen(true);
+    }
   };
 
   const closeDrawer = () => {
@@ -98,7 +101,7 @@ export const KnowledgePage = () => {
           <div className="flex flex-1 flex-col justify-start px-5 pt-10">
             <div className="flex h-full flex-col justify-start">
               <div
-                className="flex items-center pb-4 text-xl font-semibold"
+                className="flex items-center pb-8 text-xl font-semibold"
                 data-testid="mainpage_title"
               >
                 <div className="h-7 w-10 transition-all group-data-[open=true]/sidebar-wrapper:md:w-0 lg:hidden">

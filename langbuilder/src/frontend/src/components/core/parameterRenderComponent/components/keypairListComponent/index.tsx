@@ -17,7 +17,6 @@ const KeypairListComponent = ({
   editNode = false,
   isList = true,
   id,
-  showParameter = true,
 }) => {
   const getTestId = (prefix, index) =>
     `${editNode ? "editNode" : ""}${prefix}${index}`;
@@ -148,10 +147,6 @@ const KeypairListComponent = ({
         </div>
       </div>
     ));
-
-  if (!showParameter) {
-    return null;
-  }
 
   return (
     <div

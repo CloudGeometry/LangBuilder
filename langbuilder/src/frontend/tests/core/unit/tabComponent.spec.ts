@@ -26,11 +26,11 @@ test(
 
     await page.getByTestId("title-Custom Component").first().click();
 
-    await expect(page.getByTestId("code-button-modal").last()).toBeVisible({
+    await page.waitForSelector('[data-testid="code-button-modal"]', {
       timeout: 3000,
     });
 
-    await page.getByTestId("code-button-modal").last().click();
+    await page.getByTestId("code-button-modal").click();
 
     let cleanCode = await extractAndCleanCode(page);
 

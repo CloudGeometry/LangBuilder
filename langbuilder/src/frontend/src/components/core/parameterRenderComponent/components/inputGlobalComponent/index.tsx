@@ -23,12 +23,12 @@ export default function InputGlobalComponent({
   id,
   load_from_db,
   password,
+  allowCustomValue = true,
   editNode = false,
   placeholder,
   isToolMode = false,
   hasRefreshButton = false,
-  showParameter = true,
-}: InputProps<string, InputGlobalComponentType>): JSX.Element | null {
+}: InputProps<string, InputGlobalComponentType>): JSX.Element {
   const { data: globalVariables } = useGetGlobalVariables();
 
   // // Safely cast the data to our typed interface
@@ -118,10 +118,6 @@ export default function InputGlobalComponent({
   const variableOptions = typedGlobalVariables.map((variable) => variable.name);
   const selectedOption = loadFromDb && valueExists ? currentValue : "";
 
-  if (!showParameter) {
-    return null;
-  }
-
   return (
     <InputComponent
       nodeStyle
@@ -140,6 +136,7 @@ export default function InputGlobalComponent({
       selectedOption={selectedOption}
       setSelectedOption={handlers.handleVariableSelect}
       onChange={handlers.handleInputChange}
+      allowCustomValue={allowCustomValue}
       isToolMode={isToolMode}
       hasRefreshButton={hasRefreshButton}
     />

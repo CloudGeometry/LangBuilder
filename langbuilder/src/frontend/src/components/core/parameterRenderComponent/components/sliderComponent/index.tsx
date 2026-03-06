@@ -49,8 +49,7 @@ export default function SliderComponent({
   sliderButtons = false,
   sliderButtonsOptions = DEFAULT_SLIDER_BUTTONS_OPTIONS,
   handleOnNewValue,
-  showParameter = true,
-}: InputProps<string[] | number[], SliderComponentType>): JSX.Element | null {
+}: InputProps<string[] | number[], SliderComponentType>): JSX.Element {
   const min = rangeSpec?.min ?? -2;
   const max = rangeSpec?.max ?? 2;
 
@@ -198,10 +197,6 @@ export default function SliderComponent({
   };
 
   const ringClassInputClass = "ring-[1px] ring-slider-input-border";
-
-  if (!showParameter) {
-    return null;
-  }
 
   return (
     <div className={cn("w-full rounded-lg", editNode && "mt-3")}>

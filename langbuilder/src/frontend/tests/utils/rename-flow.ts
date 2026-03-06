@@ -27,8 +27,6 @@ export const renameFlow = async (
     await page.getByTestId("input-flow-description").fill(flowDescription);
   }
 
-  await page.waitForTimeout(500);
-
   if (flowName || flowDescription) {
     await page.getByTestId("save-flow-settings").isEnabled({ timeout: 3000 });
     await page.getByTestId("save-flow-settings").click();
@@ -38,20 +36,9 @@ export const renameFlow = async (
       .isVisible({ timeout: 3000 });
     await page.getByText("Changes saved successfully").last().click();
 
-    await page.waitForSelector('[data-testid="sidebar-search-input"]', {
+    await page.waitForSelector('[data-testid="icon-ChevronLeft"]', {
       timeout: 30000,
     });
-
-    if (flowName) {
-      await page.waitForFunction(
-        (expected) => {
-          const header = document.querySelector('[data-testid="flow_name"]');
-          return header && header.textContent?.trim() === expected;
-        },
-        flowName,
-        { timeout: 30000 },
-      );
-    }
   } else {
     await page.getByTestId("save-flow-settings").isDisabled({ timeout: 3000 });
     await page.getByTestId("cancel-flow-settings").isEnabled({ timeout: 3000 });

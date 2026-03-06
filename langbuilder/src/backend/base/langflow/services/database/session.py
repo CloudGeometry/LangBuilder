@@ -59,7 +59,4 @@ class NoopSession:
             def one_or_none(self):
                 return None
 
-            def __iter__(self):
-                return iter([])
-
         return _NoopResult()

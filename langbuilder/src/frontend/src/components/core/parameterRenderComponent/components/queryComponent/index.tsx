@@ -60,8 +60,7 @@ export default function QueryComponent({
   display_name,
   info,
   separator,
-  showParameter = true,
-}: InputProps<string, QueryComponentType>): JSX.Element | null {
+}: InputProps<string, QueryComponentType>): JSX.Element {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = useState(false);
 
@@ -119,10 +118,6 @@ export default function QueryComponent({
       />
     </div>
   );
-
-  if (!showParameter) {
-    return null;
-  }
 
   return (
     <div className={cn("w-full", disabled && "pointer-events-none")}>

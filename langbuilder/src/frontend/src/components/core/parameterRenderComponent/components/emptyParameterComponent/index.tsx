@@ -6,10 +6,6 @@ export function EmptyParameterComponent({
   editNode,
   handleOnNewValue,
   disabled,
-  showParameter = true,
-}: InputProps): JSX.Element | null {
-  if (!showParameter) {
-    return null;
-  }
+}: InputProps) {
   return <div id={id}></div>;
 }

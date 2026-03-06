@@ -37,7 +37,7 @@ test(
       timeout: 3000,
     });
 
-    await page.waitForSelector('[data-testid="sidebar-search-input"]', {
+    await page.waitForSelector('[data-testid="icon-ChevronLeft"]', {
       timeout: 100000,
     });
 

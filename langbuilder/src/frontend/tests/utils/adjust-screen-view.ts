@@ -9,7 +9,7 @@ export async function adjustScreenView(
   } = {},
 ) {
   await page.waitForSelector('[data-testid="canvas_controls_dropdown"]', {
-    timeout: 30000,
+    timeout: 5000,
   });
 
   let fitViewButton = await page.getByTestId("fit_view").count();
@@ -20,20 +20,17 @@ export async function adjustScreenView(
   }
 
   await page.getByTestId("fit_view").click();
-  await page.waitForTimeout(500);
 
   for (let i = 0; i < numberOfZoomOut; i++) {
     const zoomOutButton = page.getByTestId("zoom_out");
 
-    if (await zoomOutButton.isDisabled({ timeout: 1000 })) {
+    if (await zoomOutButton.isDisabled()) {
       break;
     } else {
-      await zoomOutButton.click({ timeout: 1000 });
+      await zoomOutButton.click();
     }
   }
   if (fitViewButton > 0) {
-    await page
-      .getByTestId("canvas_controls_dropdown")
-      .click({ force: true, timeout: 1000 });
+    await page.getByTestId("canvas_controls_dropdown").click({ force: true });
   }
 }

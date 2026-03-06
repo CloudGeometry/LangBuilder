@@ -351,9 +351,7 @@ def main():
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger("migration_validator")
     if args.json:
-        import sys as _sys
-
-        _sys.stdout.write(json.dumps(results, indent=2) + "\n")
+        logger.info(json.dumps(results, indent=2))
     else:
         for result in results:
             logger.info("\n%s", "=" * 60)

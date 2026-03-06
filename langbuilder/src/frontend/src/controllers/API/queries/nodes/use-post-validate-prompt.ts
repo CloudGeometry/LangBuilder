@@ -13,7 +13,6 @@ interface IPostValidatePrompt {
   name: string;
   template: string;
   frontend_node: APIClassType;
-  mustache?: boolean;
 }
 
 export const usePostValidatePrompt: useMutationFunctionType<
@@ -33,7 +32,6 @@ export const usePostValidatePrompt: useMutationFunctionType<
         name: payload.name,
         template: payload.template,
         frontend_node: payload.frontend_node,
-        mustache: payload.mustache ?? false,
       },
     );
 
@@ -44,10 +42,7 @@ export const usePostValidatePrompt: useMutationFunctionType<
     PromptTypeAPI,
     ResponseErrorDetailAPI,
     IPostValidatePrompt
-  > = mutate(["usePostValidatePrompt"], postValidatePromptFn, {
-    ...options,
-    retry: 0, // Don't retry validation errors - they're not transient
-  });
+  > = mutate(["usePostValidatePrompt"], postValidatePromptFn, options);
 
   return mutation;
 };

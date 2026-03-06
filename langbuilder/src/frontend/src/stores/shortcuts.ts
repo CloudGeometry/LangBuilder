@@ -50,7 +50,7 @@ export const useShortcutsStore = create<shortcutsStoreType>((set, get) => ({
           [shortcutName]: shortcut,
         });
       });
-      get().setShortcuts(savedArr);
+      get().setShortcuts(JSON.parse(savedShortcuts!));
     }
   },
 }));

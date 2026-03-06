@@ -5,40 +5,35 @@ import { getURL } from "../../helpers/constants";
 import { UseRequestProcessor } from "../../services/request-processor";
 
 interface DeleteKnowledgeBaseParams {
-  /** Single KB name or array of KB names for bulk delete */
-  kb_names: string | string[];
+  kb_name: string;
 }
 
 export const useDeleteKnowledgeBase: useMutationFunctionType<
-  undefined,
-  DeleteKnowledgeBaseParams
-> = (options?) => {
+  DeleteKnowledgeBaseParams,
+  void
+> = (params, options?) => {
   const { mutate, queryClient } = UseRequestProcessor();
 
-  const deleteKnowledgeBaseFn = async (
-    params: DeleteKnowledgeBaseParams,
-  ): Promise<any> => {
-    const names = Array.isArray(params.kb_names)
-      ? params.kb_names
-      : [params.kb_names];
-
-    // Use bulk endpoint for all deletes (works for single or multiple)
-    const response = await api.delete<any>(`${getURL("KNOWLEDGE_BASES")}/`, {
-      data: { kb_names: names },
-    });
+  const deleteKnowledgeBaseFn = async (): Promise<any> => {
+    const response = await api.delete<any>(
+      `${getURL("KNOWLEDGE_BASES")}/${params.kb_name}`,
+    );
     return response.data;
   };
 
-  const mutation: UseMutationResult<any, any, DeleteKnowledgeBaseParams> =
-    mutate(["useDeleteKnowledgeBase"], deleteKnowledgeBaseFn, {
-      onSettled: (data, error, variables, context, ...rest) => {
+  const mutation: UseMutationResult<any, any, void> = mutate(
+    ["useDeleteKnowledgeBase"],
+    deleteKnowledgeBaseFn,
+    {
+      onSettled: (data, error, variables, context) => {
         queryClient.invalidateQueries({
           queryKey: ["useGetKnowledgeBases"],
         });
-        options?.onSettled?.(data, error, variables, context, ...rest);
+        options?.onSettled?.(data, error, variables, context);
       },
       ...options,
-    });
+    },
+  );
 
   return mutation;
 };

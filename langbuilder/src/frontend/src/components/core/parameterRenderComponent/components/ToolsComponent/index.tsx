@@ -23,8 +23,7 @@ export default function ToolsComponent({
   icon,
   disabled = false,
   template,
-  showParameter = true,
-}: InputProps<any[] | undefined, ToolsComponentType>): JSX.Element | null {
+}: InputProps<any[] | undefined, ToolsComponentType>): JSX.Element {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const actions = value
     ?.filter((action) => action.status === true)
@@ -42,10 +41,6 @@ export default function ToolsComponent({
   const remainingCount = actions
     ? Math.max(0, actions.length - visibleActionsQt)
     : 0;
-
-  if (!showParameter) {
-    return null;
-  }
 
   return (
     <div

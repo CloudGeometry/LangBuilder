@@ -14,9 +14,8 @@ export default function WebhookFieldComponent({
   editNode = false,
   id = "",
   nodeInformationMetadata,
-  showParameter = true,
   ...baseInputProps
-}: InputProps<string, TextAreaComponentType>): JSX.Element | null {
+}: InputProps<string, TextAreaComponentType>): JSX.Element {
   const { userData } = useContext(AuthContext);
   const [userId, setUserId] = useState("");
   const { mutate: getBuildsMutation } = useGetBuildsMutation();
@@ -48,10 +47,6 @@ export default function WebhookFieldComponent({
       setUserId(userData.id);
     }
   }, [userData]);
-
-  if (!showParameter) {
-    return null;
-  }
 
   return (
     <div className="grid w-full gap-2">

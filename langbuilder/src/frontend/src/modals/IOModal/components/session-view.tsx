@@ -1,11 +1,10 @@
 import { useIsFetching } from "@tanstack/react-query";
 import type { NewValueParams, SelectionChangedEvent } from "ag-grid-community";
 import cloneDeep from "lodash/cloneDeep";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Loading from "@/components/ui/loading";
 import {
   useDeleteMessages,
-  useGetMessagesQuery,
   useUpdateMessage,
 } from "@/controllers/API/queries/messages";
 import useFlowStore from "@/stores/flowStore";
@@ -22,51 +21,17 @@ export default function SessionView({
   id?: string;
 }) {
   const messages = useMessagesStore((state) => state.messages);
-  const setMessages = useMessagesStore((state) => state.setMessages);
   const setErrorData = useAlertStore((state) => state.setErrorData);
   const setSuccessData = useAlertStore((state) => state.setSuccessData);
   const updateMessage = useMessagesStore((state) => state.updateMessage);
   const deleteMessagesStore = useMessagesStore((state) => state.removeMessages);
-  const playgroundPage = useFlowStore((state) => state.playgroundPage);
-  const [selectedRows, setSelectedRows] = useState<string[]>([]);
-
-  // Fetch messages for the specific session
-  const messageQueryParams = useMemo(() => {
-    const params: any = {};
-    if (session) {
-      params.session_id = session;
-    }
-    return {
-      id: id,
-      mode: "union" as const,
-      params: params,
-    };
-  }, [session, id]);
-
-  const { data: queryData, isFetching: isQueryFetching } = useGetMessagesQuery(
-    messageQueryParams,
-    {
-      enabled: !playgroundPage, // Only fetch if not in playground page
-    },
-  );
-
-  // Update messages store when data is fetched
-  useEffect(() => {
-    if (queryData && typeof queryData === "object" && "rows" in queryData) {
-      const rowsData = queryData.rows as { data?: any[] } | undefined;
-      if (rowsData && typeof rowsData === "object" && "data" in rowsData) {
-        const fetchedMessages = rowsData.data || [];
-        setMessages(fetchedMessages);
-      }
-    }
-  }, [queryData, setMessages]);
-
   const columns = extractColumnsFromRows(messages, "intersection");
-  const isFetchingCount = useIsFetching({
+  const playgroundPage = useFlowStore((state) => state.playgroundPage);
+  const isFetching = useIsFetching({
     queryKey: ["useGetMessagesQuery"],
     exact: false,
   });
-  const isFetching = isFetchingCount > 0 || isQueryFetching;
+  const [selectedRows, setSelectedRows] = useState<string[]>([]);
 
   const { mutate: deleteMessages } = useDeleteMessages({
     onSuccess: () => {
@@ -134,7 +99,7 @@ export default function SessionView({
       : [{ field: "text", onUpdate: handleUpdateMessage, editableCell: false }];
   }, [handleUpdateMessage]);
 
-  return isFetching ? (
+  return isFetching > 0 ? (
     <div className="flex h-full w-full items-center justify-center align-middle">
       <Loading></Loading>
     </div>

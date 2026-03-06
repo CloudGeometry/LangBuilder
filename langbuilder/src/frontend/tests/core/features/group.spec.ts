@@ -22,7 +22,7 @@ test.describe("group node test", () => {
         .getByTestId("title-OpenAI")
         .click({ modifiers: ["ControlOrMeta"] });
       await page
-        .getByTestId("title-Prompt Template")
+        .getByTestId("title-Prompt")
         .click({ modifiers: ["ControlOrMeta"] });
       await page
         .getByTestId("title-OpenAI")
@@ -35,7 +35,7 @@ test.describe("group node test", () => {
       await page.getByTestId("save-name-description-button").first().click();
       await page.keyboard.press("ControlOrMeta+g");
       await page.getByTestId("title-OpenAI").isVisible();
-      await page.getByTestId("title-Prompt Template").isVisible();
+      await page.getByTestId("title-Prompt").isVisible();
     },
   );
 });

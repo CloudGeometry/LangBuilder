@@ -18,8 +18,7 @@ export default function FloatComponent({
   disabled,
   editNode = false,
   id = "",
-  showParameter = true,
-}: InputProps<number, FloatComponentType>): JSX.Element | null {
+}: InputProps<number, FloatComponentType>): JSX.Element {
   const step = rangeSpec?.step ?? 0.1;
   const min = rangeSpec?.min;
   const max = rangeSpec?.max;
@@ -83,10 +82,6 @@ export default function FloatComponent({
   const decrementStepperClassName =
     "hover:rounded-br-[5px] hover:bg-muted group-decrement";
   const inputRef = useRef(null);
-
-  if (!showParameter) {
-    return null;
-  }
 
   return (
     <div className="w-full">

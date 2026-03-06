@@ -25,7 +25,6 @@ class ValidatePromptRequest(BaseModel):
     template: str
     custom_fields: dict | None = None
     frontend_node: FrontendNodeRequest | None = None
-    mustache: bool = False
 
 
 # Build ValidationResponse class for {"imports": {"errors": []}, "function": {"errors": []}}

@@ -48,7 +48,7 @@ test(
     await waitForSuccessMessage(page);
 
     // Wait for navigation button
-    await page.waitForSelector('[data-testid="sidebar-search-input"]', {
+    await page.waitForSelector('[data-testid="icon-ChevronLeft"]', {
       state: "visible",
       timeout: 30000,
     });

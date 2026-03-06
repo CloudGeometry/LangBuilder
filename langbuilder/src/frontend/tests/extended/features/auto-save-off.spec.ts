@@ -11,7 +11,6 @@ test(
         status: 200,
         contentType: "application/json",
         body: JSON.stringify({
-          type: "full",
           auto_saving: false,
           frontend_timeout: 0,
         }),
@@ -78,7 +77,7 @@ test(
       .first();
     await newFlowDiv.click();
 
-    await page.waitForSelector('[data-testid="sidebar-search-input"]', {
+    await page.waitForSelector('[data-testid="icon-ChevronLeft"]', {
       timeout: 5000,
     });
 
@@ -178,7 +177,7 @@ test(
       .first();
     await newFlow2.click();
 
-    await page.waitForSelector('[data-testid="sidebar-search-input"]', {
+    await page.waitForSelector('[data-testid="icon-ChevronLeft"]', {
       timeout: 5000,
     });
 

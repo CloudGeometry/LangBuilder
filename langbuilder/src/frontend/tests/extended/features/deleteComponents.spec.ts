@@ -31,7 +31,7 @@ test(
 
     await page.getByTestId("install-Basic RAG").click();
     await page.waitForTimeout(5000);
-    await page.waitForSelector('[data-testid="sidebar-search-input"]', {
+    await page.waitForSelector('[data-testid="icon-ChevronLeft"]', {
       timeout: 100000,
     });
     await page.getByTestId("icon-ChevronLeft").first().click();

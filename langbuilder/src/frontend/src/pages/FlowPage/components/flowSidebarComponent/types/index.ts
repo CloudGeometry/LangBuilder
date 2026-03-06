@@ -73,7 +73,7 @@ export interface SidebarHeaderComponentProps {
   setShowBeta: (show: boolean) => void;
   showLegacy: boolean;
   setShowLegacy: (show: boolean) => void;
-  searchInputRef: React.RefObject<HTMLInputElement | null>;
+  searchInputRef: React.RefObject<HTMLInputElement>;
   isInputFocused: boolean;
   search: string;
   handleInputFocus: (event: React.FocusEvent<HTMLInputElement>) => void;

@@ -11,6 +11,5 @@ export type MessagesStoreType = {
   clearMessages: () => void;
   removeMessages: (ids: string[]) => void;
   deleteSession: (id: string) => void;
-  renameSession: (oldSessionId: string, newSessionId: string) => void;
   displayLoadingMessage: boolean;
 };

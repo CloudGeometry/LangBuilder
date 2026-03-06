@@ -22,9 +22,7 @@ export const useGetFoldersQuery: useQueryFunctionType<
     const res = await api.get(`${getURL("PROJECTS")}/`);
     const data = res.data;
 
-    // Find default folder by name, or fall back to first folder if not found
-    const myCollectionId =
-      data?.find((f) => f.name === defaultFolderName)?.id ?? data?.[0]?.id;
+    const myCollectionId = data?.find((f) => f.name === defaultFolderName)?.id;
     setMyCollectionId(myCollectionId);
     setFolders(data);
 

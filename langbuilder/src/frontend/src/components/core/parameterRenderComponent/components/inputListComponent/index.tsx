@@ -18,8 +18,7 @@ export default function InputListComponent({
   id,
   placeholder,
   listAddLabel,
-  showParameter = true,
-}: InputProps<string[], InputListComponentType>): JSX.Element | null {
+}: InputProps<string[], InputListComponentType>): JSX.Element {
   const [_dropdownOpen, setDropdownOpen] = useState<number | null>(null);
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -34,10 +33,6 @@ export default function InputListComponent({
     value = [value];
   }
   if (!value?.length) value = [""];
-
-  if (!showParameter) {
-    return null;
-  }
 
   const handleInputChange = useCallback(
     (index: number, newValue: string) => {

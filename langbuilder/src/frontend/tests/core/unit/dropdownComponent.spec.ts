@@ -1,12 +1,6 @@
 import { expect, test } from "../../fixtures";
 import { adjustScreenView } from "../../utils/adjust-screen-view";
 import { awaitBootstrapTest } from "../../utils/await-bootstrap-test";
-import {
-  closeAdvancedOptions,
-  disableInspectPanel,
-  enableInspectPanel,
-  openAdvancedOptions,
-} from "../../utils/open-advanced-options";
 
 test(
   "dropDownComponent",
@@ -66,9 +60,7 @@ test(
       timeout: 3000,
     });
 
-    await disableInspectPanel(page);
-
-    await openAdvancedOptions(page);
+    await page.getByTestId("edit-button-modal").last().click();
 
     await page.waitForTimeout(1000);
 
@@ -132,7 +124,7 @@ test(
       expect(false).toBeTruthy();
     }
 
-    await closeAdvancedOptions(page);
+    await page.getByText("Close").last().click();
 
     value = await page
       .getByTestId("value-dropdown-dropdown_str_model_id")
@@ -140,7 +132,7 @@ test(
     if (value !== "cohere.command-r-plus-v1:0") {
       expect(false).toBeTruthy();
     }
-    await page.getByTestId("code-button-modal").last().click();
+    await page.getByTestId("code-button-modal").click();
 
     await page.locator("textarea").press("Control+a");
     const emptyOptionsCode = `from langchain_community.chat_models.bedrock import BedrockChat
@@ -252,7 +244,5 @@ class AmazonBedrockComponent(LCModelComponent):
     await page
       .getByText("No parameters are available for display.")
       .isVisible();
-
-    await enableInspectPanel(page);
   },
 );

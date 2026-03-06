@@ -27,17 +27,15 @@ export default function MultiselectComponent({
   combobox,
   editNode = false,
   id = "",
-  showParameter = true,
-  hideOnSelection,
-  inspectionPanel,
-}: InputProps<string[], MultiselectComponentType>): JSX.Element | null {
+}: InputProps<string[], MultiselectComponentType>): JSX.Element {
   const [open, setOpen] = useState(false);
   const treatedValue = typeof value === "string" ? [value] : value;
 
   const refButton = useRef<HTMLButtonElement>(null);
 
-  const PopoverContentDropdown =
-    editNode || inspectionPanel ? PopoverContent : PopoverContentWithoutPortal;
+  const PopoverContentDropdown = editNode
+    ? PopoverContent
+    : PopoverContentWithoutPortal;
 
   const [customValues, setCustomValues] = useState<string[]>([]);
   const [searchValue, setSearchValue] = useState("");
@@ -71,7 +69,11 @@ export default function MultiselectComponent({
 
   useEffect(() => {
     searchRoleByTerm(searchValue);
-  }, [searchValue, onlySelected, options]);
+  }, [onlySelected]);
+
+  useEffect(() => {
+    searchRoleByTerm(searchValue);
+  }, [options]);
 
   useEffect(() => {
     setCustomValues(
@@ -98,9 +100,6 @@ export default function MultiselectComponent({
       });
     } else {
       handleOnNewValue({ value: [...treatedValue, currentValue] });
-    }
-    if (hideOnSelection) {
-      setOpen(false);
     }
   };
 
@@ -193,10 +192,6 @@ export default function MultiselectComponent({
     </CommandList>
   );
 
-  if (!showParameter) {
-    return null;
-  }
-
   if (Object.keys(options).length === 0 && !combobox) {
     return (
       <div>
@@ -213,7 +208,7 @@ export default function MultiselectComponent({
       <PopoverContentDropdown
         onOpenAutoFocus={(event) => event.preventDefault()}
         side="bottom"
-        avoidCollisions={inspectionPanel || editNode}
+        avoidCollisions={false}
         className="noflow nowheel nopan nodelete nodrag p-0"
         style={{ minWidth: refButton?.current?.clientWidth ?? "200px" }}
       >

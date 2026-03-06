@@ -1,6 +1,4 @@
 /** @type {import('tailwindcss').Config} */
-
-import tailwindcssContainerQueries from "@tailwindcss/container-queries";
 import tailwindcssForms from "@tailwindcss/forms";
 import tailwindcssTypography from "@tailwindcss/typography";
 import { fontFamily } from "tailwindcss/defaultTheme";
@@ -39,7 +37,6 @@ const config = {
     },
     extend: {
       screens: {
-        mdd: "45rem",
         xl: "1200px",
         "2xl": "1400px",
         "3xl": "1500px",
@@ -90,10 +87,6 @@ const config = {
           "0%, 100%": { transform: "scale(100%)" },
           "50%": { transform: "scale(120%)" },
         },
-        jiggle: {
-          "0%, 100%": { transform: "rotate(-1deg)" },
-          "50%": { transform: "rotate(1deg)" },
-        },
         "border-beam": {
           "100%": {
             "offset-distance": "100%",
@@ -113,7 +106,6 @@ const config = {
         wiggle: "wiggle 150ms ease-in-out 1",
         "pulse-pink": "pulse-pink 2s linear infinite",
         "slow-wiggle": "wiggle 500ms ease-in-out 1",
-        jiggle: "jiggle 150ms ease-in-out infinite",
         "border-beam": "border-beam calc(var(--duration)*1s) infinite linear",
       },
       colors: {
@@ -249,10 +241,6 @@ const config = {
           DEFAULT: "hsl(var(--accent-indigo))",
           foreground: "hsl(var(--accent-indigo-foreground))",
         },
-        "accent-blue": {
-          DEFAULT: "hsl(var(--accent-blue))",
-          foreground: "hsl(var(--accent-blue-foreground))",
-        },
         "accent-pink": {
           DEFAULT: "hsl(var(--accent-pink))",
           foreground: "hsl(var(--accent-pink-foreground))",
@@ -365,17 +353,10 @@ const config = {
         xxs: "11px",
         mmd: "13px",
       },
-      height: {
-        4.5: "18px",
-      },
-      width: {
-        4.5: "18px",
-      },
     },
   },
 
   plugins: [
-    tailwindcssContainerQueries,
     tailwindcssAnimate,
     tailwindcssForms({
       strategy: "class", // only generate classes

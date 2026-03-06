@@ -57,7 +57,6 @@ export interface ButtonProps
   loading?: boolean;
   unstyled?: boolean;
   ignoreTitleCase?: boolean;
-  shouldScale?: boolean;
 }
 
 function toTitleCase(text: string) {
@@ -82,7 +81,6 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       asChild = false,
       children,
       ignoreTitleCase = false,
-      shouldScale = true,
       ...props
     },
     ref,
@@ -92,8 +90,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     if (typeof children === "string") {
       newChildren = ignoreTitleCase ? children : toTitleCase(children);
     }
-    const shouldScaleButton =
-      props["aria-haspopup"] !== "dialog" || shouldScale;
+    const shouldScale = props["aria-haspopup"] !== "dialog";
     return (
       <>
         <Comp
@@ -101,7 +98,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             !unstyled
               ? cn(
                   buttonVariants({ variant, size, className }),
-                  shouldScaleButton && "active:scale-[0.97]",
+                  shouldScale && "active:scale-[0.97]",
                 )
               : cn(className)
           }

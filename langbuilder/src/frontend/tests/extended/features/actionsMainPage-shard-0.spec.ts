@@ -22,7 +22,7 @@ test(
       await page.getByTestId("replace-button").click();
     }
 
-    await page.waitForSelector('[data-testid="sidebar-search-input"]', {
+    await page.waitForSelector('[data-testid="icon-ChevronLeft"]', {
       timeout: 100000,
     });
 
@@ -102,7 +102,7 @@ test(
       await page.getByTestId("replace-button").click();
     }
 
-    await page.waitForSelector('[data-testid="sidebar-search-input"]', {
+    await page.waitForSelector('[data-testid="icon-ChevronLeft"]', {
       timeout: 100000,
     });
 

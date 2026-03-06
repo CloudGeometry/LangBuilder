@@ -2233,7 +2233,7 @@
         "data": {
           "id": "note-H0hfF",
           "node": {
-            "description": "### Configure your Model Provider",
+            "description": "### 💡 Add your OpenAI API key here 👇",
             "display_name": "",
             "documentation": "",
             "template": {
@@ -2265,7 +2265,7 @@
         "data": {
           "id": "note-nrMsA",
           "node": {
-            "description": "### Configure your Model Provider",
+            "description": "### 💡 Add your OpenAI API key here 👇",
             "display_name": "",
             "documentation": "",
             "template": {
@@ -2297,7 +2297,7 @@
         "data": {
           "id": "note-aXAyF",
           "node": {
-            "description": "### Configure your Model Provider",
+            "description": "### 💡 Add your OpenAI API key here 👇",
             "display_name": "",
             "documentation": "",
             "template": {

@@ -22,9 +22,8 @@ export default function DropdownComponent({
   toggleValue,
   toggleDisable,
   hasRefreshButton,
-  showParameter = true,
   ...baseInputProps
-}: InputProps<string, DropDownComponentType>): JSX.Element | null {
+}: InputProps<string, DropDownComponentType>) {
   const onChange = (
     value: any,
     dbValue?: boolean,
@@ -41,10 +40,6 @@ export default function DropdownComponent({
     }
     handleOnNewValue(changes, { skipSnapshot });
   };
-
-  if (!showParameter) {
-    return null;
-  }
 
   return (
     <div className="flex w-full items-center gap-4">
