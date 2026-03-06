@@ -55,7 +55,7 @@ WORKDIR /tmp/src/frontend
 COPY src/frontend/package.json src/frontend/package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm \
   npm ci --legacy-peer-deps \
-  && npm run build \
+  && NODE_ENV=production npm run build \
   && cp -r build /app/src/backend/langbuilder/frontend \
   && rm -rf /tmp/src/frontend
 
