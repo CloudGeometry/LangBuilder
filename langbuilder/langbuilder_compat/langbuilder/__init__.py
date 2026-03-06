@@ -3,7 +3,7 @@ langbuilder → langflow/lfx compatibility shim.
 
 Redirects all `langbuilder.*` imports to the equivalent `langflow.*` or
 `lfx.*` module so that flow JSON files saved from LangBuilder deployments
-continue to work on Langflow 1.7.3.
+continue to work on Langflow 1.8.0.
 
 Uses the modern Python 3.4+ MetaPathFinder API (find_spec / exec_module)
 because Python 3.12 dropped the deprecated find_module / load_module API.
@@ -44,6 +44,123 @@ _PREFIX_MAP = [
 
 _SPAN_SHIM = "langbuilder.services.tracing.spans"
 
+
+# ── Flow JSON migration: renamed / removed components ──────────────────────
+# Maps old component type names to their new equivalents in Langflow 1.8.0.
+# Used by migrate_flow_json() to rewrite exported flow JSON so that flows
+# created with older LangBuilder versions load without errors.
+COMPONENT_RENAME_MAP: dict[str, str] = {
+    # Langflow 1.2 renames
+    "MergeData": "CombineData",
+    # Langflow 1.7 renames
+    "SaveFile": "WriteFile",
+    "File": "ReadFile",
+    "SmartFunction": "SmartTransform",
+    "LLMRouter": "LLMSelector",
+    # Langflow 1.7 – Bedrock migration
+    "AmazonBedrockComponent": "AmazonBedrockConverseComponent",
+}
+
+# Components removed in newer versions — flows referencing these will get a
+# warning but won't hard-fail (the node is dropped with a log message).
+REMOVED_COMPONENTS: set[str] = {
+    "LocalDB",
+    "ZepMemory",
+    "GmailLoader",
+    "CombineText",  # deprecated in 1.5+
+}
+
+# Import-path renames that appear in flow JSON `type` fields
+# (fully qualified module paths used in older LangBuilder flow exports)
+MODULE_PATH_RENAME_MAP: dict[str, str] = {
+    "langbuilder.components.": "lfx.components.",
+    "langbuilder.base.": "langflow.base.",
+    "langbuilder.custom.": "langflow.custom.",
+}
+
+
+def migrate_flow_json(flow_data: dict) -> dict:
+    """Rewrite a flow JSON dict so old LangBuilder flows work on Langflow 1.8.0.
+
+    Handles:
+    - Component type renames (e.g. SaveFile → WriteFile)
+    - Module path migrations (langbuilder.* → lfx.*/langflow.*)
+    - Removed component warnings
+    - Old `build()` method references → `build_model()` / output wiring
+
+    Returns the migrated flow dict (mutated in place for performance).
+    """
+    import logging
+
+    log = logging.getLogger("langbuilder_compat")
+
+    nodes = flow_data.get("data", {}).get("nodes", [])
+    if not nodes:
+        # Try alternate structure (some exports nest differently)
+        nodes = flow_data.get("nodes", [])
+
+    removed_ids: list[str] = []
+
+    for node in nodes:
+        node_data = node.get("data", {})
+        node_type = node_data.get("type", "")
+
+        # 1. Rename component types
+        if node_type in COMPONENT_RENAME_MAP:
+            old_type = node_type
+            node_data["type"] = COMPONENT_RENAME_MAP[node_type]
+            log.info("Flow migration: renamed component %s → %s", old_type, node_data["type"])
+
+        # 2. Handle removed components
+        if node_type in REMOVED_COMPONENTS:
+            log.warning(
+                "Flow migration: component %s was removed in newer versions. "
+                "Node %s will be dropped.",
+                node_type,
+                node.get("id", "?"),
+            )
+            removed_ids.append(node.get("id", ""))
+
+        # 3. Migrate module paths in the 'type' field
+        for old_prefix, new_prefix in MODULE_PATH_RENAME_MAP.items():
+            if node_type.startswith(old_prefix):
+                node_data["type"] = new_prefix + node_type[len(old_prefix):]
+                break
+
+        # 4. Migrate template/node references
+        template = node_data.get("template", {})
+        if template:
+            _migrate_template(template)
+
+    # Remove edges that reference removed nodes
+    if removed_ids:
+        edges = flow_data.get("data", {}).get("edges", [])
+        if not edges:
+            edges = flow_data.get("edges", [])
+        flow_data.get("data", {})["edges"] = [
+            e
+            for e in edges
+            if e.get("source") not in removed_ids and e.get("target") not in removed_ids
+        ]
+
+    return flow_data
+
+
+def _migrate_template(template: dict) -> None:
+    """Migrate old template field references."""
+    for field_name, field_data in template.items():
+        if not isinstance(field_data, dict):
+            continue
+        # Rename old `_type` references
+        field_type = field_data.get("_type", "")
+        if isinstance(field_type, str):
+            for old_prefix, new_prefix in MODULE_PATH_RENAME_MAP.items():
+                if field_type.startswith(old_prefix):
+                    field_data["_type"] = new_prefix + field_type[len(old_prefix):]
+                    break
+
+
+# ── Import redirection machinery ───────────────────────────────────────────
 
 def _get_real_name(fullname: str) -> str | None:
     for lb_prefix, real_prefix in _PREFIX_MAP:

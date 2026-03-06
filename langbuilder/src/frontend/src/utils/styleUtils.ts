@@ -315,6 +315,8 @@ export const SIDEBAR_CATEGORIES = [
   { display_name: "Retrievers", name: "retrievers", icon: "FileSearch" },
   { display_name: "Text Splitters", name: "textsplitters", icon: "Scissors" },
   { display_name: "Toolkits", name: "toolkits", icon: "Package2" },
+  { display_name: "Chez Antoine", name: "chez_antoine", icon: "ChefHat" },
+  { display_name: "Cloud Geometry", name: "cloudgeometry", icon: "Cloud" },
 ];
 
 export const SIDEBAR_BUNDLES = [
@@ -338,9 +340,11 @@ export const SIDEBAR_BUNDLES = [
   { display_name: "Baidu", name: "baidu", icon: "BaiduQianfan" },
   { display_name: "Bing", name: "bing", icon: "Bing" },
   { display_name: "Cassandra", name: "cassandra", icon: "Cassandra" },
+  { display_name: "Chez Antoine", name: "chez_antoine", icon: "ChefHat" },
   { display_name: "Chroma", name: "chroma", icon: "Chroma" },
   { display_name: "ClickHouse", name: "clickhouse", icon: "Clickhouse" },
   { display_name: "Cleanlab", name: "cleanlab", icon: "Cleanlab" },
+  { display_name: "Cloud Geometry", name: "cloudgeometry", icon: "Cloud" },
   { display_name: "Cloudflare", name: "cloudflare", icon: "Cloudflare" },
   { display_name: "Cohere", name: "cohere", icon: "Cohere" },
   { display_name: "CometAPI", name: "cometapi", icon: "CometAPI" },
@@ -449,6 +453,8 @@ export const categoryIcons: Record<string, string> = {
   tools: "Hammer",
   custom: "Edit",
   custom_components: "GradientInfinity",
+  chez_antoine: "ChefHat",
+  cloudgeometry: "Cloud",
 };
 
 export const nodeIconToDisplayIconMap: Record<string, string> = {

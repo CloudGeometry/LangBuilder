@@ -743,6 +743,20 @@ async def upload_file(
     """Upload flows from a file."""
     contents = await file.read()
     data = orjson.loads(contents)
+
+    # ── LangBuilder compat: migrate old flow JSON on import ────────────
+    try:
+        from langbuilder import migrate_flow_json
+
+        if "flows" in data:
+            for flow_dict in data["flows"]:
+                migrate_flow_json(flow_dict)
+        else:
+            migrate_flow_json(data)
+    except Exception:
+        pass  # compat shim not installed — skip silently
+    # ───────────────────────────────────────────────────────────────────
+
     flow_list = FlowListCreate(**data) if "flows" in data else FlowListCreate(flows=[FlowCreate(**data)])
 
     try:

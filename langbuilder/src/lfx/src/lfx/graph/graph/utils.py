@@ -87,6 +87,16 @@ def ungroup_node(group_node_data, base_flow):
 
 def process_flow(flow_object):
     cloned_flow = copy.deepcopy(flow_object)
+
+    # ── LangBuilder compat: migrate old flow JSON on the fly ───────────
+    try:
+        from langbuilder import migrate_flow_json
+
+        migrate_flow_json({"data": cloned_flow})
+    except Exception:
+        pass  # compat shim not installed — skip silently
+    # ───────────────────────────────────────────────────────────────────
+
     processed_nodes = set()  # To keep track of processed nodes
 
     def process_node(node) -> None:

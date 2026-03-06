@@ -5,6 +5,13 @@ OPENAI_MODELS_DETAILED = [
     # GPT-5 Series
     create_model_metadata(
         provider="OpenAI",
+        name="gpt-5.2-pro",
+        icon="OpenAI",
+        tool_calling=True,
+        reasoning=True,
+    ),
+    create_model_metadata(
+        provider="OpenAI",
         name="gpt-5.2",
         icon="OpenAI",
         tool_calling=True,

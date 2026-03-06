@@ -36,10 +36,13 @@ services:
       - LANGFLOW_STT_OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - LANGWATCH_API_KEY=${LANGWATCH_API_KEY:-}
       - LANGWATCH_ENDPOINT=${LANGWATCH_ENDPOINT:-http://langwatch:5560}
+      - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY:-}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     deploy:
       resources:
         limits:
-          memory: 1g
+          memory: 2g
           cpus: "1.0"
     volumes:
       - langbuilder-app-data:/app/langbuilder
@@ -48,7 +51,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 30s
+      start_period: 90s
     networks:
       - langbuilder-network
     logging:

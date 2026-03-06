@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "langbuilder-compat"
-version = "1.0.0"
-description = "LangBuilder → Langflow 1.7.3 import compatibility shim"
+version = "2.0.0"
+description = "LangBuilder → Langflow 1.8.0 import + flow JSON compatibility shim"
 requires-python = ">=3.10"
 
 [tool.hatch.build.targets.wheel]
