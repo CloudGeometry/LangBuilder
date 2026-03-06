@@ -72,6 +72,9 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     RUSTFLAGS='--cfg reqwest_unstable' \
     uv sync --frozen --no-editable --extra postgresql --no-group dev
 
+# Install webrtcvad for voice mode support (enables voice_mode_available=true)
+RUN /app/.venv/bin/pip install webrtcvad-wheels
+
 # Install the langbuilder→langflow compatibility shim (no deps, no lockfile needed)
 RUN /app/.venv/bin/pip install --no-deps /app/langbuilder_compat
 

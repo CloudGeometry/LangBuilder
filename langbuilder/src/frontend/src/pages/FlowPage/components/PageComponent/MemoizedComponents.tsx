@@ -7,6 +7,7 @@ import CanvasControls from "@/components/core/canvasControlsComponent/CanvasCont
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { ENABLE_NEW_SIDEBAR } from "@/customization/feature-flags";
+import useSaveFlow from "@/hooks/flows/use-save-flow";
 import useFlowStore from "@/stores/flowStore";
 import { AllNodeType } from "@/types/flow";
 import { cn } from "@/utils/utils";
@@ -34,6 +35,17 @@ export const MemoizedCanvasControls = memo(
     const isLocked = useFlowStore(
       useShallow((state) => state.currentFlow?.locked),
     );
+    const currentFlow = useFlowStore((state) => state.currentFlow);
+    const setCurrentFlow = useFlowStore((state) => state.setCurrentFlow);
+    const saveFlow = useSaveFlow();
+
+    const handleToggleLock = () => {
+      if (!currentFlow) return;
+      const newLocked = !isLocked;
+      const updatedFlow = { ...currentFlow, locked: newLocked };
+      setCurrentFlow(updatedFlow);
+      saveFlow(updatedFlow);
+    };
 
     return (
       <CanvasControls selectedNode={selectedNode}>
@@ -42,8 +54,9 @@ export const MemoizedCanvasControls = memo(
           unselectable="on"
           size="icon"
           data-testid="lock-status"
-          className="flex items-center justify-center px-2 rounded-none gap-1 cursor-default"
-          title={`Lock status: ${isLocked ? "Locked" : "Unlocked"}`}
+          className="flex items-center justify-center px-2 rounded-none gap-1 cursor-pointer"
+          title={isLocked ? "Click to unlock flow" : "Click to lock flow"}
+          onClick={handleToggleLock}
         >
           <ForwardedIconComponent
             name={isLocked ? "Lock" : "Unlock"}
