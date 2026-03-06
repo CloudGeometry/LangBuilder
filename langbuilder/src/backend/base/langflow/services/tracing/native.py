@@ -270,9 +270,8 @@ class NativeTracer(BaseTracer):
         try:
             from uuid import UUID as UUID_
 
-            from lfx.services.deps import session_scope
-
             from langflow.services.database.models.traces.model import SpanTable, TraceTable
+            from langflow.services.deps import get_db_service
 
             try:
                 flow_uuid = UUID_(self.flow_id)
@@ -306,7 +305,37 @@ class NativeTracer(BaseTracer):
                 if span.get("span_source") == "langchain"
             )
 
-            async with session_scope() as session:
+            # Pre-compute span UUIDs and parent references so we can topologically
+            # sort them (parents before children) to satisfy the self-referencing FK.
+            span_rows = []
+            for span_data in self.completed_spans:
+                try:
+                    span_uuid = UUID_(span_data["id"])
+                except (ValueError, TypeError):
+                    span_uuid = uuid5(LANGFLOW_SPAN_NAMESPACE, f"{self.trace_id}-{span_data['id']}")
+
+                parent_uuid = None
+                if span_data.get("parent_span_id"):
+                    parent_id = span_data["parent_span_id"]
+                    if isinstance(parent_id, UUID_):
+                        parent_uuid = parent_id
+                    else:
+                        try:
+                            parent_uuid = UUID_(str(parent_id))
+                        except (ValueError, TypeError):
+                            parent_uuid = uuid5(LANGFLOW_SPAN_NAMESPACE, f"{self.trace_id}-{parent_id}")
+
+                span_rows.append((span_uuid, parent_uuid, span_data))
+
+            # Topological sort: root spans first, then children.
+            span_ids_in_batch = {row[0] for row in span_rows}
+            roots = [r for r in span_rows if r[1] is None or r[1] not in span_ids_in_batch]
+            children = [r for r in span_rows if r[1] is not None and r[1] in span_ids_in_batch]
+            sorted_spans = roots + children
+
+            db_service = get_db_service()
+            async with db_service._with_session() as session:  # noqa: SLF001
+                session.autoflush = False
                 trace = TraceTable(
                     id=self.trace_id,
                     name=self.trace_name,
@@ -319,26 +348,9 @@ class NativeTracer(BaseTracer):
                     total_tokens=total_tokens,
                 )
                 await session.merge(trace)
+                await session.flush()
 
-                for span_data in self.completed_spans:
-                    try:
-                        span_uuid = UUID_(span_data["id"])
-                    except (ValueError, TypeError):
-                        # Span IDs from LangChain callbacks are strings, not UUIDs — derive
-                        # a stable UUID so the same span always maps to the same DB row.
-                        span_uuid = uuid5(LANGFLOW_SPAN_NAMESPACE, f"{self.trace_id}-{span_data['id']}")
-
-                    parent_uuid = None
-                    if span_data.get("parent_span_id"):
-                        parent_id = span_data["parent_span_id"]
-                        if isinstance(parent_id, UUID_):
-                            parent_uuid = parent_id
-                        else:
-                            try:
-                                parent_uuid = UUID_(str(parent_id))
-                            except (ValueError, TypeError):
-                                parent_uuid = uuid5(LANGFLOW_SPAN_NAMESPACE, f"{self.trace_id}-{parent_id}")
-
+                for span_uuid, parent_uuid, span_data in sorted_spans:
                     span = SpanTable(
                         id=span_uuid,
                         trace_id=self.trace_id,
@@ -355,7 +367,9 @@ class NativeTracer(BaseTracer):
                         attributes=span_data.get("attributes") or {},
                     )
                     await session.merge(span)
+                    await session.flush()
 
+                await session.commit()
                 logger.debug("Flushed %d spans to database", len(self.completed_spans))
 
         except Exception:

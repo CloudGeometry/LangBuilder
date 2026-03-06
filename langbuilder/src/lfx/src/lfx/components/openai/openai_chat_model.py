@@ -7,7 +7,15 @@ from lfx.base.models.model import LCModelComponent
 from lfx.base.models.openai_constants import OPENAI_CHAT_MODEL_NAMES, OPENAI_REASONING_MODEL_NAMES
 from lfx.field_typing import LanguageModel
 from lfx.field_typing.range_spec import RangeSpec
-from lfx.inputs.inputs import BoolInput, DictInput, DropdownInput, IntInput, SecretStrInput, SliderInput, StrInput
+from lfx.inputs.inputs import (
+    BoolInput,
+    DictInput,
+    DropdownInput,
+    IntInput,
+    SecretStrInput,
+    SliderInput,
+    StrInput,
+)
 from lfx.log.logger import logger
 
 
@@ -77,6 +85,15 @@ class OpenAIModelComponent(LCModelComponent):
             advanced=True,
             value=1,
         ),
+        DropdownInput(
+            name="reasoning_effort",
+            display_name="Reasoning Effort",
+            options=["", "minimal", "low", "medium", "high"],
+            value="",
+            advanced=True,
+            info="Controls how much reasoning the model does. Only applies to GPT-5 and o-series reasoning models. "
+            "Leave empty to use the model default.",
+        ),
         IntInput(
             name="max_retries",
             display_name="Max Retries",
@@ -133,6 +150,12 @@ class OpenAIModelComponent(LCModelComponent):
             params_str = ", ".join(unsupported_params_for_reasoning_models)
             logger.debug(f"{self.model_name} is a reasoning model, {params_str} are not configurable. Ignoring.")
 
+        # Add reasoning_effort for GPT-5 and o-series reasoning models
+        if self.reasoning_effort and self.model_name in OPENAI_REASONING_MODEL_NAMES:
+            if "model_kwargs" not in parameters:
+                parameters["model_kwargs"] = {}
+            parameters["model_kwargs"]["reasoning_effort"] = self.reasoning_effort
+
         # Ensure all parameter values are the correct types
         if isinstance(parameters.get("api_key"), SecretStr):
             parameters["api_key"] = parameters["api_key"].get_secret_value()
@@ -165,12 +188,14 @@ class OpenAIModelComponent(LCModelComponent):
         if field_name in {"base_url", "model_name", "api_key"} and field_value in OPENAI_REASONING_MODEL_NAMES:
             build_config["temperature"]["show"] = False
             build_config["seed"]["show"] = False
+            build_config["reasoning_effort"]["show"] = True
             # Hide system_message for o1 models - currently unsupported
             if field_value.startswith("o1") and "system_message" in build_config:
                 build_config["system_message"]["show"] = False
         if field_name in {"base_url", "model_name", "api_key"} and field_value in OPENAI_CHAT_MODEL_NAMES:
             build_config["temperature"]["show"] = True
             build_config["seed"]["show"] = True
+            build_config["reasoning_effort"]["show"] = False
             if "system_message" in build_config:
                 build_config["system_message"]["show"] = True
         return build_config

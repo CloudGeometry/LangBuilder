@@ -132,14 +132,12 @@ clickhouse-connect = [
     "clickhouse-connect==0.7.19"
 ]
 
-nv-ingest = [
-    # NOTE: These must be removed in order to run `uv lock --upgrade` or `uv sync --upgrade`
-    # due to incompatibility with <3.12 and how uv handles lockfile creation.
-    # If upgrading, ensure `uv lock` and `uv sync` are run after upgrade with these,
-    # and that afterward, the lockfile contains nv-ingest.
-    "nv-ingest-api==25.6.2,<26.0.0 ; python_version >= '3.12'",
-    "nv-ingest-client==25.6.3,<26.0.0 ; python_version >= '3.12'",
-]
+# nv-ingest disabled — nv-ingest-client pins openai<1.83 which conflicts with openai>=2.11 (GPT-5)
+# Re-enable when nv-ingest-client publishes a release compatible with openai v2.
+# nv-ingest = [
+#     "nv-ingest-api==25.6.2,<26.0.0 ; python_version >= '3.12'",
+#     "nv-ingest-client==25.6.3,<26.0.0 ; python_version >= '3.12'",
+# ]
 
 postgresql = [
     "sqlalchemy[postgresql_psycopg2binary]>=2.0.38,<3.0.0",
