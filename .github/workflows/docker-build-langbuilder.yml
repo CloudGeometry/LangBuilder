@@ -4,6 +4,21 @@ run-name: Build LangBuilder Docker images by @${{ github.actor }}
 on:
   workflow_dispatch:
     inputs:
+      build_main:
+        description: "Build main image"
+        required: false
+        type: boolean
+        default: true
+      build_backend:
+        description: "Build backend image (will also build main)"
+        required: false
+        type: boolean
+        default: false
+      build_frontend:
+        description: "Build frontend image"
+        required: false
+        type: boolean
+        default: false
       tag:
         description: "Image tag (e.g., latest, v1.0.0)"
         required: false
