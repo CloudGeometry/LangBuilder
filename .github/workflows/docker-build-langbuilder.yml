@@ -47,6 +47,7 @@ jobs:
   build-main:
     name: Build main image
     runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.build_main || inputs.build_backend }}
     permissions:
       contents: read
       packages: write
@@ -109,6 +110,7 @@ jobs:
     name: Build backend image
     runs-on: ubuntu-latest
     needs: build-main
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.build_backend }}
     permissions:
       contents: read
       packages: write
@@ -153,6 +155,7 @@ jobs:
   build-frontend:
     name: Build frontend image
     runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.build_frontend }}
     permissions:
       contents: read
       packages: write
