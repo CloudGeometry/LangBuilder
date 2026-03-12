@@ -15,4 +15,4 @@
 include:
   - docker-compose.langbuilder.yml
   - docker-compose.openwebui.yml
-  - docker-compose.langwatch.yml
+  # - docker-compose.langwatch.yml

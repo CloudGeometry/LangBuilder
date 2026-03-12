@@ -16,7 +16,7 @@ services:
     container_name: langwatch
     restart: unless-stopped
     depends_on:
-      langwatch-postgres:
+      langbuilder-postgres:
         condition: service_healthy
       langwatch-redis:
         condition: service_healthy
@@ -25,7 +25,7 @@ services:
     ports:
       - "${LW_APP_PORT:-5560}:5560"
     environment:
-      - DATABASE_URL=postgresql://${LW_POSTGRES_USER:-langwatch}:${LW_POSTGRES_PASSWORD:-langwatch}@langwatch-postgres:5432/${LW_POSTGRES_DB:-langwatch}
+      - DATABASE_URL=postgresql://${LW_POSTGRES_USER:-langwatch}:${LW_POSTGRES_PASSWORD:-langwatch}@langbuilder-postgres:5432/${LW_POSTGRES_DB:-langwatch}
       - REDIS_URL=redis://langwatch-redis:6379
       - ELASTICSEARCH_NODE_URL=http://langwatch-opensearch:9200
       - IS_OPENSEARCH=true
@@ -94,35 +94,39 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  langwatch-postgres:
-    image: postgres:16.6-alpine
-    container_name: langwatch-postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: ${LW_POSTGRES_USER:-langwatch}
-      POSTGRES_PASSWORD: ${LW_POSTGRES_PASSWORD:-langwatch}
-      POSTGRES_DB: ${LW_POSTGRES_DB:-langwatch}
-      PGDATA: /var/lib/postgresql/data/pgdata
-    deploy:
-      resources:
-        limits:
-          memory: 512m
-          cpus: "0.5"
-    volumes:
-      - langwatch-postgres-data:/var/lib/postgresql/data/pgdata
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${LW_POSTGRES_USER:-langwatch} -d ${LW_POSTGRES_DB:-langwatch}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-    networks:
-      - langbuilder-network
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
+  # langwatch-postgres:
+  #   image: postgres:16.6-alpine
+  #   container_name: langwatch-postgres
+  #   restart: unless-stopped
+  #   environment:
+  #     POSTGRES_USER: ${LW_POSTGRES_USER:-langwatch}
+  #     POSTGRES_PASSWORD: ${LW_POSTGRES_PASSWORD:-langwatch}
+  #     POSTGRES_DB: ${LW_POSTGRES_DB:-langwatch}
+  #     PGDATA: /var/lib/postgresql/data/pgdata
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         memory: 512m
+  #         cpus: "0.5"
+  #   volumes:
+  #     - langwatch-postgres-data:/var/lib/postgresql/data/pgdata
+  #   healthcheck:
+  #     test:
+  #       [
+  #         "CMD-SHELL",
+  #         "pg_isready -U ${LW_POSTGRES_USER:-langwatch} -d ${LW_POSTGRES_DB:-langwatch}",
+  #       ]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #     start_period: 10s
+  #   networks:
+  #     - langbuilder-network
+  #   logging:
+  #     driver: json-file
+  #     options:
+  #       max-size: "10m"
+  #       max-file: "3"
 
   langwatch-redis:
     image: redis:7.4-alpine
@@ -168,7 +172,11 @@ services:
     volumes:
       - langwatch-opensearch-data:/usr/share/opensearch/data
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          "curl -sf http://localhost:9200/_cluster/health || exit 1",
+        ]
       interval: 30s
       timeout: 10s
       retries: 5

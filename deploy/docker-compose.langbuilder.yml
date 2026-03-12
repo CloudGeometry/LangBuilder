@@ -92,7 +92,7 @@ services:
     container_name: langbuilder-postgres
     restart: unless-stopped
     ports:
-      - "${LB_POSTGRES_PORT:-5433}:5432"
+      - "${LB_POSTGRES_PORT:-5432}:5432"
     environment:
       POSTGRES_USER: ${LB_POSTGRES_USER:-langbuilder}
       POSTGRES_PASSWORD: ${LB_POSTGRES_PASSWORD:-langbuilder}
@@ -106,7 +106,11 @@ services:
     volumes:
       - langbuilder-postgres-data:/var/lib/postgresql/data/pgdata
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${LB_POSTGRES_USER:-langbuilder} -d ${LB_POSTGRES_DB:-langbuilder}"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${LB_POSTGRES_USER:-langbuilder} -d ${LB_POSTGRES_DB:-langbuilder}",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
