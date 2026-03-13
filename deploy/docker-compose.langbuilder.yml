@@ -20,9 +20,10 @@ services:
     container_name: langbuilder-backend
     pull_policy: always
     restart: unless-stopped
-    depends_on:
-      langbuilder-postgres:
-        condition: service_healthy
+    # Uncomment to wait for Postgres when switching from SQLite:
+    # depends_on:
+    #   langbuilder-postgres:
+    #     condition: service_healthy
     ports:
       - "${LB_BACKEND_PORT:-7860}:7860"
     environment:
@@ -86,42 +87,42 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  # ── Postgres (enable via LANGBUILDER_DATABASE_URL in .env) ───────────────
-  langbuilder-postgres:
-    image: postgres:16.6-alpine
-    container_name: langbuilder-postgres
-    restart: unless-stopped
-    ports:
-      - "${LB_POSTGRES_PORT:-5433}:5432"
-    environment:
-      POSTGRES_USER: ${LB_POSTGRES_USER:-langbuilder}
-      POSTGRES_PASSWORD: ${LB_POSTGRES_PASSWORD:-langbuilder}
-      POSTGRES_DB: ${LB_POSTGRES_DB:-langbuilder}
-      PGDATA: /var/lib/postgresql/data/pgdata
-    deploy:
-      resources:
-        limits:
-          memory: 512m
-          cpus: "0.5"
-    volumes:
-      - langbuilder-postgres-data:/var/lib/postgresql/data/pgdata
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${LB_POSTGRES_USER:-langbuilder} -d ${LB_POSTGRES_DB:-langbuilder}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-    networks:
-      - langbuilder-network
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
+  # ── Uncomment to use Postgres instead of SQLite ──────────────────────────
+  # langbuilder-postgres:
+  #   image: postgres:16.6-alpine
+  #   container_name: langbuilder-postgres
+  #   restart: unless-stopped
+  #   ports:
+  #     - "${LB_POSTGRES_PORT:-5433}:5432"
+  #   environment:
+  #     POSTGRES_USER: ${LB_POSTGRES_USER:-langbuilder}
+  #     POSTGRES_PASSWORD: ${LB_POSTGRES_PASSWORD:-langbuilder}
+  #     POSTGRES_DB: ${LB_POSTGRES_DB:-langbuilder}
+  #     PGDATA: /var/lib/postgresql/data/pgdata
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         memory: 512m
+  #         cpus: "0.5"
+  #   volumes:
+  #     - langbuilder-postgres-data:/var/lib/postgresql/data/pgdata
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U ${LB_POSTGRES_USER:-langbuilder} -d ${LB_POSTGRES_DB:-langbuilder}"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #     start_period: 10s
+  #   networks:
+  #     - langbuilder-network
+  #   logging:
+  #     driver: json-file
+  #     options:
+  #       max-size: "10m"
+  #       max-file: "3"
 
 volumes:
   langbuilder-app-data:
-  langbuilder-postgres-data:
+  # langbuilder-postgres-data:
 
 networks:
   langbuilder-network:
