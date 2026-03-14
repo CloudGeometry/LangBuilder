@@ -29,6 +29,14 @@ def _get_version_info():
         ("langflow-nightly", "Langflow Nightly"),
         ("langflow-base-nightly", "Langflow Base Nightly"),
     ]
+
+    # Map langflow-base minor versions to the corresponding langflow release.
+    # The backend-only Docker image installs langflow-base (0.x) without the
+    # top-level langflow (1.x) package, so we remap here for display purposes.
+    _base_to_langflow = {
+        "0.8": "1.8",
+    }
+
     __version__ = None
     for pkg_name, display_name in package_options:
         try:
@@ -38,6 +46,15 @@ def _get_version_info():
         except (ImportError, metadata.PackageNotFoundError):
             pass
         else:
+            # Remap langflow-base version to the top-level langflow version
+            if pkg_name == "langflow-base":
+                minor_key = ".".join(version.split(".")[:2])
+                if minor_key in _base_to_langflow:
+                    mapped = _base_to_langflow[minor_key]
+                    version = mapped + version[len(minor_key):]
+                    prerelease_version = mapped + prerelease_version[len(minor_key):]
+                    display_name = "Langflow"
+
             return {
                 "version": prerelease_version,
                 "main_version": version,
