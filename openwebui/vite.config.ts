@@ -16,15 +16,6 @@ export default defineConfig({
 			]
 		})
 	],
-	server: {
-		allowedHosts: [
-			'localhost',
-			'127.0.0.1',
-			'dev-langbuilder-app.cloudgeometry.com',
-			'langbuilder-app.cloudgeometry.com',
-			'.cloudgeometry.com'
-		]
-	},
 	define: {
 		APP_VERSION: JSON.stringify(process.env.npm_package_version),
 		APP_BUILD_HASH: JSON.stringify(process.env.APP_BUILD_HASH || 'dev-build')

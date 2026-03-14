@@ -25,7 +25,7 @@ export class Web extends Construct {
   readonly distribution;
   constructor(scope: Construct, id: string, props:WebProps) {
     super(scope, id)
-    
+
   const commonBucketProps: s3.BucketProps = {
     blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
     encryption: s3.BucketEncryption.S3_MANAGED,
@@ -36,13 +36,13 @@ export class Web extends Construct {
   };
 
   // CDKにて 静的WebサイトをホストするためのAmazon S3バケットを作成
-  const websiteBucket = new s3.Bucket(this, 'LangBuilderWebsiteBucket', commonBucketProps);
-  
+  const websiteBucket = new s3.Bucket(this, 'LangflowWebsiteBucket', commonBucketProps);
+
   const originAccessIdentity = new cloudfront.OriginAccessIdentity(
     this,
     'OriginAccessIdentity',
     {
-      comment: 'langbuilder-distribution-originAccessIdentity',
+      comment: 'langflow-distribution-originAccessIdentity',
     }
   );
 
@@ -63,19 +63,19 @@ export class Web extends Construct {
   const s3SpaOrigin = new origins.S3Origin(websiteBucket);
   const ApiSpaOrigin = new origins.LoadBalancerV2Origin(props.alb,{
     protocolPolicy: cloudfront.OriginProtocolPolicy.HTTP_ONLY
-  });  
+  });
 
   const albBehaviorOptions = {
     origin: ApiSpaOrigin,
     allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
-    
+
     viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.ALLOW_ALL,
     cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
     originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER
   }
 
   const cloudFrontWebDistribution = new cloudfront.Distribution(this, 'distribution', {
-    comment: 'langbuilder-distribution',
+    comment: 'langflow-distribution',
     defaultRootObject: 'index.html',
     errorResponses: [
       {
@@ -126,7 +126,7 @@ export class Web extends Construct {
       // VITE_AXIOS_BASE_URL: `https://${this.distribution.domainName}`
     },
   });
-  
+
   // distribution から backendへのinbound 許可
   const alb_listen_port=80
   props.albSG.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(alb_listen_port))

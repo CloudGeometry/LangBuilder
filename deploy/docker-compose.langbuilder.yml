@@ -27,17 +27,24 @@ services:
     ports:
       - "${LB_BACKEND_PORT:-7860}:7860"
     environment:
-      - LANGBUILDER_DATABASE_URL=${LANGBUILDER_DATABASE_URL:-}
-      - LANGBUILDER_CONFIG_DIR=${LANGBUILDER_CONFIG_DIR:-app/langbuilder}
+      - LANGFLOW_DATABASE_URL=${LANGBUILDER_DATABASE_URL:-sqlite:////app/langbuilder/langflow.db}
+      - LANGFLOW_CONFIG_DIR=${LANGBUILDER_CONFIG_DIR:-/app/langbuilder}
+      - LANGFLOW_AUTO_LOGIN=${LANGBUILDER_AUTO_LOGIN:-false}
+      - LANGFLOW_SUPERUSER=${LANGBUILDER_SUPERUSER:-}
+      - LANGFLOW_SUPERUSER_PASSWORD=${LANGBUILDER_SUPERUSER_PASSWORD:-}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
-      - LANGWATCH_API_KEY=${LANGWATCH_API_KEY:-}
-      - LANGWATCH_ENDPOINT=${LANGWATCH_ENDPOINT:-http://langwatch:5560}
-      - LANGBUILDER_SUPERUSER=${LANGBUILDER_SUPERUSER:-}
-      - LANGBUILDER_SUPERUSER_PASSWORD=${LANGBUILDER_SUPERUSER_PASSWORD:-}
+      - LANGFLOW_STT_OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      # LangWatch tracing — only set these if you have a LangWatch instance running.
+      # Leaving LANGWATCH_API_KEY unset disables the LangWatch tracer entirely.
+      # - LANGWATCH_API_KEY=${LANGWATCH_API_KEY}
+      # - LANGWATCH_ENDPOINT=${LANGWATCH_ENDPOINT:-http://langwatch:5560}
+      - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY:-}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     deploy:
       resources:
         limits:
-          memory: 1g
+          memory: 2g
           cpus: "1.0"
     volumes:
       - langbuilder-app-data:/app/langbuilder
@@ -46,7 +53,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 30s
+      start_period: 90s
     networks:
       - langbuilder-network
     logging:

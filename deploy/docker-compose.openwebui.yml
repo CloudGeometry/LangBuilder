@@ -21,7 +21,7 @@ services:
     ports:
       - "${OPENWEBUI_PORT:-8080}:8080"
     environment:
-      - DATABASE_URL=${OPENWEBUI_DATABASE_URL:-sqlite:///app/backend/data/webui.db}
+      - DATABASE_URL=${OPENWEBUI_DATABASE_URL:-sqlite:////app/backend/data/webui.db}
       - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY:-}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - OPENAI_API_BASE_URL=${OPENAI_API_BASE_URL:-}
@@ -36,10 +36,12 @@ services:
       - SCARF_NO_ANALYTICS=${SCARF_NO_ANALYTICS:-true}
       - DO_NOT_TRACK=${DO_NOT_TRACK:-true}
       - ANONYMIZED_TELEMETRY=${ANONYMIZED_TELEMETRY:-false}
+      - AUDIO_STT_ENGINE=${AUDIO_STT_ENGINE:-openai}
+      - AUDIO_TTS_ENGINE=${AUDIO_TTS_ENGINE:-openai}
     deploy:
       resources:
         limits:
-          memory: 1g
+          memory: 2g
           cpus: "1.0"
     volumes:
       - openwebui-app-data:/app/backend/data
@@ -50,7 +52,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 30s
+      start_period: 60s
     networks:
       - langbuilder-network
     logging:

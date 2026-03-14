@@ -95,7 +95,7 @@ const TableComponent = forwardRef<
         });
 
         return !hasAnyTrue;
-      } catch (error) {
+      } catch (_error) {
         // Default to editable if there's an error to avoid breaking functionality
         return true;
       }
@@ -117,8 +117,8 @@ const TableComponent = forwardRef<
         if (props.rowSelection && props.onSelectionChanged && index === 0) {
           newCol = {
             ...newCol,
-            checkboxSelection: true,
-            headerCheckboxSelection: true,
+            checkboxSelection: col.checkboxSelection !== false,
+            headerCheckboxSelection: col.headerCheckboxSelection !== false,
             headerCheckboxSelectionFilteredOnly: true,
           };
         }
@@ -170,7 +170,7 @@ const TableComponent = forwardRef<
                       params?.data,
                       currentValue,
                     );
-                  } catch (error) {
+                  } catch (_error) {
                     return false;
                   }
                 },
@@ -232,7 +232,7 @@ const TableComponent = forwardRef<
                           currentValue,
                         )
                       );
-                    } catch (error) {
+                    } catch (_error) {
                       return false;
                     }
                   },

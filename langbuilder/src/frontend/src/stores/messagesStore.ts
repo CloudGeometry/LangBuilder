@@ -11,6 +11,16 @@ export const useMessagesStore = create<MessagesStoreType>((set, get) => ({
       return { messages: updatedMessages };
     });
   },
+  renameSession: (oldSessionId, newSessionId) => {
+    set((state) => {
+      const updatedMessages = state.messages.map((msg) =>
+        msg.session_id === oldSessionId
+          ? { ...msg, session_id: newSessionId }
+          : msg,
+      );
+      return { messages: updatedMessages };
+    });
+  },
   messages: [],
   setMessages: (messages) => {
     set(() => ({ messages: messages }));
@@ -27,7 +37,7 @@ export const useMessagesStore = create<MessagesStoreType>((set, get) => ({
         get().updateMessagePartial(messageWithoutText);
       } else {
         // For complete messages, replace entirely
-        get().updateMessagePartial(message);
+        get().updateMessage(message);
       }
       return;
     }

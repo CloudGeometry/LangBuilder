@@ -1,7 +1,7 @@
 from unittest.mock import Mock, patch
 
-from langbuilder.exceptions.api import APIException, ExceptionBody
-from langbuilder.services.database.models.flow.model import Flow
+from langflow.exceptions.api import APIException, ExceptionBody
+from langflow.services.database.models.flow.model import Flow
 
 
 def test_api_exception():
@@ -17,12 +17,12 @@ def test_api_exception():
 
     with (
         patch(
-            "langbuilder.services.database.models.flow.utils.get_outdated_components",
+            "langflow.services.database.models.flow.utils.get_outdated_components",
             return_value=mock_outdated_components,
         ),
-        patch("langbuilder.api.utils.get_suggestion_message", return_value=mock_suggestion_message),
+        patch("langflow.api.utils.get_suggestion_message", return_value=mock_suggestion_message),
         patch(
-            "langbuilder.services.database.models.flow.utils.get_components_versions",
+            "langflow.services.database.models.flow.utils.get_components_versions",
             return_value=mock_component_versions,
         ),
     ):

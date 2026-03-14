@@ -16,10 +16,10 @@ def get_version() -> str:
         ValueError: If the package is not found from the list of package names.
     """
     pkg_names = [
-        "langbuilder",
-        "langbuilder-base",
-        "langbuilder-nightly",
-        "langbuilder-base-nightly",
+        "langflow",
+        "langflow-base",
+        "langflow-nightly",
+        "langflow-base-nightly",
     ]
     version = None
     for pkg_name in pkg_names:

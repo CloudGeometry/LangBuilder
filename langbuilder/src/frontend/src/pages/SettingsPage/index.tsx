@@ -3,8 +3,8 @@ import SideBarButtonsComponent from "@/components/core/sidebarComponent";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { CustomStoreSidebar } from "@/customization/components/custom-store-sidebar";
 import {
-  ENABLE_DATASTAX_LANGBUILDER,
-  ENABLE_LANGBUILDER_STORE,
+  ENABLE_DATASTAX_LANGFLOW,
+  ENABLE_LANGFLOW_STORE,
   ENABLE_PROFILE_ICONS,
 } from "@/customization/feature-flags";
 import useAuthStore from "@/stores/authStore";
@@ -58,6 +58,16 @@ export default function SettingsPage(): JSX.Element {
         />
       ),
     },
+    {
+      title: "Model Providers",
+      href: "/settings/model-providers",
+      icon: (
+        <ForwardedIconComponent
+          name="Brain"
+          className="w-4 flex-shrink-0 justify-start stroke-[1.5]"
+        />
+      ),
+    },
 
     {
       title: "Shortcuts",
@@ -82,16 +92,16 @@ export default function SettingsPage(): JSX.Element {
   );
 
   // TODO: Remove this on cleanup
-  if (!ENABLE_DATASTAX_LANGBUILDER) {
-    const langbuilderItems = CustomStoreSidebar(true, ENABLE_LANGBUILDER_STORE);
-    sidebarNavItems.splice(2, 0, ...langbuilderItems);
+  if (!ENABLE_DATASTAX_LANGFLOW) {
+    const langflowItems = CustomStoreSidebar(true, ENABLE_LANGFLOW_STORE);
+    sidebarNavItems.splice(2, 0, ...langflowItems);
   }
 
   return (
     <PageLayout
       backTo={-1 as To}
       title="Settings"
-      description="Manage the general settings for LangBuilder."
+      description="Manage the general settings for Langflow."
     >
       <SidebarProvider width="15rem" defaultOpen={false}>
         <SideBarButtonsComponent items={sidebarNavItems} />

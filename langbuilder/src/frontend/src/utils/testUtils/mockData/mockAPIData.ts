@@ -35,7 +35,7 @@ const mockAPIData: APIDataType = {
       icon: "cirleQuestionMark",
       base_classes: ["Data"],
       display_name: "Mock Component",
-      documentation: "https://docs.langbuilder.org/",
+      documentation: "https://docs.langflow.org/",
       minimized: false,
       custom_fields: {},
       output_types: [],

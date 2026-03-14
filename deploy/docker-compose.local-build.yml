@@ -1,0 +1,73 @@
+# =============================================================================
+# Local build override — builds images from source instead of pulling GHCR
+# =============================================================================
+# Usage (from repo root):
+#
+#   # One-time setup
+#   docker network create langbuilder-network
+#   cp deploy/.env.example deploy/.env   # fill in LANGBUILDER_SUPERUSER_PASSWORD, OPENAI_API_KEY
+#
+#   # LangBuilder (builds main Dockerfile, runs frontend+backend on :7860)
+#   docker compose \
+#     -f deploy/docker-compose.langbuilder.yml \
+#     -f deploy/docker-compose.local-build.yml \
+#     --env-file deploy/.env up -d --build
+#
+#   # OpenWebUI (builds from openwebui/Dockerfile, runs on :8080)
+#   docker compose \
+#     -f deploy/docker-compose.openwebui.yml \
+#     -f deploy/docker-compose.local-build.yml \
+#     --env-file deploy/.env up -d --build
+#
+# LangBuilder UI:  http://localhost:7860
+# OpenWebUI:       http://localhost:8080
+#   → Connect OpenWebUI to LangBuilder via Admin > Connections:
+#     URL:    http://langbuilder-backend:7860/api/v1
+#     APIKey: (your LANGFLOW_SUPERUSER api key from LangBuilder settings)
+# =============================================================================
+
+services:
+  langbuilder-backend:
+    build:
+      context: ../langbuilder
+      dockerfile: docker/build_and_push.Dockerfile
+    image: langbuilder-local:latest
+    # Runs frontend + backend together — no separate nginx container needed locally
+    command: ["langflow", "run", "--host", "0.0.0.0", "--port", "7860"]
+    # Increase memory limit — 1g is too tight for Langflow 1.8.0
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+          cpus: "2.0"
+    # Give more time on first boot (DB migrations on a fresh volume)
+    healthcheck:
+      start_period: 90s
+    # Allows langbuilder to reach host services (e.g. local Ollama) on Linux
+    extra_hosts:
+      - host.docker.internal:host-gateway
+
+  # Skip the nginx frontend — langflow run already serves the UI at :7860
+  langbuilder-frontend:
+    profiles: ["skip"]
+
+  openwebui:
+    build:
+      context: ../openwebui
+      dockerfile: Dockerfile
+    image: openwebui-local:latest
+    # Increase memory — OpenWebUI 0.8.8 is heavier than older versions
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+          cpus: "2.0"
+    # Additional env vars for voice/speech support
+    environment:
+      - AUDIO_STT_ENGINE=openai
+      - AUDIO_STT_OPENAI_API_BASE_URL=https://api.openai.com/v1
+      - AUDIO_TTS_ENGINE=openai
+      - AUDIO_TTS_OPENAI_API_BASE_URL=https://api.openai.com/v1
+    # Give more time on first boot
+    healthcheck:
+      start_period: 60s

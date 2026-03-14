@@ -1,6 +1,9 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "../../fixtures";
+import { adjustScreenView } from "../../utils/adjust-screen-view";
 import { awaitBootstrapTest } from "../../utils/await-bootstrap-test";
+
 import { renameFlow } from "../../utils/rename-flow";
+import { zoomOut } from "../../utils/zoom-out";
 
 test(
   "when auto_login is false, admin can CRUD user's and should see just your own flows",
@@ -19,7 +22,7 @@ test(
     await page.addInitScript(() => {
       window.process = window.process || {};
 
-      const newEnv = { ...window.process.env, LANGBUILDER_AUTO_LOGIN: "false" };
+      const newEnv = { ...window.process.env, LANGFLOW_AUTO_LOGIN: "false" };
 
       Object.defineProperty(window.process, "env", {
         value: newEnv,
@@ -38,10 +41,10 @@ test(
 
     await page.goto("/");
 
-    await page.waitForSelector("text=sign in to langbuilder", { timeout: 30000 });
+    await page.waitForSelector("text=sign in to langflow", { timeout: 30000 });
 
-    await page.getByPlaceholder("Username").fill("langbuilder");
-    await page.getByPlaceholder("Password").fill("langbuilder");
+    await page.getByPlaceholder("Username").fill("langflow");
+    await page.getByPlaceholder("Password").fill("langflow");
 
     await page.evaluate(() => {
       sessionStorage.removeItem("testMockAutoLogin");
@@ -140,25 +143,16 @@ test(
     await page.getByTestId("side_nav_options_all-templates").click();
     await page.getByRole("heading", { name: "Basic Prompting" }).click();
 
-    await page.waitForSelector('[data-testid="canvas_controls_dropdown"]', {
-      timeout: 100000,
-    });
-
-    await page.getByTestId("canvas_controls_dropdown").click();
-
-    await page.getByTestId("fit_view").click();
-    await page.getByTestId("zoom_out").click();
-
-    await page.getByTestId("canvas_controls_dropdown").click();
+    await adjustScreenView(page, { numberOfZoomOut: 1 });
 
     await renameFlow(page, { flowName: randomFlowName });
 
-    await page.waitForSelector('[data-testid="icon-ChevronLeft"]', {
+    await page.waitForSelector('[data-testid="sidebar-search-input"]', {
       timeout: 100000,
       state: "visible",
     });
 
-    await page.waitForSelector('[data-testid="icon-ChevronLeft"]', {
+    await page.waitForSelector('[data-testid="sidebar-search-input"]', {
       timeout: 1500,
     });
 
@@ -185,7 +179,7 @@ test(
 
     await page.getByText("Logout", { exact: true }).click();
 
-    await page.waitForSelector("text=sign in to langbuilder", { timeout: 30000 });
+    await page.waitForSelector("text=sign in to langflow", { timeout: 30000 });
 
     await page.getByPlaceholder("Username").fill(secondRandomName);
     await page.getByPlaceholder("Password").fill(randomPassword);
@@ -206,7 +200,7 @@ test(
 
     expect(
       (
-        await page.waitForSelector("text=Welcome to LangBuilder", {
+        await page.waitForSelector("text=Welcome to LangFlow", {
           timeout: 30000,
         })
       ).isVisible(),
@@ -219,20 +213,11 @@ test(
     await page.getByTestId("side_nav_options_all-templates").click();
     await page.getByRole("heading", { name: "Basic Prompting" }).click();
 
-    await page.waitForSelector('[data-testid="canvas_controls_dropdown"]', {
-      timeout: 100000,
-    });
-
-    await page.getByTestId("canvas_controls_dropdown").click();
-
-    await page.getByTestId("fit_view").click();
-    await page.getByTestId("zoom_out").click();
-
-    await page.getByTestId("canvas_controls_dropdown").click();
+    await adjustScreenView(page, { numberOfZoomOut: 2 });
 
     await renameFlow(page, { flowName: secondRandomFlowName });
 
-    await page.waitForSelector('[data-testid="icon-ChevronLeft"]', {
+    await page.waitForSelector('[data-testid="sidebar-search-input"]', {
       timeout: 100000,
     });
 
@@ -261,10 +246,10 @@ test(
 
     await page.getByText("Logout", { exact: true }).click();
 
-    await page.waitForSelector("text=sign in to langbuilder", { timeout: 30000 });
+    await page.waitForSelector("text=sign in to langflow", { timeout: 30000 });
 
-    await page.getByPlaceholder("Username").fill("langbuilder");
-    await page.getByPlaceholder("Password").fill("langbuilder");
+    await page.getByPlaceholder("Username").fill("langflow");
+    await page.getByPlaceholder("Password").fill("langflow");
 
     await page.evaluate(() => {
       sessionStorage.removeItem("testMockAutoLogin");

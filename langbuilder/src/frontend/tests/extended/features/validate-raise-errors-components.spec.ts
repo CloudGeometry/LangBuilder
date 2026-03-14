@@ -1,22 +1,25 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "../../fixtures";
 import { addCustomComponent } from "../../utils/add-custom-component";
+import { adjustScreenView } from "../../utils/adjust-screen-view";
 import { awaitBootstrapTest } from "../../utils/await-bootstrap-test";
+
+import { zoomOut } from "../../utils/zoom-out";
 
 test(
   "user should be able to see errors on popups when raise an error",
   { tag: ["@release", "@workspace", "@components"] },
   async ({ page }) => {
     const customComponentCodeWithRaiseErrorMessage = `
-# from langbuilder.field_typing import Data
-from langbuilder.custom import Component
-from langbuilder.io import MessageTextInput, Output
-from langbuilder.schema import Data
+# from langflow.field_typing import Data
+from langflow.custom import Component
+from langflow.io import MessageTextInput, Output
+from langflow.schema import Data
 
 
 class CustomComponent(Component):
     display_name = "Custom Component"
     description = "Use as a template to create your own component."
-    documentation: str = "https://docs.langbuilder.org/components-custom-components"
+    documentation: str = "https://docs.langflow.org/components-custom-components"
     icon = "code"
     name = "CustomComponent"
 
@@ -53,11 +56,7 @@ class CustomComponent(Component):
     );
 
     await addCustomComponent(page);
-    await page.getByTestId("canvas_controls_dropdown").click();
-
-    await page.getByTestId("fit_view").click();
-    await page.getByTestId("zoom_out").click();
-    await page.getByTestId("canvas_controls_dropdown").click();
+    await adjustScreenView(page, { numberOfZoomOut: 1 });
 
     await page.waitForTimeout(1000);
 
@@ -66,7 +65,7 @@ class CustomComponent(Component):
     });
     await page.getByTestId("title-Custom Component").click();
 
-    await page.getByTestId("code-button-modal").click();
+    await page.getByTestId("code-button-modal").last().click();
 
     await page.locator(".ace_content").click();
     await page.keyboard.press(`ControlOrMeta+A`);

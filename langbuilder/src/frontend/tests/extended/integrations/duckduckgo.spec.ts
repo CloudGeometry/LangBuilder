@@ -1,4 +1,5 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "../../fixtures";
+import { adjustScreenView } from "../../utils/adjust-screen-view";
 import { awaitBootstrapTest } from "../../utils/await-bootstrap-test";
 
 test(
@@ -26,14 +27,11 @@ test(
           .getByTestId("add-component-button-duckduckgo-search")
           .click();
       });
-    await page.getByTestId("canvas_controls_dropdown").click();
-
-    await page.getByTestId("fit_view").click();
-    await page.getByTestId("canvas_controls_dropdown").click();
+    await adjustScreenView(page);
 
     await page
       .getByTestId("popover-anchor-input-input_value")
-      .fill("what is langbuilder?");
+      .fill("what is langflow?");
 
     await page.getByTestId("button_run_duckduckgo search").click();
 
@@ -57,7 +55,7 @@ test(
         await page.getByRole("gridcell").first().click();
         const searchResults = await page.getByPlaceholder("Empty").inputValue();
         expect(searchResults.length).toBeGreaterThan(10);
-        expect(searchResults.toLowerCase()).toContain("langbuilder");
+        expect(searchResults.toLowerCase()).toContain("langflow");
       } else {
         const value = await page.getByPlaceholder("Empty").inputValue();
         expect(value.length).toBeGreaterThan(10);

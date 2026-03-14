@@ -3,7 +3,7 @@ import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import pytest
-from langbuilder.services.telemetry.opentelemetry import OpenTelemetry
+from langflow.services.telemetry.opentelemetry import OpenTelemetry
 
 fixed_labels = {"flow_id": "this_flow_id", "service": "this", "user": "that"}
 
@@ -11,6 +11,12 @@ fixed_labels = {"flow_id": "this_flow_id", "service": "this", "user": "that"}
 @pytest.fixture
 def opentelemetry_instance():
     return OpenTelemetry()
+
+
+@pytest.fixture(scope="session", autouse=True)
+def cleanup_telemetry():
+    yield
+    OpenTelemetry().shutdown()
 
 
 def test_init(opentelemetry_instance):

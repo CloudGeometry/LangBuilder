@@ -1,5 +1,5 @@
-import { expect, test } from "@playwright/test";
-import { addFlowToTestOnEmptyLangBuilder } from "../../utils/add-flow-to-test-on-empty-langbuilder";
+import { expect, test } from "../../fixtures";
+import { addFlowToTestOnEmptyLangflow } from "../../utils/add-flow-to-test-on-empty-langflow";
 import { adjustScreenView } from "../../utils/adjust-screen-view";
 import { awaitBootstrapTest } from "../../utils/await-bootstrap-test";
 
@@ -22,7 +22,7 @@ test(
       await page.getByTestId("replace-button").click();
     }
 
-    await page.waitForSelector('[data-testid="icon-ChevronLeft"]', {
+    await page.waitForSelector('[data-testid="sidebar-search-input"]', {
       timeout: 100000,
     });
 
@@ -77,7 +77,7 @@ test(
       .getByTestId("new_project_btn_empty_page")
       .count();
     if (countEmptyButton > 0) {
-      await addFlowToTestOnEmptyLangBuilder(page);
+      await addFlowToTestOnEmptyLangflow(page);
     }
     await page.getByTestId("upload-project-button").last().click();
   },
@@ -102,7 +102,7 @@ test(
       await page.getByTestId("replace-button").click();
     }
 
-    await page.waitForSelector('[data-testid="icon-ChevronLeft"]', {
+    await page.waitForSelector('[data-testid="sidebar-search-input"]', {
       timeout: 100000,
     });
 

@@ -1,4 +1,4 @@
-from langbuilder.components import prototypes
+from lfx.components import prototypes
 
 
 def test_python_function_component():

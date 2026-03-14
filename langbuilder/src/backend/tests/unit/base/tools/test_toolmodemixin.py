@@ -1,8 +1,7 @@
-from langbuilder.base.tools.component_tool import ComponentToolkit
-from langbuilder.custom import Component
+from langflow.custom import Component
 
 # Import all input types
-from langbuilder.io import (
+from langflow.io import (
     BoolInput,
     DataFrameInput,
     DataInput,
@@ -20,14 +19,15 @@ from langbuilder.io import (
     StrInput,
     TableInput,
 )
-from langbuilder.schema import Data
+from lfx.base.tools.component_tool import ComponentToolkit
+from lfx.schema import Data
 from pydantic import BaseModel
 
 
 class AllInputsComponent(Component):
     display_name = "All Inputs Component"
-    description = "A component with all input types available in LangBuilder."
-    documentation: str = "http://docs.langbuilder.org/components/all_inputs"
+    description = "A component with all input types available in Langflow."
+    documentation: str = "http://docs.langflow.org/components/all_inputs"
     icon = "code"
     name = "AllInputsComponent"
 

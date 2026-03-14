@@ -7,7 +7,7 @@ import tempfile
 from collections.abc import AsyncGenerator
 from contextlib import suppress
 from pathlib import Path
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import anyio
 import orjson
@@ -17,20 +17,18 @@ from blockbuster import blockbuster_ctx
 from dotenv import load_dotenv
 from fastapi.testclient import TestClient
 from httpx import ASGITransport, AsyncClient
-from langbuilder.components.input_output import ChatInput
-from langbuilder.graph import Graph
-from langbuilder.initial_setup.constants import STARTER_FOLDER_NAME
-from langbuilder.logging.logger import logger
-from langbuilder.main import create_app
-from langbuilder.services.auth.utils import get_password_hash
-from langbuilder.services.database.models.api_key.model import ApiKey
-from langbuilder.services.database.models.flow.model import Flow, FlowCreate
-from langbuilder.services.database.models.folder.model import Folder
-from langbuilder.services.database.models.transactions.model import TransactionTable
-from langbuilder.services.database.models.user.model import User, UserCreate, UserRead
-from langbuilder.services.database.models.vertex_builds.crud import delete_vertex_builds_by_flow_id
-from langbuilder.services.database.utils import session_getter
-from langbuilder.services.deps import get_db_service, session_scope
+from langflow.initial_setup.constants import STARTER_FOLDER_NAME
+from langflow.main import create_app
+from langflow.services.database.models.api_key.model import ApiKey, UnmaskedApiKeyRead
+from langflow.services.database.models.flow.model import Flow, FlowCreate, FlowRead
+from langflow.services.database.models.folder.model import Folder
+from langflow.services.database.models.transactions.model import TransactionTable
+from langflow.services.database.models.user.model import User, UserCreate, UserRead
+from langflow.services.database.models.vertex_builds.crud import delete_vertex_builds_by_flow_id
+from langflow.services.deps import get_auth_service, get_db_service, session_scope
+from lfx.components.input_output import ChatInput
+from lfx.graph import Graph
+from lfx.log.logger import logger
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.orm import selectinload
 from sqlmodel import Session, SQLModel, create_engine, select
@@ -70,7 +68,7 @@ def blockbuster(request):
             (
                 bb.functions["os.stat"]
                 # TODO: make set_class_code async
-                .can_block_in("langbuilder/custom/custom_component/component.py", "set_class_code")
+                .can_block_in("langflow/custom/custom_component/component.py", "set_class_code")
                 # TODO: follow discussion in https://github.com/encode/httpx/discussions/3456
                 .can_block_in("httpx/_client.py", "_init_transport")
                 .can_block_in("rich/traceback.py", "_render_stack")
@@ -152,6 +150,29 @@ def get_text():
         assert path.exists(), f"File {path} does not exist. Available files: {list(data_path.iterdir())}"
 
 
+# def _has_nonempty_env(var: str) -> bool:
+#     return bool((os.getenv(var) or "").strip())
+
+
+# def pytest_runtest_setup(item):
+#     """Auto-skip tests marked with `api_key_required` when no valid OPENAI_API_KEY is provided."""
+#     if item.get_closest_marker("api_key_required") and not _has_nonempty_env("OPENAI_API_KEY"):
+#         import pytest as _pytest
+
+#         _pytest.skip("OPENAI_API_KEY is not set or is empty")
+
+
+def pytest_collection_modifyitems(config, items):  # noqa: ARG001
+    """Automatically add markers based on test file location."""
+    for item in items:
+        if "tests/unit/" in str(item.fspath):
+            item.add_marker(pytest.mark.unit)
+        elif "tests/integration/" in str(item.fspath):
+            item.add_marker(pytest.mark.integration)
+        elif "tests/slow/" in str(item.fspath):
+            item.add_marker(pytest.mark.slow)
+
+
 async def delete_transactions_by_flow_id(db: AsyncSession, flow_id: UUID):
     if not flow_id:
         return
@@ -162,14 +183,23 @@ async def delete_transactions_by_flow_id(db: AsyncSession, flow_id: UUID):
 
 
 async def _delete_transactions_and_vertex_builds(session, flows: list[Flow]):
+    from langflow.services.database.models.jobs.model import Job
+
     flow_ids = [flow.id for flow in flows]
     for flow_id in flow_ids:
         if not flow_id:
             continue
         try:
+            # Delete associated jobs first due to foreign keys
+            stmt = select(Job).where(Job.flow_id == flow_id)
+            jobs = (await session.exec(stmt)).all()
+            for job in jobs:
+                await session.delete(job)
+            await session.flush()
+
             await delete_vertex_builds_by_flow_id(session, flow_id)
         except Exception as e:
-            logger.debug(f"Error deleting vertex builds for flow {flow_id}: {e}")
+            logger.debug(f"Error deleting jobs/vertex builds for flow {flow_id}: {e}")
         try:
             await delete_transactions_by_flow_id(session, flow_id)
         except Exception as e:
@@ -179,7 +209,10 @@ async def _delete_transactions_and_vertex_builds(session, flows: list[Flow]):
 @pytest.fixture
 async def async_client() -> AsyncGenerator:
     app = create_app()
-    async with AsyncClient(app=app, base_url="http://testserver", http2=True) as client:
+    async with (
+        LifespanManager(app, startup_timeout=None, shutdown_timeout=60) as manager,
+        AsyncClient(transport=ASGITransport(app=manager.app), base_url="http://testserver", http2=True) as client,
+    ):
         yield client
 
 
@@ -190,6 +223,15 @@ def session_fixture():
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,
     )
+    # Ensure foreign keys are enabled for the in-memory session engine
+    from sqlalchemy import event
+
+    @event.listens_for(engine, "connect")
+    def set_sqlite_pragma(dbapi_connection, connection_record):  # noqa: ARG001
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
+
     try:
         SQLModel.metadata.create_all(engine)
         with Session(engine) as session:
@@ -202,12 +244,15 @@ def session_fixture():
 @pytest.fixture
 async def async_session():
     engine = create_async_engine("sqlite+aiosqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
-    async with engine.begin() as conn:
-        await conn.run_sync(SQLModel.metadata.create_all)
-    async with AsyncSession(engine, expire_on_commit=False) as session:
-        yield session
-    async with engine.begin() as conn:
-        await conn.run_sync(SQLModel.metadata.drop_all)
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(SQLModel.metadata.create_all)
+        async with AsyncSession(engine, expire_on_commit=False) as session:
+            yield session
+        async with engine.begin() as conn:
+            await conn.run_sync(SQLModel.metadata.drop_all)
+    finally:
+        await engine.dispose()
 
 
 class Config:
@@ -223,12 +268,12 @@ def load_flows_dir():
 
 @pytest.fixture(name="distributed_env")
 def _setup_env(monkeypatch):
-    monkeypatch.setenv("LANGBUILDER_CACHE_TYPE", "redis")
-    monkeypatch.setenv("LANGBUILDER_REDIS_HOST", "result_backend")
-    monkeypatch.setenv("LANGBUILDER_REDIS_PORT", "6379")
-    monkeypatch.setenv("LANGBUILDER_REDIS_DB", "0")
-    monkeypatch.setenv("LANGBUILDER_REDIS_EXPIRE", "3600")
-    monkeypatch.setenv("LANGBUILDER_REDIS_PASSWORD", "")
+    monkeypatch.setenv("LANGFLOW_CACHE_TYPE", "redis")
+    monkeypatch.setenv("LANGFLOW_REDIS_HOST", "result_backend")
+    monkeypatch.setenv("LANGFLOW_REDIS_PORT", "6379")
+    monkeypatch.setenv("LANGFLOW_REDIS_DB", "0")
+    monkeypatch.setenv("LANGFLOW_REDIS_EXPIRE", "3600")
+    monkeypatch.setenv("LANGFLOW_REDIS_PASSWORD", "")
     monkeypatch.setenv("FLOWER_UNAUTHENTICATED_API", "True")
     monkeypatch.setenv("BROKER_URL", "redis://result_backend:6379/0")
     monkeypatch.setenv("RESULT_BACKEND", "redis://result_backend:6379/0")
@@ -242,16 +287,16 @@ def distributed_client_fixture(
     distributed_env,  # noqa: ARG001
 ):
     # Here we load the .env from ../deploy/.env
-    from langbuilder.core import celery_app
+    from langflow.core import celery_app
 
     db_dir = tempfile.mkdtemp()
     try:
         db_path = Path(db_dir) / "test.db"
-        monkeypatch.setenv("LANGBUILDER_DATABASE_URL", f"sqlite:///{db_path}")
-        monkeypatch.setenv("LANGBUILDER_AUTO_LOGIN", "false")
-        # monkeypatch langbuilder.services.task.manager.USE_CELERY to True
+        monkeypatch.setenv("LANGFLOW_DATABASE_URL", f"sqlite:///{db_path}")
+        monkeypatch.setenv("LANGFLOW_AUTO_LOGIN", "false")
+        # monkeypatch langflow.services.task.manager.USE_CELERY to True
         # monkeypatch.setattr(manager, "USE_CELERY", True)
-        monkeypatch.setattr(celery_app, "celery_app", celery_app.make_celery("langbuilder", Config))
+        monkeypatch.setattr(celery_app, "celery_app", celery_app.make_celery("langflow", Config))
 
         # def get_session_override():
         #     return session
@@ -359,16 +404,16 @@ def json_loop_test():
 
 @pytest.fixture(autouse=True)
 def deactivate_tracing(monkeypatch):
-    monkeypatch.setenv("LANGBUILDER_DEACTIVATE_TRACING", "true")
+    monkeypatch.setenv("LANGFLOW_DEACTIVATE_TRACING", "true")
     yield
     monkeypatch.undo()
 
 
 @pytest.fixture
 def use_noop_session(monkeypatch):
-    monkeypatch.setenv("LANGBUILDER_USE_NOOP_DATABASE", "1")
+    monkeypatch.setenv("LANGFLOW_USE_NOOP_DATABASE", "1")
     # Optionally patch the Settings object if needed
-    # from langbuilder.services.settings.base import Settings
+    # from lfx.services.settings.base import Settings
     # monkeypatch.setattr(Settings, "use_noop_database", True)
     yield
     monkeypatch.undo()
@@ -389,19 +434,19 @@ async def client_fixture(
         def init_app():
             db_dir = tempfile.mkdtemp()
             db_path = Path(db_dir) / "test.db"
-            monkeypatch.setenv("LANGBUILDER_DATABASE_URL", f"sqlite:///{db_path}")
-            monkeypatch.setenv("LANGBUILDER_AUTO_LOGIN", "false")
+            monkeypatch.setenv("LANGFLOW_DATABASE_URL", f"sqlite:///{db_path}")
+            monkeypatch.setenv("LANGFLOW_AUTO_LOGIN", "false")
             if "load_flows" in request.keywords:
                 shutil.copyfile(
                     pytest.BASIC_EXAMPLE_PATH, Path(load_flows_dir) / "c54f9130-f2fa-4a3e-b22a-3856d946351b.json"
                 )
-                monkeypatch.setenv("LANGBUILDER_LOAD_FLOWS_PATH", load_flows_dir)
-                monkeypatch.setenv("LANGBUILDER_AUTO_LOGIN", "true")
+                monkeypatch.setenv("LANGFLOW_LOAD_FLOWS_PATH", load_flows_dir)
+                monkeypatch.setenv("LANGFLOW_AUTO_LOGIN", "true")
             # Clear the services cache
-            from langbuilder.services.manager import service_manager
+            from lfx.services.manager import get_service_manager
 
-            service_manager.factories.clear()
-            service_manager.services.clear()  # Clear the services cache
+            get_service_manager().factories.clear()
+            get_service_manager().services.clear()  # Clear the services cache
             app = create_app()
             db_service = get_db_service()
             db_service.database_url = f"sqlite:///{db_path}"
@@ -411,7 +456,7 @@ async def client_fixture(
         app, db_path = await asyncio.to_thread(init_app)
         # app.dependency_overrides[get_session] = get_session_override
         async with (
-            LifespanManager(app, startup_timeout=None, shutdown_timeout=None) as manager,
+            LifespanManager(app, startup_timeout=None, shutdown_timeout=60) as manager,
             AsyncClient(transport=ASGITransport(app=manager.app), base_url="http://testserver/", http2=True) as client,
         ):
             yield client
@@ -424,7 +469,7 @@ async def client_fixture(
 
 @pytest.fixture
 def runner(tmp_path):
-    env = {"LANGBUILDER_DATABASE_URL": f"sqlite:///{tmp_path}/test.db"}
+    env = {"LANGFLOW_DATABASE_URL": f"sqlite:///{tmp_path}/test.db"}
     return CliRunner(env=env)
 
 
@@ -444,11 +489,10 @@ async def test_user(client):
 
 @pytest.fixture
 async def active_user(client):  # noqa: ARG001
-    db_manager = get_db_service()
-    async with db_manager.with_session() as session:
+    async with session_scope() as session:
         user = User(
             username="activeuser",
-            password=get_password_hash("testpassword"),
+            password=get_auth_service().get_password_hash("testpassword"),
             is_active=True,
             is_superuser=False,
         )
@@ -457,25 +501,23 @@ async def active_user(client):  # noqa: ARG001
             user = active_user
         else:
             session.add(user)
-            await session.commit()
+            await session.flush()
             await session.refresh(user)
         user = UserRead.model_validate(user, from_attributes=True)
     yield user
     # Clean up
     # Now cleanup transactions, vertex_build
     try:
-        async with db_manager.with_session() as session:
+        async with session_scope() as session:
             user = await session.get(User, user.id, options=[selectinload(User.flows)])
             await _delete_transactions_and_vertex_builds(session, user.flows)
-            await session.commit()
     except Exception as e:
         logger.exception(f"Error deleting transactions and vertex builds for user: {e}")
 
     try:
-        async with db_manager.with_session() as session:
+        async with session_scope() as session:
             user = await session.get(User, user.id)
             await session.delete(user)
-            await session.commit()
     except Exception as e:
         logger.exception(f"Error deleting user: {e}")
 
@@ -492,11 +534,10 @@ async def logged_in_headers(client, active_user):
 
 @pytest.fixture
 async def active_super_user(client):  # noqa: ARG001
-    db_manager = get_db_service()
-    async with db_manager.with_session() as session:
+    async with session_scope() as session:
         user = User(
             username="activeuser",
-            password=get_password_hash("testpassword"),
+            password=get_auth_service().get_password_hash("testpassword"),
             is_active=True,
             is_superuser=True,
         )
@@ -505,18 +546,16 @@ async def active_super_user(client):  # noqa: ARG001
             user = active_user
         else:
             session.add(user)
-            await session.commit()
+            await session.flush()
             await session.refresh(user)
         user = UserRead.model_validate(user, from_attributes=True)
     yield user
     # Clean up
     # Now cleanup transactions, vertex_build
-    async with db_manager.with_session() as session:
+    async with session_scope() as session:
         user = await session.get(User, user.id, options=[selectinload(User.flows)])
         await _delete_transactions_and_vertex_builds(session, user.flows)
         await session.delete(user)
-
-        await session.commit()
 
 
 @pytest.fixture
@@ -539,14 +578,18 @@ async def flow(
     flow_data = FlowCreate(name="test_flow", data=loaded_json.get("data"), user_id=active_user.id)
 
     flow = Flow.model_validate(flow_data)
-    async with session_getter(get_db_service()) as session:
+    async with session_scope() as session:
         session.add(flow)
-        await session.commit()
+        await session.flush()
         await session.refresh(flow)
-        yield flow
-        # Clean up
-        await session.delete(flow)
-        await session.commit()
+        flow = FlowRead.model_validate(flow, from_attributes=True)
+
+    yield flow
+
+    async with session_scope() as session:
+        db_flow = await session.get(Flow, flow.id)
+        if db_flow:
+            await session.delete(db_flow)
 
 
 @pytest.fixture
@@ -640,26 +683,100 @@ async def flow_component(client: AsyncClient, logged_in_headers):
 
 @pytest.fixture
 async def created_api_key(active_user):
-    hashed = get_password_hash("random_key")
+    hashed = get_auth_service().get_password_hash("random_key")
     api_key = ApiKey(
         name="test_api_key",
         user_id=active_user.id,
         api_key="random_key",
         hashed_api_key=hashed,
     )
-    db_manager = get_db_service()
-    async with session_getter(db_manager) as session:
+    async with session_scope() as session:
         stmt = select(ApiKey).where(ApiKey.api_key == api_key.api_key)
         if existing_api_key := (await session.exec(stmt)).first():
+            existing_api_key = UnmaskedApiKeyRead.model_validate(existing_api_key, from_attributes=True)
             yield existing_api_key
             return
         session.add(api_key)
-        await session.commit()
+        await session.flush()
         await session.refresh(api_key)
-        yield api_key
-        # Clean up
-        await session.delete(api_key)
-        await session.commit()
+        api_key = UnmaskedApiKeyRead.model_validate(api_key, from_attributes=True)
+
+    yield api_key
+
+    async with session_scope() as session:
+        db_key = await session.get(ApiKey, api_key.id)
+        if db_key:
+            await session.delete(db_key)
+
+
+@pytest.fixture
+def user_one_api_key(created_api_key: ApiKey) -> str:
+    """Provides the API key for user_one."""
+    return created_api_key.api_key
+
+
+@pytest.fixture
+async def user_two(
+    client: AsyncClient,  # noqa: ARG001
+) -> AsyncGenerator[User, None]:
+    """Creates a second user for multi-user access tests."""
+    user_id = uuid4()
+    async with session_scope() as session:
+        user = User(
+            id=user_id,
+            username=f"test_user_two_{user_id}",
+            password=get_auth_service().get_password_hash("hashed_password"),
+            is_active=True,
+        )
+        session.add(user)
+        await session.flush()
+        await session.refresh(user)
+        user = UserRead.model_validate(user, from_attributes=True)
+
+    yield user
+
+    async with session_scope() as session:
+        # Cleanup related API keys first
+        keys_to_delete = (await session.exec(select(ApiKey).where(ApiKey.user_id == user.id))).all()
+        for key in keys_to_delete:
+            await session.delete(key)
+
+        # Cleanup the user
+        user_to_delete = await session.get(User, user.id)
+        if user_to_delete:
+            await session.delete(user_to_delete)
+
+
+@pytest.fixture
+async def created_user_two_api_key(user_two: User) -> AsyncGenerator[ApiKey, None]:
+    """Creates and yields an API key for the second user."""
+    raw_key = f"user-two-key-{uuid4()}"
+    hashed_key = get_auth_service().get_password_hash(raw_key)
+    api_key = ApiKey(
+        user_id=user_two.id,
+        name="Test API Key for User Two",
+        api_key=raw_key,
+        hashed_api_key=hashed_key,
+    )
+
+    async with session_scope() as session:
+        session.add(api_key)
+        await session.flush()
+        await session.refresh(api_key)
+        api_key = UnmaskedApiKeyRead.model_validate(api_key, from_attributes=True)
+
+    yield api_key
+
+    async with session_scope() as session:
+        db_key = await session.get(ApiKey, api_key.id)
+        if db_key:
+            await session.delete(db_key)
+
+
+@pytest.fixture
+def user_two_api_key(created_user_two_api_key: ApiKey) -> str:
+    """Provides the API key string for the second user."""
+    return created_user_two_api_key.api_key
 
 
 @pytest.fixture(name="simple_api_test")
@@ -709,10 +826,9 @@ async def get_starter_project(client, active_user):  # noqa: ARG001
         )
         new_flow = Flow.model_validate(new_flow_create, from_attributes=True)
         session.add(new_flow)
-        await session.commit()
+        await session.flush()
         await session.refresh(new_flow)
         new_flow_dict = new_flow.model_dump()
         yield new_flow_dict
         # Clean up
         await session.delete(new_flow)
-        await session.commit()

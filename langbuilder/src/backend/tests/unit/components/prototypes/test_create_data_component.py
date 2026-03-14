@@ -1,8 +1,8 @@
 import re
 
 import pytest
-from langbuilder.components.processing import CreateDataComponent
-from langbuilder.schema import Data
+from lfx.components.processing.create_data import CreateDataComponent
+from lfx.schema import Data
 
 
 @pytest.fixture

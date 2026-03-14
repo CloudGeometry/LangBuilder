@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ENABLE_DATASTAX_LANGBUILDER } from "@/customization/feature-flags";
+import { ENABLE_DATASTAX_LANGFLOW } from "@/customization/feature-flags";
 import { useGenerateToken } from "@/customization/hooks/use-custom-generate-token";
 import { COPIED_NOTICE_ALERT } from "../../constants/alerts_constants";
 import { createApiKey } from "../../controllers/API";
@@ -83,7 +83,7 @@ export default function SecretKeyModal({
 
   async function handleSubmitForm() {
     if (apiKeyValue) setOpen(false);
-    if (ENABLE_DATASTAX_LANGBUILDER) {
+    if (ENABLE_DATASTAX_LANGFLOW) {
       handleDataStaxKey();
     } else {
       handleOSSKey();
@@ -142,7 +142,7 @@ export default function SecretKeyModal({
             textCopied={textCopied}
             renderKey={renderKey}
           />
-        ) : ENABLE_DATASTAX_LANGBUILDER ? (
+        ) : ENABLE_DATASTAX_LANGFLOW ? (
           <></>
         ) : (
           <FormKeyRender
@@ -156,6 +156,7 @@ export default function SecretKeyModal({
       <BaseModal.Footer
         submit={{
           label: renderKey ? "Done" : (modalConfigProps?.buttonText ?? ""),
+          dataTestId: "secret_key_modal_submit_button",
         }}
       />
     </BaseModal>

@@ -5,8 +5,8 @@ from unittest.mock import patch
 
 import pytest
 import typer
-from langbuilder.__main__ import _create_superuser, app
-from langbuilder.services import deps
+from langflow.__main__ import _create_superuser, app, get_number_of_workers
+from lfx.services import deps
 
 
 @pytest.fixture(scope="module")
@@ -68,8 +68,8 @@ class TestSuperuserCommand:
         """Test additional superuser creation requires authentication in production."""
         # We already have active_super_user from the fixture, so we're not in first setup
         with (
-            patch("langbuilder.services.deps.get_settings_service") as mock_settings,
-            patch("langbuilder.__main__.get_settings_service") as mock_settings2,
+            patch("langflow.services.deps.get_settings_service") as mock_settings,
+            patch("langflow.__main__.get_settings_service") as mock_settings2,
         ):
             # Configure settings for production mode (AUTO_LOGIN=False)
             mock_auth_settings = type("MockAuthSettings", (), {"AUTO_LOGIN": False, "ENABLE_SUPERUSER_CLI": True})()
@@ -87,8 +87,8 @@ class TestSuperuserCommand:
         """Test additional superuser creation blocked when AUTO_LOGIN=true."""
         # We already have active_super_user from the fixture, so we're not in first setup
         with (
-            patch("langbuilder.services.deps.get_settings_service") as mock_settings,
-            patch("langbuilder.__main__.get_settings_service") as mock_settings2,
+            patch("langflow.services.deps.get_settings_service") as mock_settings,
+            patch("langflow.__main__.get_settings_service") as mock_settings2,
         ):
             # Configure settings for AUTO_LOGIN mode
             mock_auth_settings = type("MockAuthSettings", (), {"AUTO_LOGIN": True, "ENABLE_SUPERUSER_CLI": True})()
@@ -105,8 +105,8 @@ class TestSuperuserCommand:
     async def test_cli_disabled_blocks_creation(self, client):  # noqa: ARG002
         """Test ENABLE_SUPERUSER_CLI=false blocks superuser creation."""
         with (
-            patch("langbuilder.services.deps.get_settings_service") as mock_settings,
-            patch("langbuilder.__main__.get_settings_service") as mock_settings2,
+            patch("langflow.services.deps.get_settings_service") as mock_settings,
+            patch("langflow.__main__.get_settings_service") as mock_settings2,
         ):
             mock_auth_settings = type("MockAuthSettings", (), {"AUTO_LOGIN": True, "ENABLE_SUPERUSER_CLI": False})()
             mock_settings.return_value.auth_settings = mock_auth_settings
@@ -130,10 +130,10 @@ class TestSuperuserCommand:
         """Test failed superuser creation with invalid auth token."""
         # We already have active_super_user from the fixture, so we're not in first setup
         with (
-            patch("langbuilder.services.deps.get_settings_service") as mock_settings,
-            patch("langbuilder.__main__.get_settings_service") as mock_settings2,
-            patch("langbuilder.__main__.get_current_user_by_jwt", side_effect=Exception("Invalid token")),
-            patch("langbuilder.__main__.check_key", return_value=None),
+            patch("langflow.services.deps.get_settings_service") as mock_settings,
+            patch("langflow.__main__.get_settings_service") as mock_settings2,
+            patch("langflow.__main__.get_current_user_from_access_token", side_effect=Exception("Invalid token")),
+            patch("langflow.__main__.check_key", return_value=None),
         ):
             # Configure settings for production mode (AUTO_LOGIN=False)
             mock_auth_settings = type("MockAuthSettings", (), {"AUTO_LOGIN": False, "ENABLE_SUPERUSER_CLI": True})()
@@ -145,3 +145,18 @@ class TestSuperuserCommand:
                 await _create_superuser("newuser", "newpass", "invalid-token")
 
             assert exc_info.value.exit_code == 1
+
+
+def test_get_number_of_workers():
+    """Test that get_number_of_workers uses cpu_count on Linux."""
+    with (
+        patch("langflow.__main__.platform.system", return_value="Linux"),
+        patch("langflow.__main__.cpu_count", return_value=4),
+    ):
+        # Test default behavior (None)
+        workers = get_number_of_workers(None)
+        assert workers == (4 * 2) + 1  # 9 workers
+
+        # Test explicit value is respected
+        workers = get_number_of_workers(2)
+        assert workers == 2

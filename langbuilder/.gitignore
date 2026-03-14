@@ -134,6 +134,7 @@ dist/
 downloads/
 eggs/
 .eggs/
+lib/
 lib64/
 parts/
 sdist/
@@ -249,7 +250,7 @@ dmypy.json
 
 # Poetry
 .testenv/*
-langbuilder.db
+langflow.db
 
 
 .githooks/prepare-commit-msg
@@ -259,6 +260,8 @@ langbuilder.db
 .docusaurus/
 
 /tmp/*
+src/backend/langflow/frontend/
+src/backend/base/langflow/frontend/
 .docker
 scratchpad*
 chroma*/*
@@ -273,7 +276,18 @@ src/frontend/temp
 .history
 
 .dspy_cache/
-*.db
+*.db*
 *.mcp.json
 
+news-aggregated.json
+.claude
+
 member_servers.json
+# Component index cache (user-specific)
+**/.cache/lfx/
+
+# data files used for desktop registration
+data/user
+
+sso-config.yaml
+AGENTS.md

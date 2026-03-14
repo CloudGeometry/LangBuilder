@@ -1,6 +1,8 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "../../fixtures";
 import { addLegacyComponents } from "../../utils/add-legacy-components";
+import { adjustScreenView } from "../../utils/adjust-screen-view";
 import { awaitBootstrapTest } from "../../utils/await-bootstrap-test";
+
 import { uploadFile } from "../../utils/upload-file";
 import { zoomOut } from "../../utils/zoom-out";
 
@@ -23,16 +25,14 @@ test(
     // Add URL component
     await page.getByTestId("sidebar-search-input").click();
     await page.getByTestId("sidebar-search-input").fill("url");
-    await page.waitForSelector('[data-testid="dataURL"]', {
+    await page.waitForSelector('[data-testid="data_sourceURL"]', {
       timeout: 1000,
     });
 
-    await page.getByTestId("canvas_controls_dropdown").click();
     await zoomOut(page, 3);
-    await page.getByTestId("canvas_controls_dropdown").click();
 
     await page
-      .getByTestId("dataURL")
+      .getByTestId("data_sourceURL")
       .dragTo(page.locator('//*[@id="react-flow-id"]'), {
         targetPosition: { x: 50, y: 100 },
       });
@@ -40,12 +40,12 @@ test(
     // Add Loop component
     await page.getByTestId("sidebar-search-input").click();
     await page.getByTestId("sidebar-search-input").fill("loop");
-    await page.waitForSelector('[data-testid="logicLoop"]', {
+    await page.waitForSelector('[data-testid="flow_controlsLoop"]', {
       timeout: 1000,
     });
 
     await page
-      .getByTestId("logicLoop")
+      .getByTestId("flow_controlsLoop")
       .first()
       .dragTo(page.locator('//*[@id="react-flow-id"]'), {
         targetPosition: { x: 280, y: 100 },
@@ -64,6 +64,8 @@ test(
         targetPosition: { x: 500, y: 100 },
       });
 
+    await adjustScreenView(page, { numberOfZoomOut: 3 });
+
     // Add Parse Data component
     await page.getByTestId("sidebar-search-input").click();
     await page.getByTestId("sidebar-search-input").fill("Parser");
@@ -74,25 +76,21 @@ test(
     await page
       .getByTestId("processingParser")
       .dragTo(page.locator('//*[@id="react-flow-id"]'), {
-        targetPosition: { x: 720, y: 100 },
+        targetPosition: { x: 600, y: 200 },
       });
 
     //This one is for testing the wrong loop message
 
-    await page.getByTestId("sidebar-search-input").fill("File");
-    await page.waitForSelector('[data-testid="dataFile"]', {
+    await page.getByTestId("sidebar-search-input").fill("Read File");
+    await page.waitForSelector('[data-testid="files_and_knowledgeRead File"]', {
       timeout: 1000,
     });
 
     await page
-      .getByTestId("dataFile")
+      .getByTestId("files_and_knowledgeRead File")
       .dragTo(page.locator('//*[@id="react-flow-id"]'), {
-        targetPosition: { x: 720, y: 400 },
+        targetPosition: { x: 600, y: 400 },
       });
-
-    await page
-      .getByTestId("handle-parsercomponent-shownode-parsed text-right")
-      .click();
 
     const _loopItemInput = await page
       .getByTestId("handle-loopcomponent-shownode-item-left")
@@ -110,14 +108,10 @@ test(
     await page
       .getByTestId("input_outputChat Output")
       .dragTo(page.locator('//*[@id="react-flow-id"]'), {
-        targetPosition: { x: 940, y: 100 },
+        targetPosition: { x: 200, y: 100 },
       });
-    await page.getByTestId("canvas_controls_dropdown").click();
 
-    await page.getByTestId("fit_view").click();
-
-    await zoomOut(page, 2);
-    await page.getByTestId("canvas_controls_dropdown").click();
+    await adjustScreenView(page, { numberOfZoomOut: 3 });
 
     // Loop Item -> Update Data
 
@@ -163,8 +157,7 @@ test(
 
     await page.getByTestId("canvas_controls_dropdown").click();
 
-    await zoomOut(page, 2);
-    await page.getByTestId("canvas_controls_dropdown").click();
+    await page.getByTestId("canvas_controls_dropdown").click({ force: true });
 
     await page.getByTestId("div-generic-node").nth(5).click();
 
@@ -180,9 +173,12 @@ test(
       .getByTestId("inputlist_str_urls_1")
       .fill("https://en.wikipedia.org/wiki/Human_intelligence");
 
-    await page.getByTestId("div-generic-node").nth(2).click();
+    await page.getByTestId("title-Data Operations").click();
 
-    await page.getByTestId("button_open_list_selection").click();
+    await page.waitForTimeout(1000);
+
+    // Click on the "Select Operation" text/button in the Data Operations component
+    await page.getByText("Select Operation").click();
 
     await page.getByTestId("list_item_append_or_update").click();
 
@@ -192,13 +188,13 @@ test(
     await uploadFile(page, "test_file.txt");
 
     // Build and run, expect the wrong loop message
-    await page.getByTestId("button_run_file").click();
+    await page.getByTestId("button_run_read file").click();
 
     await page.waitForSelector("text=built successfully", { timeout: 30000 });
 
     // Delete the second parse data used to test
 
-    await page.getByTestId("title-File").last().click();
+    await page.getByTestId("title-Read File").last().click();
 
     await page.getByTestId("more-options-modal").click();
 

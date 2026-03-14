@@ -1,6 +1,6 @@
 import pytest
-from langbuilder.components.processing.data_to_dataframe import DataToDataFrameComponent
-from langbuilder.schema import Data, DataFrame
+from lfx.components.processing.data_to_dataframe import DataToDataFrameComponent
+from lfx.schema import Data, DataFrame
 
 from tests.base import ComponentTestBaseWithoutClient
 

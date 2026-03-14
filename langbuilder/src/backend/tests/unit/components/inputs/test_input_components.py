@@ -1,8 +1,8 @@
 import pytest
 from anyio import Path
-from langbuilder.components.input_output import ChatInput, TextInputComponent
-from langbuilder.schema.message import Message
-from langbuilder.utils.constants import MESSAGE_SENDER_AI, MESSAGE_SENDER_NAME_USER, MESSAGE_SENDER_USER
+from lfx.components.input_output import ChatInput, TextInputComponent
+from lfx.schema.message import Message
+from lfx.utils.constants import MESSAGE_SENDER_AI, MESSAGE_SENDER_NAME_USER, MESSAGE_SENDER_USER
 
 from tests.base import ComponentTestBaseWithClient, ComponentTestBaseWithoutClient
 
@@ -53,6 +53,8 @@ class TestChatInput(ComponentTestBaseWithClient):
             "allow_markdown": False,
             "state": "complete",
             "targets": [],
+            "usage": None,
+            "build_duration": None,
         }
 
     async def test_message_response_ai_sender(self, component_class):

@@ -1,5 +1,5 @@
-from langbuilder.components.input_output import TextOutputComponent
-from langbuilder.schema.message import Message
+from lfx.components.input_output import TextOutputComponent
+from lfx.schema.message import Message
 
 from tests.integration.utils import run_single_component
 

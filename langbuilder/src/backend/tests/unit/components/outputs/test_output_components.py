@@ -1,5 +1,5 @@
 import pytest
-from langbuilder.components.input_output import TextOutputComponent
+from lfx.components.input_output import TextOutputComponent
 
 from tests.base import ComponentTestBaseWithoutClient
 

@@ -29,74 +29,99 @@ RUN apt-get update \
     # deps for building python deps
     build-essential \
     git \
+    # npm
+    npm \
     # gcc
     gcc \
-    # node 20 for frontend build
     curl \
-    ca-certificates \
     && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install --no-install-recommends -y nodejs \
+    && apt-get install -y nodejs \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# Copy files first to avoid permission issues with bind mounts
+COPY ./uv.lock /app/uv.lock
+COPY ./README.md /app/README.md
+COPY ./pyproject.toml /app/pyproject.toml
+COPY ./src/backend/base/README.md /app/src/backend/base/README.md
+COPY ./src/backend/base/uv.lock /app/src/backend/base/uv.lock
+COPY ./src/backend/base/pyproject.toml /app/src/backend/base/pyproject.toml
+COPY ./src/lfx/README.md /app/src/lfx/README.md
+COPY ./src/lfx/pyproject.toml /app/src/lfx/pyproject.toml
+
 RUN --mount=type=cache,target=/root/.cache/uv \
-    --mount=type=bind,source=uv.lock,target=uv.lock \
-    --mount=type=bind,source=README.md,target=README.md \
-    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    --mount=type=bind,source=src/backend/base/README.md,target=src/backend/base/README.md \
-    --mount=type=bind,source=src/backend/base/uv.lock,target=src/backend/base/uv.lock \
-    --mount=type=bind,source=src/backend/base/pyproject.toml,target=src/backend/base/pyproject.toml \
-    uv sync --frozen --no-install-project --no-editable --extra postgresql
+    RUSTFLAGS='--cfg reqwest_unstable' \
+    uv sync --frozen --no-install-project --no-editable --extra postgresql --no-group dev
 
 COPY ./src /app/src
+COPY ./langbuilder_compat /app/langbuilder_compat
 
 COPY src/frontend /tmp/src/frontend
+COPY ./docker/favicon.ico /tmp/favicon.ico
 WORKDIR /tmp/src/frontend
 RUN --mount=type=cache,target=/root/.npm \
     npm ci \
-    && npm run build \
-    && cp -r build /app/src/backend/langbuilder/frontend \
+    && ESBUILD_BINARY_PATH="" NODE_OPTIONS="--max-old-space-size=4096" JOBS=1 npm run build \
+    && cp -r build /app/src/backend/langflow/frontend \
+    && cp /tmp/favicon.ico /app/src/backend/langflow/frontend/favicon.ico \
     && rm -rf /tmp/src/frontend
 
 WORKDIR /app
-COPY ./pyproject.toml /app/pyproject.toml
-COPY ./uv.lock /app/uv.lock
-COPY ./README.md /app/README.md
 
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-editable --extra postgresql
+    RUSTFLAGS='--cfg reqwest_unstable' \
+    uv sync --frozen --no-editable --extra postgresql --no-group dev
+
+# Install webrtcvad for voice mode support (enables voice_mode_available=true)
+RUN /app/.venv/bin/pip install webrtcvad-wheels
+
+# Install the langbuilder→langflow compatibility shim (no deps, no lockfile needed)
+RUN /app/.venv/bin/pip install --no-deps /app/langbuilder_compat
+
+# Auto-import the shim on every Python startup via sitecustomize
+RUN echo "import langbuilder" >> /app/.venv/lib/python3.12/site-packages/sitecustomize.py
 
 ################################
 # RUNTIME
 # Setup user, utilities and copy the virtual environment only
 ################################
-FROM python:3.12.3-slim AS runtime
+FROM python:3.12.12-slim-trixie AS runtime
+
 
 RUN apt-get update \
     && apt-get upgrade -y \
-    && apt-get install --no-install-recommends -y curl libpq5 ca-certificates \
-    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install --no-install-recommends -y nodejs \
+    && apt-get install --no-install-recommends -y curl git libpq5 gnupg xz-utils \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* \
-    && useradd user -u 1000 -g 0 --no-create-home --home-dir /app/data
+    && rm -rf /var/lib/apt/lists/*
+RUN ARCH=$(dpkg --print-architecture) \
+    && if [ "$ARCH" = "amd64" ]; then NODE_ARCH="x64"; \
+       elif [ "$ARCH" = "arm64" ]; then NODE_ARCH="arm64"; \
+       else NODE_ARCH="$ARCH"; fi \
+    && NODE_VERSION=$(curl -fsSL https://nodejs.org/dist/latest-v22.x/ \
+                    | grep -oP "node-v\K[0-9]+\.[0-9]+\.[0-9]+(?=-linux-${NODE_ARCH}\.tar\.xz)" \
+                    | head -1) \
+    && curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-${NODE_ARCH}.tar.xz" \
+    | tar -xJ -C /usr/local --strip-components=1 \
+    && npm install -g npm@latest \
+    && npm cache clean --force
+RUN useradd user -u 1000 -g 0 --no-create-home --home-dir /app/data
 
 COPY --from=builder --chown=1000 /app/.venv /app/.venv
-
-# Place executables in the environment at the front of the path
 ENV PATH="/app/.venv/bin:$PATH"
+RUN /app/.venv/bin/pip install --upgrade playwright \
+    && /app/.venv/bin/playwright install
 
 LABEL org.opencontainers.image.title=langbuilder
-LABEL org.opencontainers.image.authors=['LangBuilder']
+LABEL org.opencontainers.image.authors=['CloudGeometry']
 LABEL org.opencontainers.image.licenses=MIT
-LABEL org.opencontainers.image.url=https://github.com/CloudGeometry/langbuilder
-LABEL org.opencontainers.image.source=https://github.com/CloudGeometry/langbuilder
+LABEL org.opencontainers.image.url=https://github.com/cloudgeometry/langbuilder
+LABEL org.opencontainers.image.source=https://github.com/cloudgeometry/langbuilder
 
 USER user
 WORKDIR /app
 
-ENV LANGBUILDER_HOST=0.0.0.0
-ENV LANGBUILDER_PORT=7860
+ENV LANGFLOW_HOST=0.0.0.0
+ENV LANGFLOW_PORT=7860
 
-CMD ["langbuilder", "run"]
+CMD ["langflow", "run"]
 

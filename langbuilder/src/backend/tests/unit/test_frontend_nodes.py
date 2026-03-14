@@ -1,7 +1,7 @@
 import pytest
-from langbuilder.template.field.base import Input
-from langbuilder.template.frontend_node.base import FrontendNode
-from langbuilder.template.template.base import Template
+from lfx.template.field.base import Input
+from lfx.template.frontend_node.base import FrontendNode
+from lfx.template.template.base import Template
 
 
 @pytest.fixture
