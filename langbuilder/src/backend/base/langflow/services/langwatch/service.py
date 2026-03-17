@@ -185,6 +185,7 @@ class LangWatchService:
                 "startDate": start_date_ms,
                 "endDate": end_date_ms,
                 "pageSize": PAGE_SIZE,
+                "includeSpans": True,
             }
             if scroll_id:
                 payload["scrollId"] = scroll_id
@@ -261,11 +262,24 @@ class LangWatchService:
             else int(datetime.now(tz=timezone.utc).timestamp() * 1000)
         )
 
-        return await self._fetch_all_pages(
+        all_traces = await self._fetch_all_pages(
             api_key=api_key,
             start_date_ms=start_ms,
             end_date_ms=end_ms,
         )
+
+        # Filter to workflow-type traces only — a single flow execution creates N+1 traces
+        # (1 workflow + N component traces). Only the workflow trace represents the full execution.
+        # Guard: if spans aren't included (backward compat), keep traces with no spans.
+        filtered = [
+            t for t in all_traces
+            if not t.get("spans") or any(s.get("type") == "workflow" for s in t["spans"])
+        ]
+        logger.debug(
+            "Fetched %d traces from LangWatch (%d after workflow filter)",
+            len(all_traces), len(filtered),
+        )
+        return filtered
 
     # -- Response parsing ------------------------------------------------------
 
@@ -291,6 +305,14 @@ class LangWatchService:
                 None,
             )
 
+            # Fallback: extract from root workflow span name (OTEL SDK doesn't surface labels in API metadata)
+            spans = trace.get("spans") or []
+            if flow_name is None:
+                for span in spans:
+                    if span.get("type") == "workflow":
+                        flow_name = span.get("name")
+                        break
+
             # Cost: metrics.total_cost (float or null)
             cost = metrics.get("total_cost")
             cost_usd: float = float(cost) if cost is not None else 0.0
@@ -299,8 +321,7 @@ class LangWatchService:
             prompt_tokens = metrics.get("prompt_tokens")
             completion_tokens = metrics.get("completion_tokens")
 
-            # Model (from first span)
-            spans = trace.get("spans") or []
+            # Model (from first span — reuses `spans` from above)
             model: str | None = None
             for span in spans:
                 if span.get("model"):
@@ -402,8 +423,21 @@ class LangWatchService:
                 (lbl[6:] for lbl in labels if isinstance(lbl, str) and lbl.startswith("Flow: ")),
                 None,
             )
+            # Fallback: root workflow span name (OTEL SDK doesn't surface labels in API metadata)
+            if flow_name is None:
+                for span in trace.get("spans", []):
+                    if span.get("type") == "workflow":
+                        flow_name = span.get("name")
+                        break
             if flow_name in allowed_names:
                 filtered.append(trace)
+
+        dropped = len(traces) - len(filtered)
+        if dropped:
+            logger.debug(
+                "Ownership filter: kept %d of %d traces (%d dropped, no flow match)",
+                len(filtered), len(traces), dropped,
+            )
 
         return filtered, flow_name_map
 
