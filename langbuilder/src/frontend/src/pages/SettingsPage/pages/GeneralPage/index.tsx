@@ -25,6 +25,7 @@ import type {
   patchUserInputStateType,
 } from "../../../../types/components";
 import useScrollToElement from "../hooks/use-scroll-to-element";
+import { LangWatchKeyForm } from "../../LangWatchKeyForm";
 import GeneralPageHeaderComponent from "./components/GeneralPageHeader";
 import PasswordFormComponent from "./components/PasswordForm";
 import ProfilePictureFormComponent from "./components/ProfilePictureForm";
@@ -41,6 +42,7 @@ export const GeneralPage = () => {
   const { userData, setUserData } = useContext(AuthContext);
   const { password, cnfPassword, profilePicture } = inputState;
   const autoLogin = useAuthStore((state) => state.autoLogin);
+  const isAdmin = useAuthStore((state) => state.isAdmin);
 
   const { storeApiKey } = useContext(AuthContext);
   const setHasApiKey = useStoreStore((state) => state.updateHasApiKey);
@@ -161,6 +163,22 @@ export const GeneralPage = () => {
           />
         )}
       </div>
+
+      {isAdmin && (
+        <div className="flex w-full flex-col gap-6">
+          <div className="flex w-full items-start gap-6">
+            <div className="flex w-full flex-col">
+              <h2 className="flex items-center text-lg font-semibold tracking-tight">
+                AI Cost Tracking
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Configure LangWatch integration for usage analytics.
+              </p>
+            </div>
+          </div>
+          <LangWatchKeyForm />
+        </div>
+      )}
 
       <CustomTermsLinks />
     </div>

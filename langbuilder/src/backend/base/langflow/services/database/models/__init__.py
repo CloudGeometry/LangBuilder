@@ -3,6 +3,7 @@ from .auth import SSOConfig, SSOUserProfile
 from .file import File
 from .flow import Flow
 from .folder import Folder
+from .global_settings import GlobalSettings
 from .jobs import Job
 from .message import MessageTable
 from .traces.model import SpanTable, TraceTable
@@ -15,6 +16,7 @@ __all__ = [
     "File",
     "Flow",
     "Folder",
+    "GlobalSettings",
     "Job",
     "MessageTable",
     "SSOConfig",

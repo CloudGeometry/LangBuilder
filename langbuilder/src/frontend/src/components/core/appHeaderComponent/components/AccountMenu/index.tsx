@@ -9,7 +9,10 @@ import {
 } from "@/constants/constants";
 import { useLogout } from "@/controllers/API/queries/auth";
 import { CustomProfileIcon } from "@/customization/components/custom-profile-icon";
-import { ENABLE_DATASTAX_LANGFLOW } from "@/customization/feature-flags";
+import {
+  ENABLE_DATASTAX_LANGFLOW,
+  ENABLE_USAGE_TRACKING,
+} from "@/customization/feature-flags";
 import { useCustomNavigate } from "@/customization/hooks/use-custom-navigate";
 import useAuthStore from "@/stores/authStore";
 import { useDarkStore } from "@/stores/darkStore";
@@ -96,6 +99,21 @@ export const AccountMenu = () => {
                 Settings
               </span>
             </HeaderMenuItemButton>
+
+            {ENABLE_USAGE_TRACKING && (
+              <HeaderMenuItemButton
+                onClick={() => {
+                  navigate("/usage");
+                }}
+              >
+                <span
+                  data-testid="menu_usage_button"
+                  id="menu_usage_button"
+                >
+                  Usage
+                </span>
+              </HeaderMenuItemButton>
+            )}
 
             {isAdmin && !autoLogin && (
               <div>
