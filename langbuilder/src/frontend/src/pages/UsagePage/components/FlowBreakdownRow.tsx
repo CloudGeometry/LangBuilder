@@ -11,12 +11,16 @@ interface FlowBreakdownRowProps {
   flow: FlowUsage;
   onExpand: (flowId: string) => void;
   dateRange?: DateRange;
+  selected?: boolean;
+  onSelectChange?: (checked: boolean) => void;
 }
 
 export function FlowBreakdownRow({
   flow,
   onExpand,
   dateRange = { from: null, to: null },
+  selected,
+  onSelectChange,
 }: FlowBreakdownRowProps) {
   const [expanded, setExpanded] = useState(false);
 
@@ -33,6 +37,15 @@ export function FlowBreakdownRow({
         data-testid={`flow-breakdown-row-${flow.flow_id}`}
         className="border-b hover:bg-muted/50 transition-colors"
       >
+        <td className="px-4 py-3 w-10">
+          <input
+            type="checkbox"
+            data-testid={`select-flow-${flow.flow_id}`}
+            checked={selected ?? false}
+            onChange={(e) => onSelectChange?.(e.target.checked)}
+            className="h-4 w-4 rounded border-border"
+          />
+        </td>
         <td className="px-4 py-3 text-sm font-medium">{flow.flow_name}</td>
         <td className="px-4 py-3 text-sm">{formatCost(flow.total_cost_usd)}</td>
         <td className="px-4 py-3 text-sm">{flow.invocation_count.toLocaleString()}</td>
@@ -50,7 +63,7 @@ export function FlowBreakdownRow({
       </tr>
       {expanded && (
         <tr data-testid={`flow-runs-expanded-${flow.flow_id}`}>
-          <td colSpan={5} className="px-0 py-0">
+          <td colSpan={6} className="px-0 py-0">
             <table className="w-full">
               <tbody>
                 <FlowRunsTable flowId={flow.flow_id} dateRange={dateRange} />

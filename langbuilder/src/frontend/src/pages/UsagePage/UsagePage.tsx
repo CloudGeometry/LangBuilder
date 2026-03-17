@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { To } from "react-router-dom";
 import { useGetUsageSummary } from "./hooks/useGetUsageSummary";
 import { UsageLoadingSkeleton } from "./components/LoadingSkeleton";
@@ -8,6 +8,8 @@ import { EmptyStatePrompt } from "./components/EmptyStatePrompt";
 import { ErrorState } from "./components/ErrorState";
 import { DateRangePicker } from "./components/DateRangePicker";
 import { UserFilterDropdown } from "./components/UserFilterDropdown";
+import { SubViewToggle } from "./components/SubViewToggle";
+import { SelectionSummary } from "./components/SelectionSummary";
 import { useDebounce } from "@/hooks/useDebounce";
 import useAuthStore from "@/stores/authStore";
 import PageLayout from "@/components/common/pageLayout";
@@ -21,15 +23,22 @@ export function UsagePage() {
   const [dateRange, setDateRange] = useState<DateRange>({ from: null, to: null });
   const [userId, setUserId] = useState<string | null>(null);
   const [, setExpandedFlowId] = useState<string | null>(null);
+  const [subView, setSubView] = useState<"flows" | "mcp">("flows");
+  const [selectedFlowIds, setSelectedFlowIds] = useState<Set<string>>(new Set());
 
   const isAdmin = useAuthStore((state) => state.isAdmin);
 
   const debouncedDateRange = useDebounce(dateRange, 500);
 
+  useEffect(() => {
+    setSelectedFlowIds(new Set());
+  }, [debouncedDateRange, userId]);
+
   const { data, isLoading, isError, error, refetch } = useGetUsageSummary({
     from_date: debouncedDateRange.from,
     to_date: debouncedDateRange.to,
     user_id: userId,
+    sub_view: subView,
   });
 
   if (isLoading && !data) {
@@ -76,6 +85,8 @@ export function UsagePage() {
     return Array.from(seen, ([id, username]) => ({ id, username }));
   })();
 
+  const selectedFlows = data.flows.filter(f => selectedFlowIds.has(f.flow_id));
+
   return (
     <PageLayout title="Usage" description="Track API usage and costs." backTo={-1 as To}>
       <div className="space-y-6 p-6" data-testid="usage-dashboard">
@@ -92,11 +103,17 @@ export function UsagePage() {
             )}
           </div>
         </div>
+        <SubViewToggle value={subView} onChange={setSubView} />
         <UsageSummaryCards summary={data.summary} />
+        {selectedFlows.length > 0 && (
+          <SelectionSummary selectedFlows={selectedFlows} />
+        )}
         <FlowBreakdownList
           flows={data.flows}
           onFlowExpand={setExpandedFlowId}
           dateRange={dateRange}
+          selectedIds={selectedFlowIds}
+          onSelectionChange={setSelectedFlowIds}
         />
       </div>
     </PageLayout>

@@ -13,12 +13,16 @@ interface FlowBreakdownListProps {
   flows: FlowUsage[];
   onFlowExpand: (flowId: string) => void;
   dateRange?: DateRange;
+  selectedIds?: Set<string>;
+  onSelectionChange?: (ids: Set<string>) => void;
 }
 
 export function FlowBreakdownList({
   flows,
   onFlowExpand,
   dateRange = { from: null, to: null },
+  selectedIds,
+  onSelectionChange,
 }: FlowBreakdownListProps) {
   const [page, setPage] = useState(0);
 
@@ -45,6 +49,22 @@ export function FlowBreakdownList({
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-muted/50 border-b">
+              <th className="px-4 py-3 w-10">
+                <input
+                  type="checkbox"
+                  data-testid="select-all-checkbox"
+                  checked={selectedIds !== undefined && flows.length > 0 && flows.every(f => selectedIds.has(f.flow_id))}
+                  onChange={(e) => {
+                    if (!onSelectionChange) return;
+                    if (e.target.checked) {
+                      onSelectionChange(new Set(flows.map(f => f.flow_id)));
+                    } else {
+                      onSelectionChange(new Set());
+                    }
+                  }}
+                  className="h-4 w-4 rounded border-border"
+                />
+              </th>
               <th className="px-4 py-3 text-left font-medium text-muted-foreground">Flow</th>
               <th className="px-4 py-3 text-left font-medium text-muted-foreground">Total Cost</th>
               <th className="px-4 py-3 text-left font-medium text-muted-foreground">Invocations</th>
@@ -59,6 +79,14 @@ export function FlowBreakdownList({
                 flow={flow}
                 onExpand={onFlowExpand}
                 dateRange={dateRange}
+                selected={selectedIds?.has(flow.flow_id) ?? false}
+                onSelectChange={(checked) => {
+                  if (!onSelectionChange || !selectedIds) return;
+                  const next = new Set(selectedIds);
+                  if (checked) next.add(flow.flow_id);
+                  else next.delete(flow.flow_id);
+                  onSelectionChange(next);
+                }}
               />
             ))}
           </tbody>
