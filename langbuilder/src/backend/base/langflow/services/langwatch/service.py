@@ -709,14 +709,21 @@ class LangWatchService:
             msg = f"LangWatch connection error: {exc}"
             raise LangWatchUnavailableError(msg) from exc
 
-        # Filter traces to only those belonging to the target flow (by flow name label)
+        # Filter traces to only those belonging to the target flow
         flow_label = f"Flow: {flow_name}"
         flow_traces: list[dict] = []
         for trace in all_traces:
             metadata = trace.get("metadata") or {}
             labels: list = metadata.get("labels") or []
+            # Primary: match by label
             if flow_label in labels:
                 flow_traces.append(trace)
+                continue
+            # Fallback: match by root workflow span name (OTEL SDK doesn't surface labels)
+            for span in trace.get("spans", []):
+                if span.get("type") == "workflow" and span.get("name") == flow_name:
+                    flow_traces.append(trace)
+                    break
 
         # Parse traces into RunDetail objects
         run_details: list[RunDetail] = []

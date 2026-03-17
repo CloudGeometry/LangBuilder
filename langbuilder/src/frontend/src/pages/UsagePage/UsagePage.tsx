@@ -94,7 +94,7 @@ export function UsagePage() {
           <h1 className="text-2xl font-bold">Usage</h1>
           <div className="flex gap-4 items-center">
             <DateRangePicker value={dateRange} onChange={setDateRange} />
-            {isAdmin && uniqueUsers.length >= 2 && (
+            {isAdmin && (
               <UserFilterDropdown
                 value={userId}
                 onChange={setUserId}

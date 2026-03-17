@@ -47,6 +47,7 @@ export function FlowBreakdownRow({
           />
         </td>
         <td className="px-4 py-3 text-sm font-medium">{flow.flow_name}</td>
+        <td className="px-4 py-3 text-sm text-muted-foreground">{flow.owner_username || "—"}</td>
         <td className="px-4 py-3 text-sm">{formatCost(flow.total_cost_usd)}</td>
         <td className="px-4 py-3 text-sm">{flow.invocation_count.toLocaleString()}</td>
         <td className="px-4 py-3 text-sm">{formatCost(flow.avg_cost_per_invocation_usd)}</td>
@@ -63,7 +64,7 @@ export function FlowBreakdownRow({
       </tr>
       {expanded && (
         <tr data-testid={`flow-runs-expanded-${flow.flow_id}`}>
-          <td colSpan={6} className="px-0 py-0">
+          <td colSpan={7} className="px-0 py-0">
             <table className="w-full">
               <tbody>
                 <FlowRunsTable flowId={flow.flow_id} dateRange={dateRange} />

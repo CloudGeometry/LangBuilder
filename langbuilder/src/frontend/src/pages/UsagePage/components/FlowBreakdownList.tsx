@@ -66,6 +66,7 @@ export function FlowBreakdownList({
                 />
               </th>
               <th className="px-4 py-3 text-left font-medium text-muted-foreground">Flow</th>
+              <th className="px-4 py-3 text-left font-medium text-muted-foreground">Owner</th>
               <th className="px-4 py-3 text-left font-medium text-muted-foreground">Total Cost</th>
               <th className="px-4 py-3 text-left font-medium text-muted-foreground">Invocations</th>
               <th className="px-4 py-3 text-left font-medium text-muted-foreground">Avg Cost</th>
