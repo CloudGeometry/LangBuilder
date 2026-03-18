@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 from typing import TYPE_CHECKING, Any, cast
 
 import nanoid
@@ -161,9 +162,14 @@ class LangWatchTracer(BaseTracer):
         )
 
         if metadata and "flow_name" in metadata:
-            self.trace.update(metadata=(self.trace.metadata or {}) | {"labels": [f"Flow: {metadata['flow_name']}"]})
+            self.trace.update(metadata=(self.trace.metadata or {}) | {
+                "labels": [f"Flow: {metadata['flow_name']}"],
+                "flow_id": self.flow_id,  # Stable identifier — survives flow renames
+            })
 
-        if self.trace.api_key or self._client._api_key:
+        from langwatch.state import get_api_key
+
+        if self.trace.api_key or get_api_key():
             try:
                 self.trace.__exit__(None, None, None)
             except ValueError:  # ignoring token was created in a different Context errors
@@ -221,6 +227,15 @@ class LangWatchTracer(BaseTracer):
             # updates are silently dropped.
             span = callback.spans.get(str(run_id))
             if span is not None:
+                # Fix A: Normalize model name so LangWatch's pricing table can match it.
+                # LangChain sends raw API model IDs (e.g. "anthropic/claude-haiku-4-5-20251001")
+                # but LangWatch's pricing table uses simplified names ("anthropic/claude-haiku-4.5").
+                if span.model:
+                    normalized = _normalize_model_name(span.model)
+                    if normalized != span.model:
+                        span.update(model=normalized)
+
+                # Fix B: Inject token metrics for Anthropic and streaming responses.
                 prompt_tokens, completion_tokens = _extract_tokens_from_response(response)
                 if prompt_tokens is not None or completion_tokens is not None:
                     # Check if the SDK will handle this itself (OpenAI token_usage path)
@@ -242,6 +257,22 @@ class LangWatchTracer(BaseTracer):
 
         callback.on_llm_end = _patched_on_llm_end
         return callback
+
+
+def _normalize_model_name(model: str) -> str:
+    """Normalize model names to match LangWatch's pricing table format.
+
+    LangChain sends raw API model IDs with date suffixes and dashes for versions
+    (e.g. "anthropic/claude-haiku-4-5-20251001"), but LangWatch's pricing table
+    uses simplified names with dots (e.g. "anthropic/claude-haiku-4.5").
+
+    Strips the date suffix and converts version dashes to dots.
+    """
+    # Strip date suffix: -YYYYMMDD (8 digits at end)
+    normalized = re.sub(r"-\d{8}$", "", model)
+    # Convert version dashes to dots: X-Y -> X.Y (single digits only)
+    normalized = re.sub(r"(\d)-(\d)", r"\1.\2", normalized)
+    return normalized
 
 
 def _extract_tokens_from_response(response) -> tuple[int | None, int | None]:
