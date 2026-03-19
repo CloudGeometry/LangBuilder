@@ -298,3 +298,6 @@ nt1/
 
 # Antoine folder
 Antoine/
+
+# AI-MSL platform eval artifacts
+.cg-aix-sdlc/
