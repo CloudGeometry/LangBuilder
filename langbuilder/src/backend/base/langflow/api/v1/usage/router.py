@@ -8,8 +8,11 @@ Implements four endpoints:
 """
 from __future__ import annotations
 
+import os
+import random
+from datetime import date, datetime, timedelta, timezone
 from typing import TYPE_CHECKING, Annotated
-from uuid import UUID
+from uuid import UUID, uuid5, NAMESPACE_DNS
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import select
@@ -143,6 +146,181 @@ def _empty_summary(params: UsageQueryParams) -> UsageResponse:
     )
 
 
+# ── Demo Mode Helpers ─────────────────────────────────────────────────────────
+
+_DEMO_MODE = os.getenv("USAGE_DEMO_MODE", "").lower() == "true"
+
+
+async def _generate_demo_summary(
+    params: UsageQueryParams,
+    db: "AsyncSession",
+    current_user: User,
+) -> UsageResponse:
+    """Generate realistic multi-day mock usage data using real flow names from DB."""
+    from langflow.services.langwatch.schemas import (
+        DailyCost,
+        DateRange,
+        FlowUsage,
+        UsageSummary,
+    )
+
+    # Query real flows from DB (with ownership filtering)
+    if current_user.is_superuser and not params.user_id:
+        stmt = select(Flow.id, Flow.name, Flow.user_id, User.username).join(
+            User, Flow.user_id == User.id, isouter=True
+        ).where(Flow.user_id.isnot(None))
+    elif current_user.is_superuser and params.user_id:
+        stmt = select(Flow.id, Flow.name, Flow.user_id, User.username).join(
+            User, Flow.user_id == User.id, isouter=True
+        ).where(Flow.user_id == params.user_id)
+    else:
+        stmt = select(Flow.id, Flow.name, Flow.user_id, User.username).join(
+            User, Flow.user_id == User.id, isouter=True
+        ).where(Flow.user_id == current_user.id)
+
+    result = await db.execute(stmt)
+    rows = result.fetchall()
+    if not rows:
+        return _empty_summary(params)
+
+    # Date range
+    end = params.to_date or date.today()
+    start = params.from_date or (end - timedelta(days=30))
+    if (end - start).days > 366:
+        start = end - timedelta(days=366)
+
+    # Seed random for deterministic output
+    seed_str = f"{start}:{end}:{params.sub_view}:{params.user_id}"
+    rng = random.Random(seed_str)
+
+    # Assign each flow a "popularity weight" (power law)
+    flow_weights = {}
+    for row in rows:
+        flow_weights[row.id] = rng.paretovariate(1.5)
+    total_weight = sum(flow_weights.values())
+
+    # Generate daily data
+    day_totals: dict[date, dict] = {}
+    flow_totals: dict[UUID, dict] = {
+        r.id: {"name": r.name, "user_id": r.user_id or UUID(int=0),
+               "username": r.username or "", "cost": 0.0, "count": 0}
+        for r in rows
+    }
+
+    d = start
+    while d <= end:
+        # Weekday/weekend multiplier
+        weekday = d.weekday()
+        day_mult = 1.0 if weekday < 5 else (0.3 if weekday == 5 else 0.1)
+        day_mult *= rng.uniform(0.7, 1.3)  # daily variation
+
+        day_cost = 0.0
+        day_count = 0
+
+        for row in rows:
+            weight = flow_weights[row.id] / total_weight
+            # Invocations: proportional to weight, scaled by day multiplier
+            invocations = max(0, int(rng.gauss(weight * 30, weight * 10) * day_mult))
+            if invocations == 0 and rng.random() < 0.3:
+                invocations = rng.randint(1, 3)  # some minimum activity
+
+            # Cost per invocation: $0.008 - $0.04 (Opus range)
+            cost = sum(rng.uniform(0.008, 0.04) for _ in range(invocations))
+
+            flow_totals[row.id]["cost"] += cost
+            flow_totals[row.id]["count"] += invocations
+            day_cost += cost
+            day_count += invocations
+
+        day_totals[d] = {"cost": round(day_cost, 6), "count": day_count}
+        d += timedelta(days=1)
+
+    # Build daily_costs
+    daily_costs = [
+        DailyCost(date=d, cost_usd=v["cost"], invocations=v["count"])
+        for d, v in sorted(day_totals.items())
+    ]
+
+    # Build flow usages
+    flow_usages = [
+        FlowUsage(
+            flow_id=fid,
+            flow_name=ft["name"],
+            total_cost_usd=round(ft["cost"], 6),
+            invocation_count=ft["count"],
+            avg_cost_per_invocation_usd=round(ft["cost"] / ft["count"], 6) if ft["count"] > 0 else 0.0,
+            owner_user_id=ft["user_id"],
+            owner_username=ft["username"],
+        )
+        for fid, ft in flow_totals.items()
+        if ft["count"] > 0
+    ]
+    flow_usages.sort(key=lambda f: f.total_cost_usd, reverse=True)
+
+    total_cost = sum(f.total_cost_usd for f in flow_usages)
+    total_inv = sum(f.invocation_count for f in flow_usages)
+
+    return UsageResponse(
+        summary=UsageSummary(
+            total_cost_usd=round(total_cost, 6),
+            total_invocations=total_inv,
+            avg_cost_per_invocation_usd=round(total_cost / total_inv, 6) if total_inv > 0 else 0.0,
+            active_flow_count=len(flow_usages),
+            date_range=DateRange(from_=start, to=end),
+        ),
+        flows=flow_usages,
+        daily_costs=daily_costs,
+    )
+
+
+def _generate_demo_runs(flow_id: UUID, flow_name: str, query: FlowRunsQueryParams) -> FlowRunsResponse:
+    """Generate mock run details for a flow drill-down."""
+    from langflow.services.langwatch.schemas import RunDetail
+
+    end = query.to_date or date.today()
+    start = query.from_date or (end - timedelta(days=30))
+
+    rng = random.Random(f"{flow_id}:{start}:{end}")
+    runs = []
+
+    for i in range(query.limit):
+        # Spread runs across the date range
+        day_offset = rng.randint(0, max(0, (end - start).days))
+        run_date = start + timedelta(days=day_offset)
+        hour = rng.randint(8, 18)
+        minute = rng.randint(0, 59)
+        started_at = datetime(run_date.year, run_date.month, run_date.day,
+                              hour, minute, rng.randint(0, 59), tzinfo=timezone.utc)
+
+        input_tokens = rng.randint(500, 5000)
+        output_tokens = rng.randint(200, 3000)
+        cost = round(input_tokens * 0.000015 + output_tokens * 0.000075, 6)
+        status = "error" if rng.random() < 0.05 else "success"
+
+        runs.append(RunDetail(
+            run_id=str(uuid5(NAMESPACE_DNS, f"demo-run-{flow_id}-{i}")),
+            started_at=started_at,
+            cost_usd=cost,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            total_tokens=input_tokens + output_tokens,
+            model="anthropic/claude-opus-4",
+            duration_ms=rng.randint(2000, 15000),
+            status=status,
+        ))
+
+    runs.sort(key=lambda r: r.started_at, reverse=True)
+
+    total_in_period = rng.randint(query.limit, query.limit * 5)
+
+    return FlowRunsResponse(
+        flow_id=flow_id,
+        flow_name=flow_name,
+        runs=runs,
+        total_runs_in_period=total_in_period,
+    )
+
+
 # ── Endpoint 1: GET /usage/ ───────────────────────────────────────────────────
 
 
@@ -167,6 +345,10 @@ async def get_usage_summary(
         user_id=user_id,
         sub_view=sub_view,
     )
+
+    # ── Demo Mode ─────────────────────────────────────────────────────────────
+    if _DEMO_MODE:
+        return await _generate_demo_summary(params, db, current_user)
 
     # ── Ownership Filter Logic ────────────────────────────────────────────────
     # Non-admins: always own flows only (params.user_id silently ignored)
@@ -212,6 +394,12 @@ async def get_flow_runs(
     Non-admins can only access flows they own (returns 403 otherwise).
     """
     query = FlowRunsQueryParams(from_date=from_date, to_date=to_date, limit=limit)
+
+    # ── Demo Mode ─────────────────────────────────────────────────────────────
+    if _DEMO_MODE:
+        result = await db.execute(select(Flow.name).where(Flow.id == flow_id))
+        row = result.fetchone()
+        return _generate_demo_runs(flow_id, row[0] if row else "Unknown Flow", query)
 
     # Ownership check — look up flow in DB
     result = await db.execute(select(Flow.id, Flow.name, Flow.user_id).where(Flow.id == flow_id))

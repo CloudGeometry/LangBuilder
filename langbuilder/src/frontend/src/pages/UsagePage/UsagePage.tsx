@@ -10,6 +10,7 @@ import { DateRangePicker } from "./components/DateRangePicker";
 import { UserFilterDropdown } from "./components/UserFilterDropdown";
 import { SubViewToggle } from "./components/SubViewToggle";
 import { SelectionSummary } from "./components/SelectionSummary";
+import { CostTrendChart } from "./components/CostTrendChart";
 import { useDebounce } from "@/hooks/useDebounce";
 import useAuthStore from "@/stores/authStore";
 import PageLayout from "@/components/common/pageLayout";
@@ -105,6 +106,7 @@ export function UsagePage() {
         </div>
         <SubViewToggle value={subView} onChange={setSubView} />
         <UsageSummaryCards summary={data.summary} />
+        <CostTrendChart dailyCosts={data.daily_costs} truncated={data.summary.truncated} />
         {selectedFlows.length > 0 && (
           <SelectionSummary selectedFlows={selectedFlows} />
         )}

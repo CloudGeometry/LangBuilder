@@ -34,9 +34,16 @@ export interface FlowUsage {
   owner_username: string;
 }
 
+export interface DailyCost {
+  date: string;
+  cost_usd: number;
+  invocations: number;
+}
+
 export interface UsageResponse {
   summary: UsageSummary;
   flows: FlowUsage[];
+  daily_costs?: DailyCost[];
 }
 
 export interface RunDetail {

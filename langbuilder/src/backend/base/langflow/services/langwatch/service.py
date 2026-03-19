@@ -462,6 +462,7 @@ class LangWatchService:
             UsageResponse with per-flow aggregates and summary totals.
         """
         from langflow.services.langwatch.schemas import (
+            DailyCost,
             DateRange,
             FlowUsage,
             UsageResponse,
@@ -471,10 +472,15 @@ class LangWatchService:
         # Parse each trace
         parsed = [p for t in traces if (p := self._parse_trace(t)) is not None]
 
-        # Group by flow_name
+        # Group by flow_name AND bucket by date (single pass)
         groups: dict[str | None, list[dict]] = defaultdict(list)
+        day_buckets: dict[datetime, dict] = defaultdict(lambda: {"cost": 0.0, "count": 0})
         for p in parsed:
             groups[p["flow_name"]].append(p)
+            if p.get("started_at_ms") is not None and p.get("flow_name") is not None:
+                d = datetime.fromtimestamp(p["started_at_ms"] / 1000, tz=timezone.utc).date()
+                day_buckets[d]["cost"] += p["cost_usd"]
+                day_buckets[d]["count"] += 1
 
         # Build per-flow aggregates
         nil_uuid = UUID(int=0)
@@ -527,7 +533,27 @@ class LangWatchService:
             truncated=len(traces) >= MAX_PAGES * PAGE_SIZE,
         )
 
-        return UsageResponse(summary=summary, flows=flow_usages)
+        # Build daily_costs with gap-filling
+        daily_costs: list[DailyCost] = []
+        if day_buckets:
+            from datetime import timedelta
+
+            start = params.from_date if params.from_date else min(day_buckets.keys())
+            end = params.to_date if params.to_date else max(day_buckets.keys())
+            # Cap at 366 days to prevent unbounded arrays
+            if (end - start).days > 366:
+                start = end - timedelta(days=366)
+            d = start
+            while d <= end:
+                bucket = day_buckets.get(d, {"cost": 0.0, "count": 0})
+                daily_costs.append(DailyCost(
+                    date=d,
+                    cost_usd=round(bucket["cost"], 6),
+                    invocations=bucket["count"],
+                ))
+                d += timedelta(days=1)
+
+        return UsageResponse(summary=summary, flows=flow_usages, daily_costs=daily_costs)
 
     # -- Cache helpers ---------------------------------------------------------
 

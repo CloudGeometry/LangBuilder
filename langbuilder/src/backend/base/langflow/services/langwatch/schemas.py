@@ -60,9 +60,16 @@ class FlowUsage(BaseModel):
     owner_username: str
 
 
+class DailyCost(BaseModel):
+    date: date
+    cost_usd: float
+    invocations: int
+
+
 class UsageResponse(BaseModel):
     summary: UsageSummary
     flows: list[FlowUsage]
+    daily_costs: list[DailyCost] = Field(default_factory=list)
 
 
 class RunDetail(BaseModel):
