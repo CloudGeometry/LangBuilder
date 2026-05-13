@@ -17,6 +17,7 @@ import {
   ENABLE_CUSTOM_PARAM,
   ENABLE_FILE_MANAGEMENT,
   ENABLE_KNOWLEDGE_BASES,
+  ENABLE_USAGE_TRACKING,
 } from "./customization/feature-flags";
 import { CustomRoutesStore } from "./customization/utils/custom-routes-store";
 import { CustomRoutesStorePages } from "./customization/utils/custom-routes-store-pages";
@@ -39,6 +40,7 @@ import ModelProvidersPage from "./pages/SettingsPage/pages/ModelProvidersPage";
 import MessagesPage from "./pages/SettingsPage/pages/messagesPage";
 import ShortcutsPage from "./pages/SettingsPage/pages/ShortcutsPage";
 import ViewPage from "./pages/ViewPage";
+import { UsagePage } from "./pages/UsagePage";
 
 const AdminPage = lazy(() => import("./pages/AdminPage"));
 const LoginAdminPage = lazy(() => import("./pages/AdminPage/LoginPage"));
@@ -138,6 +140,9 @@ const router = createBrowserRouter(
                     />
                   </Route>
                 </Route>
+                {ENABLE_USAGE_TRACKING && (
+                  <Route path="usage" element={<UsagePage />} />
+                )}
                 <Route path="settings" element={<SettingsPage />}>
                   <Route
                     index

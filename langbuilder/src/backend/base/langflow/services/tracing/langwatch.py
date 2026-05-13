@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 from typing import TYPE_CHECKING, Any, cast
 
 import nanoid
@@ -161,9 +162,14 @@ class LangWatchTracer(BaseTracer):
         )
 
         if metadata and "flow_name" in metadata:
-            self.trace.update(metadata=(self.trace.metadata or {}) | {"labels": [f"Flow: {metadata['flow_name']}"]})
+            self.trace.update(metadata=(self.trace.metadata or {}) | {
+                "labels": [f"Flow: {metadata['flow_name']}"],
+                "flow_id": self.flow_id,  # Stable identifier — survives flow renames
+            })
 
-        if self.trace.api_key or self._client._api_key:
+        from langwatch.state import get_api_key
+
+        if self.trace.api_key or get_api_key():
             try:
                 self.trace.__exit__(None, None, None)
             except ValueError:  # ignoring token was created in a different Context errors
@@ -207,4 +213,110 @@ class LangWatchTracer(BaseTracer):
         if self.trace is None:
             return None
 
-        return self.trace.get_langchain_callback()
+        callback = self.trace.get_langchain_callback()
+        if callback is None:
+            return None
+
+        original_on_llm_end = callback.on_llm_end
+
+        def _patched_on_llm_end(response, *, run_id, **kwargs):
+            # The SDK only checks llm_output["token_usage"] (OpenAI format).
+            # Anthropic and streaming responses store tokens elsewhere.
+            # We must inject BEFORE calling the original because it closes
+            # the OTel span via span.__exit__(), after which attribute
+            # updates are silently dropped.
+            span = callback.spans.get(str(run_id))
+            if span is not None:
+                # Fix A: Normalize model name so LangWatch's pricing table can match it.
+                # LangChain sends raw API model IDs (e.g. "anthropic/claude-haiku-4-5-20251001")
+                # but LangWatch's pricing table uses simplified names ("anthropic/claude-haiku-4.5").
+                if span.model:
+                    normalized = _normalize_model_name(span.model)
+                    if normalized != span.model:
+                        span.update(model=normalized)
+
+                # Fix B: Inject token metrics for Anthropic and streaming responses.
+                prompt_tokens, completion_tokens = _extract_tokens_from_response(response)
+                if prompt_tokens is not None or completion_tokens is not None:
+                    # Check if the SDK will handle this itself (OpenAI token_usage path)
+                    llm_output = getattr(response, "llm_output", None) or {}
+                    sdk_will_handle = isinstance(llm_output, dict) and "token_usage" in llm_output
+                    if not sdk_will_handle:
+                        try:
+                            from langwatch.domain import SpanMetrics
+
+                            span.update(metrics=SpanMetrics(
+                                prompt_tokens=prompt_tokens,
+                                completion_tokens=completion_tokens,
+                            ))
+                        except Exception:  # noqa: BLE001
+                            logger.debug("Failed to inject token metrics into LangWatch span")
+
+            # Let the SDK handle everything else (output capture, span closing)
+            return original_on_llm_end(response, run_id=run_id, **kwargs)
+
+        callback.on_llm_end = _patched_on_llm_end
+        return callback
+
+
+def _normalize_model_name(model: str) -> str:
+    """Normalize model names to match LangWatch's pricing table format.
+
+    LangChain sends raw API model IDs with date suffixes and dashes for versions
+    (e.g. "anthropic/claude-haiku-4-5-20251001"), but LangWatch's pricing table
+    uses simplified names with dots (e.g. "anthropic/claude-haiku-4.5").
+
+    Strips the date suffix and converts version dashes to dots.
+    """
+    # Strip date suffix: -YYYYMMDD (8 digits at end)
+    normalized = re.sub(r"-\d{8}$", "", model)
+    # Convert version dashes to dots: X-Y -> X.Y (single digits only)
+    normalized = re.sub(r"(\d)-(\d)", r"\1.\2", normalized)
+    return normalized
+
+
+def _extract_tokens_from_response(response) -> tuple[int | None, int | None]:
+    """Extract token counts from LLMResult using 3 strategies.
+
+    Mirrors the multi-location fallback in native_callback.py._extract_token_usage().
+    """
+    prompt_tokens: int | None = None
+    completion_tokens: int | None = None
+
+    llm_output = getattr(response, "llm_output", None) or {}
+
+    # Strategy 1: OpenAI format -- llm_output["token_usage"]
+    if isinstance(llm_output, dict) and "token_usage" in llm_output:
+        usage = llm_output["token_usage"]
+        if isinstance(usage, dict):
+            prompt_tokens = usage.get("prompt_tokens")
+            completion_tokens = usage.get("completion_tokens")
+
+    # Strategy 2: Anthropic format -- llm_output["usage"] with input_tokens/output_tokens
+    if prompt_tokens is None and isinstance(llm_output, dict) and "usage" in llm_output:
+        usage = llm_output["usage"]
+        if isinstance(usage, dict):
+            prompt_tokens = usage.get("input_tokens")
+            completion_tokens = usage.get("output_tokens")
+
+    # Strategy 3: LangChain unified usage_metadata on AIMessage (works for streaming)
+    if prompt_tokens is None:
+        for gen_list in getattr(response, "generations", []) or []:
+            for gen in gen_list:
+                message = getattr(gen, "message", None)
+                if message is not None:
+                    usage_meta = getattr(message, "usage_metadata", None)
+                    if usage_meta:
+                        _get = (
+                            usage_meta.get
+                            if isinstance(usage_meta, dict)
+                            else lambda k, d=None, _u=usage_meta: getattr(_u, k, d)
+                        )
+                        prompt_tokens = _get("input_tokens")
+                        completion_tokens = _get("output_tokens")
+                        if prompt_tokens is not None:
+                            break
+            if prompt_tokens is not None:
+                break
+
+    return prompt_tokens, completion_tokens
